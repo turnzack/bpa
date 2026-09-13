@@ -1,8 +1,8 @@
 {
   "regions": ["cdg1"],
-  "buildCommand": "pnpm build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install",
+  "installCommand": "npm install",
   "headers": [
     {
       "source": "/index.html",
