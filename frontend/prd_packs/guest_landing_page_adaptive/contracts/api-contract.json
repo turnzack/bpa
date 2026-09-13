@@ -1,0 +1,32 @@
+{
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/contact",
+      "request": {
+        "body": {
+          "name": "string",
+          "email": "string",
+          "message": "string"
+        }
+      },
+      "response": {
+        "success": "boolean",
+        "message": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analytics",
+      "request": {
+        "body": {
+          "type": "string",
+          "metadata": "object"
+        }
+      },
+      "response": {
+        "success": "boolean"
+      }
+    }
+  ]
+}

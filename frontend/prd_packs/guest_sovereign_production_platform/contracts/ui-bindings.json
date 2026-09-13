@@ -1,0 +1,34 @@
+{
+  "bindings": [
+    {
+      "component": "LoginForm",
+      "slice": "auth",
+      "actions": ["login"],
+      "selectors": ["selectAuthStatus", "selectUser"]
+    },
+    {
+      "component": "ProductList",
+      "slice": "products",
+      "actions": ["fetchProducts"],
+      "selectors": ["selectAllProducts", "selectProductsStatus"]
+    },
+    {
+      "component": "ProductForm",
+      "slice": "products",
+      "actions": ["createProduct", "updateProduct"],
+      "selectors": ["selectProductsStatus"]
+    },
+    {
+      "component": "OrderList",
+      "slice": "orders",
+      "actions": ["fetchOrders"],
+      "selectors": ["selectAllOrders", "selectOrdersStatus"]
+    },
+    {
+      "component": "OrderDetail",
+      "slice": "orders",
+      "actions": ["updateOrderStatus"],
+      "selectors": ["selectOrderById"]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "acceptanceTests": [
+    {
+      "id": "AC-001",
+      "description": "L'utilisateur peut soumettre une idée et recevoir une proposition analysée.",
+      "steps": [
+        "Ouvrir l'application",
+        "Saisir une idée de jeu",
+        "Cliquer sur Analyser",
+        "Voir la proposition affichée"
+      ],
+      "expectedResult": "La proposition est affichée avec les détails du concept."
+    },
+    {
+      "id": "AC-002",
+      "description": "L'utilisateur peut générer un pack PRD/GDD complet.",
+      "steps": [
+        "Avoir une proposition acceptée",
+        "Cliquer sur Générer le pack",
+        "Attendre la génération",
+        "Voir le pack affiché"
+      ],
+      "expectedResult": "Le pack est affiché avec les documents PRD et GDD."
+    },
+    {
+      "id": "AC-003",
+      "description": "L'utilisateur peut exporter le pack en ZIP.",
+      "steps": [
+        "Avoir un pack généré",
+        "Cliquer sur Exporter",
+        "Télécharger le fichier ZIP"
+      ],
+      "expectedResult": "Un fichier ZIP est téléchargé contenant tous les documents."
+    },
+    {
+      "id": "AC-004",
+      "description": "L'utilisateur peut configurer sa clé API.",
+      "steps": [
+        "Ouvrir le modal de configuration",
+        "Saisir la clé API",
+        "Sauvegarder",
+        "Voir le statut configuré"
+      ],
+      "expectedResult": "La clé API est sauvegardée et le statut passe à configuré."
+    }
+  ]
+}

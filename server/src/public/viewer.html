@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SolarScan 3D Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: sans-serif;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">Chargement du modèle... 0%</div>
+    <div id="canvas-container"></div>
+
+    <!-- Three.js & Loaders via CDN -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+        import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+
+        // Configuration
+        const jobId = window.location.pathname.split('/').pop();
+        const baseUrl = `/results/${jobId}/`;
+
+        // Scene Setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Loaders
+        const manager = new THREE.LoadingManager();
+        manager.onProgress = function (url, itemsLoaded, itemsTotal) {
+            const percent = Math.round((itemsLoaded / itemsTotal) * 100);
+            document.getElementById('loading').innerText = `Chargement... ${percent}%`;
+        };
+        manager.onLoad = function () {
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        // Try to load manifest/file list to find .obj and .mtl names?
+        // Simpler: Assume standard names or ask API.
+        // For now, let's fetch the job details first to get the OBJ filename.
+
+        async function init() {
+            // UI Controls
+            setupControls();
+
+            try {
+                console.log("Fetching job details for:", jobId);
+                document.getElementById('loading').innerText = "Connexion au serveur...";
+
+                const resp = await fetch(`/jobs/${jobId}`);
+                console.log("Response status:", resp.status);
+
+                if (!resp.ok) {
+                    const errorText = `Erreur serveur: ${resp.status}`;
+                    console.error(errorText);
+                    document.getElementById('loading').innerText = errorText;
+                    throw new Error("Job not found");
+                }
+
+                const job = await resp.json();
+                console.log("Job data:", job);
+
+                if (!job.objUrl) {
+                    const errorMsg = "Erreur : Pas de modèle OBJ trouvé.";
+                    console.error(errorMsg, "Job:", job);
+                    document.getElementById('loading').innerText = errorMsg;
+                    return;
+                }
+
+                console.log("OBJ URL:", job.objUrl);
+
+                const objPath = job.objUrl;
+                const mtlPath = objPath.replace('.obj', '.mtl');
+
+                const mtlLoader = new MTLLoader(manager);
+
+                // TIMEOUT LOGIC: If MTL takes > 10 seconds, assume it's stuck and force OBJ only
+                let mtlLoaded = false;
+                const mtlTimeout = setTimeout(() => {
+                    if (!mtlLoaded) {
+                        console.warn("MTL Load Timeout (10s) - forcing OBJ only");
+                        document.getElementById('loading').innerText = "Timeout texture - chargement géométrie...";
+                        loadObjOnly(objPath);
+                    }
+                }, 10000);
+
+                document.getElementById('loading').innerText = "Chargement matériaux...";
+
+                mtlLoader.load(mtlPath, (materials) => {
+                    mtlLoaded = true;
+                    clearTimeout(mtlTimeout);
+                    materials.preload();
+
+                    const objLoader = new OBJLoader(manager);
+                    objLoader.setMaterials(materials);
+
+                    objLoader.load(objPath, (object) => {
+                        setupScene(object);
+                    }, undefined, (err) => {
+                        console.warn("OBJ Load Error", err);
+                        loadObjOnly(objPath);
+                    });
+                }, (xhr) => {
+                    if (xhr.total > 0) {
+                        const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                        document.getElementById('loading').innerText = `Matière... ${percent}%`;
+                    }
+                }, (err) => {
+                    mtlLoaded = true;
+                    clearTimeout(mtlTimeout);
+                    console.warn("MTL Error", err);
+                    loadObjOnly(objPath);
+                });
+
+            } catch (e) {
+                console.error("Init error:", e);
+                const errorMsg = `Erreur: ${e.message || e}`;
+                document.getElementById('loading').innerText = errorMsg;
+                document.getElementById('loading').style.color = '#ff4444';
+            }
+        }
+
+        function setupControls() {
+            // Add simple UI overlay for controls
+            const controlsDiv = document.createElement('div');
+            controlsDiv.style.position = 'absolute';
+            controlsDiv.style.bottom = '20px';
+            controlsDiv.style.left = '50%';
+            controlsDiv.style.transform = 'translateX(-50%)';
+            controlsDiv.style.display = 'flex';
+            controlsDiv.style.gap = '10px';
+            controlsDiv.style.zIndex = '100';
+
+            const btnStyle = "background:rgba(0,0,0,0.6); color:white; border:1px solid #555; padding:8px 15px; border-radius:20px; cursor:pointer;";
+
+            // Rotate Toggle
+            const rotBtn = document.createElement('button');
+            rotBtn.innerText = "🔄 Auto-Rotate";
+            rotBtn.style.cssText = btnStyle;
+            rotBtn.onclick = () => { controls.autoRotate = !controls.autoRotate; };
+            controlsDiv.appendChild(rotBtn);
+
+            // Wireframe Toggle
+            const wireBtn = document.createElement('button');
+            wireBtn.innerText = "🕸️ Wireframe";
+            wireBtn.style.cssText = btnStyle;
+            wireBtn.onclick = () => {
+                scene.traverse(child => {
+                    if (child.isMesh && child.material) {
+                        child.material.wireframe = !child.material.wireframe;
+                    }
+                });
+            };
+            controlsDiv.appendChild(wireBtn);
+
+            // Bg Color
+            const bgBtn = document.createElement('button');
+            bgBtn.innerText = "🎨 Fond";
+            bgBtn.style.cssText = btnStyle;
+            bgBtn.onclick = () => {
+                const randomColor = Math.floor(Math.random() * 16777215);
+                scene.background = new THREE.Color(randomColor);
+            };
+            controlsDiv.appendChild(bgBtn);
+
+            document.body.appendChild(controlsDiv);
+        }
+
+        function setupScene(object) {
+            const box = new THREE.Box3().setFromObject(object);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 5 / maxDim;
+
+            object.position.sub(center); // Center at 0,0,0
+            object.scale.setScalar(scale); // Fit to view
+
+            scene.add(object);
+        }
+
+        function loadObjOnly(url) {
+            document.getElementById('loading').innerText = "Chargement Géométrie seule...";
+            const objLoader = new OBJLoader(manager);
+            objLoader.load(url, (object) => {
+                setupScene(object);
+
+                // Add a basic material
+                object.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xcccccc,
+                            roughness: 0.5,
+                            metalness: 0.1
+                        });
+                    }
+                });
+            }, (xhr) => {
+                if (xhr.total > 0) {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    document.getElementById('loading').innerText = `Géométrie... ${percent}%`;
+                }
+            }, (err) => {
+                document.getElementById('loading').innerText = "Erreur chargement modèle";
+            });
+        }
+
+
+
+        init();
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+{
+  "uiBindings": [
+    {
+      "component": "WorkflowCanvas",
+      "description": "Visual editor for workflows using ReactFlow.",
+      "state": "workflows.currentWorkflow",
+      "actions": ["updateWorkflow", "saveWorkflow"],
+      "props": { "nodes": [], "connections": [] }
+    },
+    {
+      "component": "WorkflowList",
+      "description": "List of workflows with actions.",
+      "state": "workflows.items",
+      "actions": ["fetchWorkflows", "deleteWorkflow", "setCurrentWorkflow"],
+      "props": { "workflows": [] }
+    },
+    {
+      "component": "ExecutionHistory",
+      "description": "Shows execution logs and status.",
+      "state": "executions.items",
+      "actions": ["fetchExecutions"],
+      "props": { "executions": [] }
+    },
+    {
+      "component": "AIGeneratorModal",
+      "description": "Modal to input natural language and generate workflow.",
+      "state": "local",
+      "actions": ["generateWorkflow"],
+      "props": { "description": "string" }
+    }
+  ]
+}

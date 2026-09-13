@@ -1,0 +1,30 @@
+{
+  "workflows": [
+    {
+      "id": "WF-001",
+      "name": "Initial Load",
+      "steps": [
+        "Page loads with default light theme",
+        "Particle canvas starts automatically",
+        "Hero section fades in"
+      ]
+    },
+    {
+      "id": "WF-002",
+      "name": "Toggle Theme",
+      "steps": [
+        "User clicks theme toggle",
+        "Theme switches from light to dark (or vice versa)",
+        "CSS variables update, colors change smoothly"
+      ]
+    },
+    {
+      "id": "WF-003",
+      "name": "Scroll Interaction",
+      "steps": [
+        "User scrolls down",
+        "Sections animate into view using Framer Motion"
+      ]
+    }
+  ]
+}

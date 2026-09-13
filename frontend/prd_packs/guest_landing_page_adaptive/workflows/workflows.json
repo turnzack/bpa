@@ -1,0 +1,24 @@
+{
+  "workflows": [
+    {
+      "name": "ContactFormSubmissionWorkflow",
+      "steps": [
+        "L'utilisateur remplit le formulaire et clique sur Envoyer.",
+        "Le formulaire est validé côté client (email, champs requis).",
+        "L'état passe à 'submitting' et une requête POST est envoyée à /api/contact.",
+        "Si la réponse est un succès, l'état passe à 'success' et un message de confirmation est affiché.",
+        "Si une erreur se produit, l'état passe à 'error' et un message d'erreur est affiché.",
+        "L'utilisateur peut réinitialiser le formulaire."
+      ]
+    },
+    {
+      "name": "ThemeToggleWorkflow",
+      "steps": [
+        "L'utilisateur clique sur le bouton de bascule du thème.",
+        "L'état du thème change (light/dark).",
+        "La classe 'dark' est ajoutée ou retirée de l'élément racine.",
+        "La préférence est sauvegardée dans localStorage."
+      ]
+    }
+  ]
+}

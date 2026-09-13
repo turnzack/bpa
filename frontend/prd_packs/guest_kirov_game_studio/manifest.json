@@ -1,0 +1,20 @@
+{
+  "packName": "KIROV GAME STUDIO",
+  "packVersion": "1.0.0",
+  "packType": "sovereign-guest-prd",
+  "generatedBy": "Sovereign Guest PRD Generator",
+  "generatedAt": "2025-04-12T00:00:00.000Z",
+  "description": "Pack PRD/GDD pour la création de jeux vidéo assistée par IA, avec génération de spécifications, maquettes jouables et plans de développement.",
+  "files": [
+    "README.md",
+    "domain/entities.json",
+    "domain/invariants.json",
+    "domain/state-machines.json",
+    "contracts/state-contract.json",
+    "contracts/api-contract.json",
+    "contracts/ui-bindings.json",
+    "workflows/workflows.json",
+    "tests/acceptance.json",
+    "validation/pack-report.json"
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "name": "Workflow Automation Studio",
+  "version": "1.0.0",
+  "description": "Plateforme d'automatisation de workflows pour PME avec intégrations natives et interface sans code.",
+  "author": "Guest",
+  "category": "other",
+  "folder": "guest_workflow_automation_studio",
+  "modules": [
+    {
+      "id": "tmpl_workflow_automation_studio_canvas",
+      "name": "Canvas de Workflow",
+      "description": "Canevas interactif pour concevoir des workflows.",
+      "tasks": [
+        {
+          "id": "canvas_001",
+          "title": "Implémenter le glisser-déposer des nœuds",
+          "priority": "must-have",
+          "description": "Permettre de déplacer les nœuds sur le canevas."
+        },
+        {
+          "id": "canvas_002",
+          "title": "Ajouter le zoom et le pan",
+          "priority": "should-have",
+          "description": "Contrôles de zoom et déplacement du canevas."
+        },
+        {
+          "id": "canvas_003",
+          "title": "Créer une mini-carte",
+          "priority": "nice-to-have",
+          "description": "Aperçu réduit du canevas pour navigation rapide."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_nodes",
+      "name": "Gestion des Nœuds",
+      "description": "Définition et configuration des nœuds.",
+      "tasks": [
+        {
+          "id": "nodes_001",
+          "title": "Créer les types de nœuds",
+          "priority": "must-have",
+          "description": "Définir les interfaces TypeScript pour les nœuds."
+        },
+        {
+          "id": "nodes_002",
+          "title": "Développer le panneau de configuration",
+          "priority": "must-have",
+          "description": "Permettre l'édition des propriétés du nœud."
+        },
+        {
+          "id": "nodes_003",
+          "title": "Ajouter des icônes par catégorie",
+          "priority": "should-have",
+          "description": "Icônes visuelles pour chaque type de nœud."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_connections",
+      "name": "Connexions",
+      "description": "Gestion des liens entre nœuds.",
+      "tasks": [
+        {
+          "id": "conn_001",
+          "title": "Dessiner les lignes de connexion",
+          "priority": "must-have",
+          "description": "Utiliser SVG pour les courbes."
+        },
+        {
+          "id": "conn_002",
+          "title": "Implémenter les points de connexion",
+          "priority": "should-have",
+          "description": "Points cliquables sur les nœuds."
+        },
+        {
+          "id": "conn_003",
+          "title": "Valider les flux",
+          "priority": "nice-to-have",
+          "description": "Empêcher les connexions invalides."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_integrations",
+      "name": "Intégrations",
+      "description": "Connecteurs vers des services externes.",
+      "tasks": [
+        {
+          "id": "int_001",
+          "title": "Créer la bibliothèque d'intégrations",
+          "priority": "must-have",
+          "description": "Liste des intégrations disponibles."
+        },
+        {
+          "id": "int_002",
+          "title": "Configurer l'authentification OAuth",
+          "priority": "should-have",
+          "description": "Permettre la connexion sécurisée aux services."
+        },
+        {
+          "id": "int_003",
+          "title": "Ajouter des fiches détaillées",
+          "priority": "nice-to-have",
+          "description": "Documentation et paramètres de chaque intégration."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_execution",
+      "name": "Exécution",
+      "description": "Exécution des workflows et affichage des résultats.",
+      "tasks": [
+        {
+          "id": "exec_001",
+          "title": "Afficher les logs en temps réel",
+          "priority": "must-have",
+          "description": "Console de logs avec streaming."
+        },
+        {
+          "id": "exec_002",
+          "title": "Gérer les statuts d'exécution",
+          "priority": "should-have",
+          "description": "Badges pour succès, erreur, en cours."
+        },
+        {
+          "id": "exec_003",
+          "title": "Contrôles de démarrage/arrêt",
+          "priority": "must-have",
+          "description": "Boutons pour lancer ou stopper l'exécution."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_scheduler",
+      "name": "Planification",
+      "description": "Planification des exécutions automatiques.",
+      "tasks": [
+        {
+          "id": "sched_001",
+          "title": "Configurer des planifications cron",
+          "priority": "must-have",
+          "description": "Interface pour définir des expressions cron."
+        },
+        {
+          "id": "sched_002",
+          "title": "Afficher la liste des planifications",
+          "priority": "should-have",
+          "description": "Tableau des planifications existantes."
+        },
+        {
+          "id": "sched_003",
+          "title": "Activer/désactiver une planification",
+          "priority": "nice-to-have",
+          "description": "Toggle pour activer ou non."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_monitoring",
+      "name": "Monitoring",
+      "description": "Surveillance des performances et alertes.",
+      "tasks": [
+        {
+          "id": "mon_001",
+          "title": "Créer des graphiques de performance",
+          "priority": "must-have",
+          "description": "Courbes de temps d'exécution, taux de réussite."
+        },
+        {
+          "id": "mon_002",
+          "title": "Gérer les alertes",
+          "priority": "should-have",
+          "description": "Notifications en cas d'échec."
+        },
+        {
+          "id": "mon_003",
+          "title": "Afficher l'historique des exécutions",
+          "priority": "nice-to-have",
+          "description": "Tableau des exécutions passées."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_templates",
+      "name": "Modèles",
+      "description": "Workflows pré-construits pour démarrage rapide.",
+      "tasks": [
+        {
+          "id": "tpl_001",
+          "title": "Créer la galerie de modèles",
+          "priority": "must-have",
+          "description": "Affichage en grille avec catégories."
+        },
+        {
+          "id": "tpl_002",
+          "title": "Implémenter l'aperçu du modèle",
+          "priority": "should-have",
+          "description": "Voir le workflow avant import."
+        },
+        {
+          "id": "tpl_003",
+          "title": "Importer un modèle en un clic",
+          "priority": "must-have",
+          "description": "Ajouter le modèle au canevas."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_settings",
+      "name": "Paramètres",
+      "description": "Gestion des préférences et des clés API.",
+      "tasks": [
+        {
+          "id": "set_001",
+          "title": "Créer les onglets de paramètres",
+          "priority": "must-have",
+          "description": "Profil, API, préférences."
+        },
+        {
+          "id": "set_002",
+          "title": "Gérer les clés API",
+          "priority": "should-have",
+          "description": "Ajouter, supprimer, masquer les clés."
+        },
+        {
+          "id": "set_003",
+          "title": "Sauvegarder les préférences",
+          "priority": "nice-to-have",
+          "description": "Persistance locale."
+        }
+      ]
+    },
+    {
+      "id": "tmpl_workflow_automation_studio_ai_assistant",
+      "name": "Assistant IA",
+      "description": "Aide à la création de workflows via IA.",
+      "tasks": [
+        {
+          "id": "ai_001",
+          "title": "Développer le chatbot",
+          "priority": "must-have",
+          "description": "Interface de chat avec réponses contextuelles."
+        },
+        {
+          "id": "ai_002",
+          "title": "Suggérer des nœuds",
+          "priority": "should-have",
+          "description": "Proposer des nœuds en fonction du contexte."
+        },
+        {
+          "id": "ai_003",
+          "title": "Générer un workflow complet",
+          "priority": "nice-to-have",
+          "description": "Créer un workflow à partir d'une description."
+        }
+      ]
+    }
+  ]
+}

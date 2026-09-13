@@ -1,0 +1,49 @@
+{
+  "stateManagement": "Redux Toolkit",
+  "slices": [
+    {
+      "name": "auth",
+      "initialState": { "user": null, "token": null, "status": "idle" },
+      "reducers": {
+        "setCredentials": "(state, action) => { state.user = action.payload.user; state.token = action.payload.token; }",
+        "logout": "(state) => { state.user = null; state.token = null; }"
+      },
+      "extraReducers": {
+        "login": "pending/fulfilled/rejected",
+        "fetchCurrentUser": "pending/fulfilled/rejected"
+      }
+    },
+    {
+      "name": "products",
+      "initialState": { "items": [], "status": "idle", "error": null },
+      "reducers": {},
+      "extraReducers": {
+        "fetchProducts": "pending/fulfilled/rejected",
+        "createProduct": "pending/fulfilled/rejected"
+      }
+    },
+    {
+      "name": "orders",
+      "initialState": { "items": [], "status": "idle", "error": null },
+      "reducers": {},
+      "extraReducers": {
+        "fetchOrders": "pending/fulfilled/rejected",
+        "createOrder": "pending/fulfilled/rejected"
+      }
+    }
+  ],
+  "selectors": {
+    "selectCurrentUser": "(state) => state.auth.user",
+    "selectToken": "(state) => state.auth.token",
+    "selectProducts": "(state) => state.products.items",
+    "selectOrders": "(state) => state.orders.items"
+  },
+  "actions": {
+    "login": "auth/login",
+    "logout": "auth/logout",
+    "fetchProducts": "products/fetchProducts",
+    "createProduct": "products/createProduct",
+    "fetchOrders": "orders/fetchOrders",
+    "createOrder": "orders/createOrder"
+  }
+}

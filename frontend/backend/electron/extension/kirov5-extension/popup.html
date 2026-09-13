@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KIROV5 Orchestrator</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-badge">⚡</div>
+          <div>
+            <div class="logo-title">KIROV5 Orchestrator</div>
+            <div class="logo-sub">v5.1.1 · React structure fix</div>
+          </div>
+        </div>
+        <button id="settingsToggle" class="icon-btn" title="Paramètres">⚙</button>
+      </div>
+      <div id="statusBar" class="status-bar">
+        <span id="statusDot" class="dot offline"></span>
+        <span id="statusText">Prêt</span>
+        <span id="bridgeBadge" class="bridge-badge" title="Bridge">🔗 —</span>
+        <span id="modeBadge" class="mode-badge">WEB</span>
+      </div>
+    </header>
+
+    <!-- Nav tabs -->
+    <nav class="nav-tabs" id="navTabs">
+      <button type="button" class="nav-tab" data-tab="projects">📁 Projets</button>
+      <button type="button" class="nav-tab active" data-tab="project">🎯 Projet</button>
+      <button type="button" class="nav-tab" data-tab="inject">💉 Injection</button>
+      <button type="button" class="nav-tab" data-tab="capture">📦 Capture</button>
+      <button type="button" class="nav-tab" data-tab="github">🐙 GitHub</button>
+    </nav>
+
+    <!-- Settings Panel -->
+    <section id="settingsPanel" class="settings-panel hidden">
+      <h3 class="panel-title">⚙️ Configuration LLM</h3>
+
+      <div class="form-group">
+        <label class="form-label">Mode d'exécution</label>
+        <div class="mode-grid" id="execModeGrid">
+          <button type="button" class="mode-card active" data-mode="web">
+            <span class="mode-icon">💬</span>
+            <span class="mode-name">Chat Web</span>
+            <span class="mode-desc">Injection + capture</span>
+          </button>
+          <button type="button" class="mode-card" data-mode="api">
+            <span class="mode-icon">🔑</span>
+            <span class="mode-name">API Directe</span>
+            <span class="mode-desc">Clé API → LLM</span>
+          </button>
+          <button type="button" class="mode-card" data-mode="hybrid">
+            <span class="mode-icon">🔀</span>
+            <span class="mode-name">Hybride</span>
+            <span class="mode-desc">Specs API + Code Web</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" id="webAiGroup">
+        <label class="form-label">Assistant chat web cible</label>
+        <select id="webAiSelect" class="select-input">
+          <option value="deepseek">🐋 DeepSeek Web</option>
+          <option value="gemini">✨ Gemini Web</option>
+          <option value="chatgpt">🟢 ChatGPT Web</option>
+          <option value="kimi">🌙 Kimi Web</option>
+          <option value="perplexity">🔍 Perplexity</option>
+          <option value="claude">🟣 Claude Web</option>
+        </select>
+        <button id="openWebAiBtn" class="btn btn-secondary btn-sm" style="margin-top:6px">Ouvrir l'onglet IA</button>
+      </div>
+
+      <div class="form-group" id="apiProviderGroup">
+        <label class="form-label">Fournisseur API</label>
+        <select id="providerSelect" class="select-input">
+          <option value="deepseek">DeepSeek</option>
+          <option value="openai">OpenAI (GPT)</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="gemini">Gemini (Google)</option>
+          <option value="mistral">Mistral AI</option>
+          <option value="gemma">Gemma 2 (Local Ollama)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="apiKeyGroup">
+        <label id="apiKeyLabel" class="form-label">Clé API DeepSeek</label>
+        <div class="input-group">
+          <input type="password" id="apiKeyInput" placeholder="sk-..." class="text-input" />
+          <button id="toggleKeyBtn" class="btn btn-secondary icon-only" title="Afficher">👁</button>
+        </div>
+        <div class="input-group" style="margin-top:6px">
+          <button id="saveApiKey" class="btn btn-primary flex-1">💾 Enregistrer + Détecter</button>
+        </div>
+        <p id="apiKeyHint" class="hint">Clé stockée localement. Au save → auto-détecte les modèles.</p>
+        <div id="saveFeedback" class="save-feedback hidden">✓ Clé enregistrée</div>
+      </div>
+
+      <div class="form-group" id="modelGroup">
+        <label class="form-label">Modèle détecté</label>
+        <div class="input-group">
+          <select id="modelSelect" class="select-input" disabled>
+            <option value="">Enregistrer la clé pour détecter</option>
+          </select>
+          <button id="refreshModels" class="btn btn-secondary" disabled>🔄</button>
+        </div>
+        <p id="modelHint" class="hint">Auto-détecté à l'enregistrement de la clé.</p>
+      </div>
+
+      <hr class="sep" />
+
+      <h3 class="panel-title">🔗 Bridge (:5006 / Vercel)</h3>
+      <div class="form-group">
+        <label class="form-label">
+          <input type="checkbox" id="bridgeEnabled" checked /> Bridge polling actif
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL Bridge local</label>
+        <input type="text" id="bridgeUrl" class="text-input" value="http://127.0.0.1:5006" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL Vercel</label>
+        <input type="text" id="bridgeVercel" class="text-input" value="https://forge-kohl-kappa.vercel.app" />
+      </div>
+      <div class="input-group">
+        <button id="testBridgeBtn" class="btn btn-secondary flex-1">🔗 Tester Bridge</button>
+        <button id="saveBridgeBtn" class="btn btn-primary flex-1">💾 Sauver Bridge</button>
+      </div>
+      <div id="bridgeTestResult" class="hint" style="margin-top:6px"></div>
+    </section>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- ═══ TAB: PROJECTS (Bridge sync) ═══ -->
+      <div id="tab-projects" class="tab-panel">
+        <div class="proj-header">
+          <div>
+            <h2 class="proj-title">📁 Projets</h2>
+            <p class="proj-sub" id="projectsCount">Chargement...</p>
+          </div>
+          <button id="refreshProjectsBtn" class="icon-btn" title="Rafraîchir">↻</button>
+        </div>
+
+        <div id="projLoading" class="proj-loading">
+          <div class="loading"></div>
+          <span>Connexion au bridge...</span>
+        </div>
+
+        <div id="projEmpty" class="proj-empty hidden">
+          <p>Aucun projet créé pour le moment.</p>
+        </div>
+
+        <div id="projGrid" class="proj-grid hidden">
+          <!-- Left: Project list -->
+          <div class="proj-list-panel">
+            <div class="proj-panel-header">Liste des projets</div>
+            <div class="proj-list-scroll" id="projListScroll">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+          <!-- Right: File tree -->
+          <div class="proj-tree-panel">
+            <div class="proj-panel-header">
+              <span id="projTreeTitle">Sélectionnez un projet</span>
+              <div class="proj-tree-actions hidden" id="projTreeActions">
+                <button class="proj-tree-btn" id="openIdeBtn" title="Ouvrir IDE">👁 IDE</button>
+                <button class="proj-tree-btn" id="openPreviewBtn" title="Pleine Page">🔗 Preview</button>
+              </div>
+            </div>
+            <div class="proj-tree-scroll" id="projTreeScroll">
+              <div id="projTreeEmpty" class="proj-tree-empty">Cliquez sur un projet pour voir l'arborescence</div>
+              <div id="projTreeContent" class="proj-tree-content hidden"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: PROJECT ═══ -->
+      <div id="tab-project" class="tab-panel active">
+        <!-- No Project -->
+        <div id="noProjectView" class="view">
+          <div class="hero-card">
+            <div class="hero-icon">🚀</div>
+            <h2 class="card-title">Nouveau Projet</h2>
+            <p class="card-desc">
+              L'extension orchestre le LLM pas-à-pas.<br>
+              DeepSeek (ou autre) ne voit que le document autorisé à chaque étape.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="form">
+              <label class="form-label">Nom du projet</label>
+              <input type="text" id="projectName" placeholder="Ex: App de gestion de tâches" class="text-input" />
+
+              <label class="form-label">Descriptif / brief</label>
+              <textarea id="projectDescription" rows="4" placeholder="Décrivez le besoin, les fonctionnalités, le public cible, la stack souhaitée..." class="text-area"></textarea>
+
+              <label class="form-label">Dossier cible (sous Downloads)</label>
+              <div class="input-group">
+                <input type="text" id="folderName" placeholder="mon_projet" class="text-input" />
+                <button id="pickFolderBtn" class="btn btn-secondary" title="Choisir un nom de dossier">📁</button>
+              </div>
+              <p class="hint">Au lancement, une boîte de dialogue vous permettra de confirmer le dossier. Les fichiers iront dans <code>Downloads/&lt;dossier&gt;/</code>.</p>
+
+              <button id="createProjectBtn" class="btn btn-primary btn-lg" disabled>
+                ✨ Créer &amp; Lancer le pipeline
+              </button>
+            </div>
+          </div>
+
+          <div class="layers-info">
+            <div class="layer"><span>1</span> Intake</div>
+            <div class="layer-arrow">→</div>
+            <div class="layer"><span>2</span> Pack</div>
+            <div class="layer-arrow">→</div>
+            <div class="layer"><span>3</span> Blind-bag</div>
+            <div class="layer-arrow">→</div>
+            <div class="layer"><span>4</span> Orchestration</div>
+          </div>
+        </div>
+
+        <!-- Active Project -->
+        <div id="projectView" class="view hidden">
+          <div class="project-info">
+            <div class="project-info-row">
+              <span class="project-label">Projet</span>
+              <span id="activeProjectName" class="project-value"></span>
+            </div>
+            <div class="project-info-row">
+              <span class="project-label">Brief</span>
+              <span id="activeProjectDesc" class="project-value muted"></span>
+            </div>
+            <div class="project-info-row">
+              <span class="project-label">Dossier</span>
+              <span id="activeFolderName" class="project-value mono"></span>
+            </div>
+          </div>
+
+          <div class="pipeline-section">
+            <div id="currentStepBanner" style="background: rgba(77, 107, 254, 0.1); color: #4d6bfe; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: 500; text-align: center; border: 1px solid rgba(77, 107, 254, 0.2);">
+              ⏳ En attente de démarrage...
+            </div>
+            <div class="pipeline-header">
+              <h3 class="section-title">Pipeline</h3>
+              <span id="stepCounter" class="step-counter">Étape 0/0</span>
+            </div>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill" style="width:0%; transition: width 0.3s ease;"></div></div>
+            <div id="stepList" class="step-list"></div>
+          </div>
+
+          <div id="currentStepPanel" class="step-detail hidden">
+            <div class="step-detail-header">
+              <h4 id="currentStepLabel" class="step-detail-title"></h4>
+              <span id="currentStepDoc" class="step-detail-doc"></span>
+            </div>
+            <div id="stepStatus" class="step-status hidden"></div>
+            <div id="artifactPreview" class="artifact-preview hidden">
+              <h5>Aperçu artefact</h5>
+              <pre id="artifactContent" class="artifact-content"></pre>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="runStepBtn" class="btn btn-primary">▶ Exécuter l'étape</button>
+            <button id="advanceBtn" class="btn btn-secondary" disabled>→ Suivante</button>
+            <button id="runAllBtn" class="btn btn-accent">⚡ Tout exécuter</button>
+          </div>
+
+          <div class="actions secondary-actions">
+            <button id="writeArtifactsBtn" class="btn btn-success-ghost">💾 Écrire sur disque</button>
+            <button id="openAiTabBtn" class="btn btn-secondary">💬 Ouvrir chat IA</button>
+          </div>
+
+          <div class="log-section">
+            <div class="log-header">
+              <h4 class="log-title">Journal</h4>
+              <button id="clearLog" class="link-btn">Effacer</button>
+            </div>
+            <div id="logContainer" class="log-container"></div>
+          </div>
+
+          <div class="reset-section">
+            <button id="resetBtn" class="btn btn-danger-ghost">🗑 Supprimer le projet</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: INJECTION ═══ -->
+      <div id="tab-inject" class="tab-panel hidden">
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:10px">💉 Injection directe</h3>
+          <p class="hint" style="margin-bottom:8px">Injecte un prompt dans l'onglet IA cible (filtre target_ai + SafeInterval).</p>
+          <div class="form">
+            <label class="form-label">Prompt</label>
+            <textarea id="injectPrompt" class="text-area" rows="6" placeholder="Entrez votre prompt ici..."></textarea>
+            <label class="form-label checkbox-row">
+              <input type="checkbox" id="injectSilence" checked />
+              Ajouter Silence Absolu (JSON uniquement)
+            </label>
+            <div class="actions" style="margin-top:8px">
+              <button id="btnInject" class="btn btn-primary">💉 Injecter</button>
+              <button id="btnInjectCapture" class="btn btn-accent">💉 + Capturer</button>
+            </div>
+          </div>
+        </div>
+        <div class="log-section" style="margin-top:12px">
+          <div class="log-header">
+            <h4 class="log-title">Log Injection</h4>
+            <button id="clearInjectLog" class="link-btn">Effacer</button>
+          </div>
+          <div id="injectLog" class="log-container"></div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: CAPTURE ═══ -->
+      <div id="tab-capture" class="tab-panel hidden">
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:10px">📦 Capture de code</h3>
+          <div class="status-bar" style="margin-bottom:10px">
+            <span id="captureDot" class="dot offline"></span>
+            <span id="captureStatus" class="hint">Prêt à capturer</span>
+            <span class="mode-badge" id="capturedCountBadge">0 fichiers</span>
+          </div>
+          <div class="actions">
+            <button id="btnCapture" class="btn btn-primary">📸 Capturer</button>
+            <button id="btnWriteCaptured" class="btn btn-secondary">💾 Disque</button>
+            <button id="btnPushCaptured" class="btn btn-accent">🐙 Push</button>
+          </div>
+        </div>
+        <div class="log-section" style="margin-top:12px">
+          <div class="log-header">
+            <h4 class="log-title">Fichiers capturés</h4>
+            <button id="clearCaptureLog" class="link-btn">Effacer</button>
+          </div>
+          <div id="captureLog" class="log-container" style="max-height:200px"></div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB: GITHUB ═══ -->
+      <div id="tab-github" class="tab-panel hidden">
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:10px">🐙 GitHub CI/CD</h3>
+          <div class="form">
+            <label class="form-label">Token GitHub (ghp_…)</label>
+            <input type="password" id="githubToken" class="text-input" placeholder="ghp_..." />
+            <label class="form-label">Repo (user/repo)</label>
+            <input type="text" id="githubRepo" class="text-input" placeholder="user/repo" />
+            <label class="form-label">Branche</label>
+            <input type="text" id="githubBranch" class="text-input" placeholder="main" value="main" />
+            <div class="actions" style="margin-top:10px">
+              <button id="saveGithubBtn" class="btn btn-primary">💾 Enregistrer</button>
+              <button id="pushGithubBtn" class="btn btn-accent">🚀 Push maintenant</button>
+            </div>
+          </div>
+          <p class="hint" style="margin-top:8px">
+            Push auto après capture bridge si App.tsx/main.tsx présents (≥2 fichiers).
+          </p>
+        </div>
+        <div class="log-section" style="margin-top:12px">
+          <div class="log-header">
+            <h4 class="log-title">Log GitHub</h4>
+          </div>
+          <div id="githubLog" class="log-container"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Folder picker modal -->
+  <div id="folderModal" class="modal hidden">
+    <div class="modal-backdrop" id="folderModalBackdrop"></div>
+    <div class="modal-card">
+      <h3>📁 Dossier cible</h3>
+      <p class="card-desc">Choisissez le nom du dossier où seront enregistrés tous les fichiers du projet (sous le dossier Téléchargements du navigateur).</p>
+      <label class="form-label">Nom du dossier</label>
+      <input type="text" id="modalFolderName" class="text-input" placeholder="mon_projet" />
+      <p class="hint">Chemin final : <code>Downloads/<span id="modalPathPreview">mon_projet</span>/</code></p>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="btn btn-secondary">Annuler</button>
+        <button id="modalConfirmBtn" class="btn btn-primary">Confirmer &amp; Créer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

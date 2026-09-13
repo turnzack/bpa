@@ -1,0 +1,55 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "A visitor to the landing page.",
+      "properties": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Unique identifier (optional for anonymous visitors)"
+        },
+        {
+          "name": "themePreference",
+          "type": "string",
+          "enum": ["light", "dark"],
+          "description": "User's theme preference"
+        }
+      ]
+    },
+    {
+      "name": "PageContent",
+      "description": "Content sections of the landing page.",
+      "properties": [
+        {
+          "name": "heroTitle",
+          "type": "string",
+          "description": "Main headline"
+        },
+        {
+          "name": "heroSubtitle",
+          "type": "string",
+          "description": "Subheadline"
+        },
+        {
+          "name": "ctaText",
+          "type": "string",
+          "description": "Call-to-action button text"
+        },
+        {
+          "name": "sections",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "content": { "type": "string" }
+            }
+          },
+          "description": "Additional content sections"
+        }
+      ]
+    }
+  ]
+}

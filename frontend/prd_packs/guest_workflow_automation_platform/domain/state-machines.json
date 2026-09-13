@@ -1,0 +1,26 @@
+{
+  "stateMachines": [
+    {
+      "name": "WorkflowStateMachine",
+      "entity": "Workflow",
+      "states": ["draft", "active", "paused", "archived"],
+      "transitions": [
+        { "from": "draft", "to": "active", "event": "ACTIVATE" },
+        { "from": "active", "to": "paused", "event": "PAUSE" },
+        { "from": "paused", "to": "active", "event": "RESUME" },
+        { "from": "active", "to": "archived", "event": "ARCHIVE" },
+        { "from": "paused", "to": "archived", "event": "ARCHIVE" },
+        { "from": "draft", "to": "archived", "event": "ARCHIVE" }
+      ]
+    },
+    {
+      "name": "ExecutionStateMachine",
+      "entity": "Execution",
+      "states": ["running", "success", "failed"],
+      "transitions": [
+        { "from": "running", "to": "success", "event": "COMPLETE" },
+        { "from": "running", "to": "failed", "event": "FAIL" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/integration-response.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyVersion", "phase", "batchId", "status", "files", "contractHashes"],
+  "properties": {
+    "policyVersion": { "const": "gold-5.0.0" },
+    "phase": { "const": "integration" },
+    "batchId": { "type": "string" },
+    "contractHashes": {
+      "type": "object",
+      "required": ["domain", "state", "api"],
+      "properties": {
+        "domain": { "type": "string" },
+        "state": { "type": "string" },
+        "api": { "type": "string" }
+      }
+    },
+    "implementations": {
+      "type": "object"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "path": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "status": { "enum": ["complete", "needs_review"] }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "A visitor to the landing page.",
+      "properties": [
+        { "name": "id", "type": "string", "description": "Unique identifier" },
+        { "name": "email", "type": "string", "description": "Email address" },
+        { "name": "name", "type": "string", "description": "Full name" }
+      ]
+    },
+    {
+      "name": "Feature",
+      "description": "A feature of the product showcased on the landing page.",
+      "properties": [
+        { "name": "id", "type": "string", "description": "Unique identifier" },
+        { "name": "title", "type": "string", "description": "Feature title" },
+        { "name": "description", "type": "string", "description": "Feature description" },
+        { "name": "icon", "type": "string", "description": "Icon identifier" }
+      ]
+    },
+    {
+      "name": "Testimonial",
+      "description": "A customer testimonial displayed on the landing page.",
+      "properties": [
+        { "name": "id", "type": "string", "description": "Unique identifier" },
+        { "name": "quote", "type": "string", "description": "Testimonial text" },
+        { "name": "author", "type": "string", "description": "Author name" },
+        { "name": "role", "type": "string", "description": "Author role" }
+      ]
+    }
+  ]
+}

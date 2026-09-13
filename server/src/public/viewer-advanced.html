@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualiseur 3D Avancé - SolarScan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 8px 12px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #header h1 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #status {
+            font-size: 11px;
+            color: #4ade80;
+        }
+
+        #container {
+            position: absolute;
+            top: 38px;
+            left: 0;
+            right: 0;
+            bottom: 110px;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 6px;
+            z-index: 1000;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .control-btn.active {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #error {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 13px;
+            max-width: 80%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        #info {
+            position: fixed;
+            top: 42px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <h1>📦 Visualiseur 3D Avancé</h1>
+        <div id="status">Chargement...</div>
+    </div>
+
+    <div id="info">
+        🔄 Rotation: 1 doigt<br>
+        📍 Déplacer: 2 doigts<br>
+        🔍 Zoom: Pinch
+    </div>
+
+    <div id="container"></div>
+
+    <div id="controls">
+        <!-- Ligne 1: Affichage -->
+        <div class="control-row">
+            <button class="control-btn" id="btn-wireframe">🔲 Fil</button>
+            <button class="control-btn" id="btn-grid">📐 Grille</button>
+            <button class="control-btn" id="btn-shadows">🌑 Ombres</button>
+            <button class="control-btn" id="btn-transparency">👻 Transp</button>
+        </div>
+
+        <!-- Ligne 2: Vues -->
+        <div class="control-row">
+            <button class="control-btn" id="btn-view-front">⬜ Face</button>
+            <button class="control-btn" id="btn-view-side">⬛ Côté</button>
+            <button class="control-btn" id="btn-view-top">⬆️ Dessus</button>
+            <button class="control-btn" id="btn-view-bottom">⬇️ Dessous</button>
+        </div>
+
+        <!-- Ligne 3: Contrôles -->
+        <div class="control-row">
+            <button class="control-btn active" id="btn-autorotate">🔄 Auto</button>
+            <button class="control-btn" id="btn-light">💡 Lum</button>
+            <button class="control-btn" id="btn-background">🎨 Fond</button>
+            <button class="control-btn" id="btn-reset">🎯 Reset</button>
+            <button class="control-btn" id="btn-export">💾 Export</button>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Chargement du modèle 3D...</p>
+    </div>
+
+    <div id="error">
+        <h2>❌ Erreur</h2>
+        <p id="error-message"></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/OBJExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+    <script>
+        const jobId = window.location.pathname.split('/').pop();
+        const baseUrl = window.location.origin;
+
+        console.log('🚀 Visualiseur 3D Avancé - Job ID:', jobId);
+
+        document.getElementById('status').textContent = `Scan #${jobId}`;
+
+        // Variables Three.js
+        let scene, camera, renderer, model;
+        let autoRotate = true;
+        let wireframeMode = false;
+        let lightIntensity = 1.0;
+        let gridHelper = null;
+        let shadowsEnabled = false;
+        let transparency = 1.0;
+
+        // Couleurs de fond
+        const backgroundColors = [
+            { name: 'Sombre', color: 0x1a1a2e },
+            { name: 'Noir', color: 0x000000 },
+            { name: 'Blanc', color: 0xffffff },
+            { name: 'Gris', color: 0x808080 },
+            { name: 'Bleu nuit', color: 0x0a1929 }
+        ];
+        let currentBgIndex = 0;
+
+        // Variables de contrôle tactile
+        let touches = [];
+        let lastDistance = 0;
+        let lastPanX = 0, lastPanY = 0;
+        let cameraDistance = 5;
+        let cameraRotationX = 0, cameraRotationY = 0;
+        let panX = 0, panY = 0;
+        let lastTouchX = 0, lastTouchY = 0;
+        let touchStarted = false;
+
+        // Clé pour localStorage
+        const SETTINGS_KEY = 'solarScan3DViewerSettings';
+
+        // Sauvegarder les réglages
+        function saveSettings() {
+            const settings = {
+                wireframeMode,
+                gridVisible: gridHelper ? gridHelper.visible : false,
+                shadowsEnabled,
+                transparency,
+                lightIntensity,
+                currentBgIndex,
+                autoRotate
+            };
+
+            try {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                console.log('💾 Réglages sauvegardés:', settings);
+            } catch (e) {
+                console.warn('⚠️ Impossible de sauvegarder les réglages:', e);
+            }
+        }
+
+        // Charger les réglages
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem(SETTINGS_KEY);
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    console.log('📂 Réglages chargés:', settings);
+                    return settings;
+                }
+            } catch (e) {
+                console.warn('⚠️ Impossible de charger les réglages:', e);
+            }
+            return null;
+        }
+
+        // Appliquer les réglages sauvegardés
+        function applySettings(settings) {
+            if (!settings) return;
+
+            // Appliquer wireframe
+            if (settings.wireframeMode !== undefined) {
+                wireframeMode = settings.wireframeMode;
+                if (wireframeMode) {
+                    document.getElementById('btn-wireframe').classList.add('active');
+                }
+            }
+
+            // Appliquer grille
+            if (settings.gridVisible !== undefined && gridHelper) {
+                gridHelper.visible = settings.gridVisible;
+                if (settings.gridVisible) {
+                    document.getElementById('btn-grid').classList.add('active');
+                }
+            }
+
+            // Appliquer ombres
+            if (settings.shadowsEnabled !== undefined) {
+                shadowsEnabled = settings.shadowsEnabled;
+                renderer.shadowMap.enabled = shadowsEnabled;
+                if (window.shadowPlane) {
+                    window.shadowPlane.visible = shadowsEnabled;
+                }
+                if (shadowsEnabled) {
+                    document.getElementById('btn-shadows').classList.add('active');
+                }
+            }
+
+            // Appliquer transparence
+            if (settings.transparency !== undefined) {
+                transparency = settings.transparency;
+                if (transparency < 1.0) {
+                    document.getElementById('btn-transparency').classList.add('active');
+                }
+            }
+
+            // Appliquer lumière
+            if (settings.lightIntensity !== undefined) {
+                lightIntensity = settings.lightIntensity;
+                if (window.ambientLight) window.ambientLight.intensity = lightIntensity * 0.6;
+                if (window.directionalLight1) window.directionalLight1.intensity = lightIntensity * 0.8;
+                if (window.directionalLight2) window.directionalLight2.intensity = lightIntensity * 0.4;
+                if (lightIntensity < 1.0) {
+                    document.getElementById('btn-light').classList.add('active');
+                }
+            }
+
+            // Appliquer couleur de fond
+            if (settings.currentBgIndex !== undefined) {
+                currentBgIndex = settings.currentBgIndex;
+                const bg = backgroundColors[currentBgIndex];
+                if (bg) {
+                    scene.background = new THREE.Color(bg.color);
+                }
+            }
+
+            // Appliquer auto-rotation
+            if (settings.autoRotate !== undefined) {
+                autoRotate = settings.autoRotate;
+                if (!autoRotate) {
+                    document.getElementById('btn-autorotate').classList.remove('active');
+                }
+            }
+
+            console.log('✅ Réglages appliqués au modèle');
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+
+            const container = document.getElementById('container');
+            camera = new THREE.PerspectiveCamera(
+                45,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            updateCameraPosition();
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                preserveDrawingBuffer: true,
+                alpha: true
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = false; // Désactivé par défaut
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Lumières
+            window.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(window.ambientLight);
+
+            window.directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            window.directionalLight1.position.set(5, 5, 5);
+            window.directionalLight1.castShadow = true;
+            window.directionalLight1.shadow.mapSize.width = 2048;
+            window.directionalLight1.shadow.mapSize.height = 2048;
+            scene.add(window.directionalLight1);
+
+            window.directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            window.directionalLight2.position.set(-5, -5, -5);
+            scene.add(window.directionalLight2);
+
+            // Grille de référence (cachée par défaut)
+            gridHelper = new THREE.GridHelper(10, 20, 0x444444, 0x222222);
+            gridHelper.visible = false;
+            scene.add(gridHelper);
+
+            // Plan pour les ombres
+            const planeGeometry = new THREE.PlaneGeometry(20, 20);
+            const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+            window.shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            window.shadowPlane.rotation.x = -Math.PI / 2;
+            window.shadowPlane.position.y = -2;
+            window.shadowPlane.receiveShadow = true;
+            window.shadowPlane.visible = false;
+            scene.add(window.shadowPlane);
+
+            loadModel();
+
+            // Charger et appliquer les réglages sauvegardés
+            const savedSettings = loadSettings();
+            if (savedSettings) {
+                applySettings(savedSettings);
+                showStatus('📂 Réglages restaurés');
+            }
+
+            window.addEventListener('resize', onWindowResize);
+            setupTouchControls();
+            setupButtons();
+
+            animate();
+        }
+
+        function updateCameraPosition() {
+            camera.position.x = cameraDistance * Math.sin(cameraRotationY) * Math.cos(cameraRotationX);
+            camera.position.y = cameraDistance * Math.sin(cameraRotationX);
+            camera.position.z = cameraDistance * Math.cos(cameraRotationY) * Math.cos(cameraRotationX);
+            camera.lookAt(panX, panY, 0);
+        }
+
+        function setPresetView(view) {
+            const distance = cameraDistance;
+
+            switch (view) {
+                case 'front':
+                    cameraRotationX = 0;
+                    cameraRotationY = 0;
+                    break;
+                case 'side':
+                    cameraRotationX = 0;
+                    cameraRotationY = Math.PI / 2;
+                    break;
+                case 'top':
+                    cameraRotationX = Math.PI / 2 - 0.1;
+                    cameraRotationY = 0;
+                    break;
+                case 'bottom':
+                    cameraRotationX = -Math.PI / 2 + 0.1;
+                    cameraRotationY = 0;
+                    break;
+            }
+
+            panX = 0;
+            panY = 0;
+            updateCameraPosition();
+        }
+
+        function setupTouchControls() {
+            const container = document.getElementById('container');
+
+            container.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touches = Array.from(e.touches);
+
+                if (touches.length === 1) {
+                    lastTouchX = touches[0].clientX;
+                    lastTouchY = touches[0].clientY;
+                    touchStarted = true;
+                } else if (touches.length === 2) {
+                    const dx = touches[0].clientX - touches[1].clientX;
+                    const dy = touches[0].clientY - touches[1].clientY;
+                    lastDistance = Math.sqrt(dx * dx + dy * dy);
+                    lastPanX = (touches[0].clientX + touches[1].clientX) / 2;
+                    lastPanY = (touches[0].clientY + touches[1].clientY) / 2;
+                    touchStarted = false;
+                }
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                touches = Array.from(e.touches);
+
+                if (touches.length === 1 && touchStarted) {
+                    const currentX = touches[0].clientX;
+                    const currentY = touches[0].clientY;
+
+                    const deltaX = currentX - lastTouchX;
+                    const deltaY = currentY - lastTouchY;
+
+                    cameraRotationY += deltaX * 0.015;
+                    cameraRotationX -= deltaY * 0.015;
+                    cameraRotationX = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, cameraRotationX));
+
+                    updateCameraPosition();
+
+                    lastTouchX = currentX;
+                    lastTouchY = currentY;
+                } else if (touches.length === 2) {
+                    touchStarted = false;
+
+                    const dx = touches[0].clientX - touches[1].clientX;
+                    const dy = touches[0].clientY - touches[1].clientY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (lastDistance > 0) {
+                        const delta = distance - lastDistance;
+                        cameraDistance = Math.max(1, Math.min(20, cameraDistance - delta * 0.02));
+                        updateCameraPosition();
+                    }
+
+                    lastDistance = distance;
+
+                    const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+                    const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+
+                    if (lastPanX !== 0) {
+                        const deltaX = centerX - lastPanX;
+                        const deltaY = centerY - lastPanY;
+
+                        panX += deltaX * 0.01;
+                        panY -= deltaY * 0.01;
+                        updateCameraPosition();
+                    }
+
+                    lastPanX = centerX;
+                    lastPanY = centerY;
+                }
+            });
+
+            container.addEventListener('touchend', (e) => {
+                touches = Array.from(e.touches);
+                if (touches.length < 2) {
+                    lastDistance = 0;
+                    lastPanX = 0;
+                    lastPanY = 0;
+                }
+                if (touches.length === 0) {
+                    touchStarted = false;
+                }
+            });
+        }
+
+        function setupButtons() {
+            // Wireframe
+            document.getElementById('btn-wireframe').addEventListener('click', () => {
+                wireframeMode = !wireframeMode;
+                if (model) {
+                    model.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            child.material.wireframe = wireframeMode;
+                        }
+                    });
+                }
+                document.getElementById('btn-wireframe').classList.toggle('active');
+                saveSettings();
+            });
+
+            // Grille
+            document.getElementById('btn-grid').addEventListener('click', () => {
+                if (gridHelper) {
+                    gridHelper.visible = !gridHelper.visible;
+                    document.getElementById('btn-grid').classList.toggle('active');
+                    showStatus(gridHelper.visible ? '📐 Grille activée' : '📐 Grille désactivée');
+                    saveSettings();
+                }
+            });
+
+            // Ombres
+            document.getElementById('btn-shadows').addEventListener('click', () => {
+                shadowsEnabled = !shadowsEnabled;
+                renderer.shadowMap.enabled = shadowsEnabled;
+
+                if (window.shadowPlane) {
+                    window.shadowPlane.visible = shadowsEnabled;
+                }
+
+                if (model) {
+                    model.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            child.castShadow = shadowsEnabled;
+                            child.receiveShadow = shadowsEnabled;
+                        }
+                    });
+                }
+
+                document.getElementById('btn-shadows').classList.toggle('active');
+                showStatus(shadowsEnabled ? '🌑 Ombres activées' : '🌑 Ombres désactivées');
+                saveSettings();
+            });
+
+            // Transparence
+            document.getElementById('btn-transparency').addEventListener('click', () => {
+                transparency = transparency === 1.0 ? 0.5 : 1.0;
+
+                if (model) {
+                    model.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            child.material.transparent = transparency < 1.0;
+                            child.material.opacity = transparency;
+                        }
+                    });
+                }
+
+                document.getElementById('btn-transparency').classList.toggle('active');
+                showStatus(transparency < 1.0 ? '👻 Transparence 50%' : '👻 Opaque 100%');
+                saveSettings();
+            });
+
+            // Vues prédéfinies
+            document.getElementById('btn-view-front').addEventListener('click', () => {
+                setPresetView('front');
+                showStatus('⬜ Vue de face');
+            });
+
+            document.getElementById('btn-view-side').addEventListener('click', () => {
+                setPresetView('side');
+                showStatus('⬛ Vue de côté');
+            });
+
+            document.getElementById('btn-view-top').addEventListener('click', () => {
+                setPresetView('top');
+                showStatus('⬆️ Vue de dessus');
+            });
+
+            document.getElementById('btn-view-bottom').addEventListener('click', () => {
+                setPresetView('bottom');
+                showStatus('⬇️ Vue de dessous');
+            });
+
+            // Auto-rotation
+            document.getElementById('btn-autorotate').addEventListener('click', () => {
+                autoRotate = !autoRotate;
+                document.getElementById('btn-autorotate').classList.toggle('active');
+                saveSettings();
+            });
+
+            // Lumière
+            document.getElementById('btn-light').addEventListener('click', () => {
+                lightIntensity = lightIntensity === 1.0 ? 0.3 : 1.0;
+
+                if (window.ambientLight) window.ambientLight.intensity = lightIntensity * 0.6;
+                if (window.directionalLight1) window.directionalLight1.intensity = lightIntensity * 0.8;
+                if (window.directionalLight2) window.directionalLight2.intensity = lightIntensity * 0.4;
+
+                document.getElementById('btn-light').classList.toggle('active');
+                showStatus(lightIntensity === 1.0 ? '💡 Lumière normale' : '🌙 Lumière faible');
+                saveSettings();
+            });
+
+            // Fond
+            document.getElementById('btn-background').addEventListener('click', () => {
+                currentBgIndex = (currentBgIndex + 1) % backgroundColors.length;
+                const bg = backgroundColors[currentBgIndex];
+                scene.background = new THREE.Color(bg.color);
+                showStatus(`🎨 Fond: ${bg.name}`);
+                saveSettings();
+            });
+
+            // Reset
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                cameraDistance = 5;
+                cameraRotationX = 0;
+                cameraRotationY = 0;
+                panX = 0;
+                panY = 0;
+                updateCameraPosition();
+                showStatus('🎯 Vue réinitialisée');
+            });
+
+            // Export
+            document.getElementById('btn-export').addEventListener('click', () => {
+                if (!model) {
+                    showStatus('❌ Aucun modèle à exporter');
+                    return;
+                }
+
+                try {
+                    const exporter = new THREE.OBJExporter();
+                    const result = exporter.parse(model);
+
+                    const blob = new Blob([result], { type: 'text/plain' });
+                    const link = document.createElement('a');
+                    link.download = `scan_${jobId}.obj`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+
+                    showStatus('💾 Modèle exporté en OBJ');
+                } catch (error) {
+                    console.error('Erreur export:', error);
+                    showStatus('❌ Erreur lors de l\'export');
+                }
+            });
+        }
+
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            const oldText = status.textContent;
+            status.textContent = message;
+            setTimeout(() => {
+                status.textContent = oldText;
+            }, 2000);
+        }
+
+        function loadModel() {
+            // Essayer d'abord de charger un fichier FBX
+            const fbxPath = baseUrl + `/data/jobs/${jobId}/output/texturedMesh.fbx`;
+
+            fetch(fbxPath, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Fichier FBX détecté, chargement...');
+                        loadFBX();
+                    } else {
+                        console.log('📦 Pas de FBX, essai OBJ/MTL...');
+                        loadOBJ();
+                    }
+                })
+                .catch(() => {
+                    console.log('📦 Chargement OBJ par défaut...');
+                    loadOBJ();
+                });
+        }
+
+        function loadFBX() {
+            const fbxLoader = new THREE.FBXLoader();
+            fbxLoader.setPath(baseUrl + `/data/jobs/${jobId}/output/`);
+
+            fbxLoader.load('texturedMesh.fbx',
+                function (object) {
+                    console.log('✅ FBX chargé avec succès');
+
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 3 / maxDim;
+
+                    object.position.sub(center);
+                    object.scale.multiplyScalar(scale);
+
+                    model = object;
+                    scene.add(model);
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('status').textContent = `✅ Scan #${jobId} (FBX)`;
+                },
+                function (xhr) {
+                    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                    document.getElementById('loading').querySelector('p').textContent =
+                        `Chargement FBX: ${percent}%`;
+                },
+                function (error) {
+                    console.error('❌ Erreur FBX:', error);
+                    showError('Impossible de charger le fichier FBX');
+                }
+            );
+        }
+
+        function loadOBJ() {
+            const mtlLoader = new THREE.MTLLoader();
+            mtlLoader.setPath(baseUrl + `/data/jobs/${jobId}/output/`);
+
+            mtlLoader.load('texturedMesh.mtl',
+                function (materials) {
+                    materials.preload();
+
+                    const objLoader = new THREE.OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.setPath(baseUrl + `/data/jobs/${jobId}/output/`);
+
+                    objLoader.load('texturedMesh.obj',
+                        function (object) {
+                            const box = new THREE.Box3().setFromObject(object);
+                            const center = box.getCenter(new THREE.Vector3());
+                            const size = box.getSize(new THREE.Vector3());
+
+                            const maxDim = Math.max(size.x, size.y, size.z);
+                            const scale = 3 / maxDim;
+
+                            object.position.sub(center);
+                            object.scale.multiplyScalar(scale);
+
+                            model = object;
+                            scene.add(model);
+
+                            document.getElementById('loading').style.display = 'none';
+                            document.getElementById('status').textContent = `✅ Scan #${jobId} (OBJ)`;
+                        },
+                        function (xhr) {
+                            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                            document.getElementById('loading').querySelector('p').textContent =
+                                `Chargement OBJ: ${percent}%`;
+                        },
+                        function (error) {
+                            loadObjOnly();
+                        }
+                    );
+                },
+                null,
+                function (error) {
+                    loadObjOnly();
+                }
+            );
+        }
+
+        function loadObjOnly() {
+            const objLoader = new THREE.OBJLoader();
+            objLoader.setPath(baseUrl + `/data/jobs/${jobId}/output/`);
+
+            objLoader.load('texturedMesh.obj',
+                function (object) {
+                    object.traverse(function (child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.material = new THREE.MeshPhongMaterial({
+                                color: 0x888888,
+                                side: THREE.DoubleSide
+                            });
+                        }
+                    });
+
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 3 / maxDim;
+
+                    object.position.sub(center);
+                    object.scale.multiplyScalar(scale);
+
+                    model = object;
+                    scene.add(model);
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('status').textContent = `✅ Scan #${jobId} (sans textures)`;
+                },
+                null,
+                function (error) {
+                    console.warn('❌ Echec chargement OBJ sans texture, passage en mode DEMO');
+                    loadDemoModel();
+                }
+            );
+        }
+
+        function loadDemoModel() {
+            console.log('⚠️ Chargement du modèle de DÉMO (Fallback)');
+
+            // Créer un cube coloré pour simuler un scan
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+            // Texture procédurale "Checkboard"
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.fillStyle = '#555';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if ((i + j) % 2 === 0) ctx.fillRect(i * 64, j * 64, 64, 64);
+                }
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                roughness: 0.7,
+                metalness: 0.2
+            });
+
+            model = new THREE.Mesh(geometry, material);
+            scene.add(model);
+
+            autoRotate = true;
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('status').textContent = `⚠️ Mode Démo (Données non trouvées)`;
+
+            const errorDiv = document.getElementById('error');
+            const errorMsg = document.getElementById('error-message');
+            if (errorDiv && errorMsg) {
+                errorMsg.textContent = 'Modèle introuvable. Affichage du cube de calibration.';
+                document.getElementById('error').querySelector('h2').textContent = '⚠️ Info';
+                errorDiv.style.display = 'block';
+                setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('status').textContent = '❌ Erreur';
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (model && autoRotate) {
+                cameraRotationY += 0.003;
+                updateCameraPosition();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        try {
+            init();
+        } catch (error) {
+            console.error('Erreur:', error);
+            showError(error.message);
+        }
+    </script>
+</body>
+
+</html>

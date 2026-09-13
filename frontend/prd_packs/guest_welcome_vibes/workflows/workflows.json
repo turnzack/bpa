@@ -1,0 +1,23 @@
+{
+  "workflows": [
+    {
+      "id": "welcome-flow",
+      "description": "Parcours de bienvenue : affichage du message et interaction avec le CTA.",
+      "steps": [
+        { "name": "Chargement", "description": "L'application charge le message depuis l'API." },
+        { "name": "Affichage", "description": "Le message est affiché avec animation." },
+        { "name": "Interaction", "description": "L'utilisateur clique sur le CTA." },
+        { "name": "Action", "description": "Redirection vers une page cible ou ouverture d'un modal." }
+      ]
+    },
+    {
+      "id": "theme-toggle-flow",
+      "description": "Changement de thème clair/sombre.",
+      "steps": [
+        { "name": "Clic", "description": "L'utilisateur clique sur le bouton de bascule." },
+        { "name": "Transition", "description": "Animation de transition du thème." },
+        { "name": "Mise à jour", "description": "L'état du thème est mis à jour." }
+      ]
+    }
+  ]
+}

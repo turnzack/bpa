@@ -1,0 +1,25 @@
+{
+  "packId": "guest_facturescan_souverain",
+  "validated": true,
+  "checks": [
+    { "item": "manifest.json", "status": "valid" },
+    { "item": "README.md", "status": "valid" },
+    { "item": "domain/entities.json", "status": "valid" },
+    { "item": "domain/invariants.json", "status": "valid" },
+    { "item": "domain/state-machines.json", "status": "valid" },
+    { "item": "contracts/state-contract.json", "status": "valid" },
+    { "item": "contracts/api-contract.json", "status": "valid" },
+    { "item": "contracts/ui-bindings.json", "status": "valid" },
+    { "item": "workflows/workflows.json", "status": "valid" },
+    { "item": "tests/acceptance.json", "status": "valid" }
+  ],
+  "warnings": [
+    "Le modèle Gemma 2B nécessite des ressources CPU importantes, prévoir une optimisation.",
+    "La détection d'objets YOLOv8 peut nécessiter un entraînement spécifique pour les documents.",
+    "Le paiement à l'usage nécessite une configuration Stripe avancée."
+  ],
+  "unresolvedItems": [
+    "Déploiement multi-régions pour la souveraineté des données.",
+    "Stratégie de sauvegarde et de récupération des données."
+  ]
+}

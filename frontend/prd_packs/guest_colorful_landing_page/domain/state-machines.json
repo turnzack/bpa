@@ -1,0 +1,25 @@
+{
+  "stateMachines": [
+    {
+      "name": "FormSubmission",
+      "description": "State machine for the contact form submission.",
+      "states": ["idle", "submitting", "success", "error"],
+      "transitions": [
+        { "from": "idle", "to": "submitting", "event": "SUBMIT" },
+        { "from": "submitting", "to": "success", "event": "SUCCESS" },
+        { "from": "submitting", "to": "error", "event": "ERROR" },
+        { "from": "error", "to": "idle", "event": "RESET" },
+        { "from": "success", "to": "idle", "event": "RESET" }
+      ]
+    },
+    {
+      "name": "Modal",
+      "description": "State machine for modal visibility.",
+      "states": ["closed", "open"],
+      "transitions": [
+        { "from": "closed", "to": "open", "event": "OPEN" },
+        { "from": "open", "to": "closed", "event": "CLOSE" }
+      ]
+    }
+  ]
+}

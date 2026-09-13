@@ -1,0 +1,22 @@
+{
+  "workflows": [
+    {
+      "name": "UserVisitsLandingPage",
+      "steps": [
+        "User loads the page",
+        "Hero section animates in",
+        "User scrolls to view features",
+        "User clicks CTA button",
+        "Modal opens with welcome message"
+      ]
+    },
+    {
+      "name": "UserInteractsWithFeatures",
+      "steps": [
+        "User hovers over feature cards",
+        "Cards animate with hover effect",
+        "User clicks on a feature to learn more"
+      ]
+    }
+  ]
+}

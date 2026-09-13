@@ -1,0 +1,25 @@
+{
+  "name": "COLORFUL LANDING PAGE BUILDER",
+  "version": "1.0.0",
+  "description": "A modern landing page builder with vibrant color schemes, drag-and-drop components, and real-time preview.",
+  "stack": {
+    "frontend": "React 18 + TypeScript + Vite",
+    "styling": "Tailwind CSS + CSS Modules",
+    "state": "Zustand",
+    "backend": "Node.js + Express (optional)",
+    "database": "MongoDB (optional)"
+  },
+  "features": [
+    "Drag-and-drop component editor",
+    "Real-time preview",
+    "Color theme customization",
+    "Responsive design",
+    "Export to HTML/CSS",
+    "Dark mode support"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  }
+}

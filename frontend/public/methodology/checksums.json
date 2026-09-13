@@ -1,0 +1,13 @@
+{
+  "policies/coding-standards.md": "da05da72e84c65fead28c8e2eabfde70c79877303e7618e39c93715c3c20ef42",
+  "prompts/mega-prompt.md": "14cf6c169ac0f02a055e9f47fbf0edc787451346e4c8b3cc7825aa42efefa833",
+  "prompts/mode2-ancien-projet.md": "df1c3124add366e7d25fcb31f8f1f245eb3c62825718200d38f90c9e71225451",
+  "prompts/mode3-youtube-web.md": "ddf8e3d903c7855b021133b22591ffa03a9a1fe9a8ab2684b67ff8c8152ee5fe",
+  "prompts/mode4-design-rip.md": "7c892d9441d98f2b392d9d0f316630a72d98e21b6970578b3682ce9a2cbf84e0",
+  "prompts/phase1-conception.md": "394ec249304e7a98ffbcc1e4979b05623c136e82614e326b73588a2cfa945435",
+  "prompts/phase2-architecture.md": "eff36052cf1aa8e674d5f07b502f325fa8b472b201ba4af2a8369ccacb97a29a",
+  "prompts/phase3-ui-ux.md": "1b72ad0c6a2e1fde636c63cbd9480ca55b06a7960ffdb55db8a48aeb2048e625",
+  "prompts/phase4-backend-api.md": "56ae285ebbbcf0b75f2605f11a65f496b186c2e83d1882ce802d4f6342ffdcf8",
+  "prompts/phase5-industrialisation.md": "3a1cea2330d3a9c11a5648d3683a63bbb9b88f77344122ca90ac1868371e7098",
+  "schemas/project-structure.json": "8322047a453152f66e76db3ad4facedf5b3bde2cd8d5015fcdfd2a42ce5fe82d"
+}

@@ -1,0 +1,50 @@
+{
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/contact",
+      "description": "Submit contact form",
+      "request": {
+        "body": {
+          "name": "string",
+          "email": "string",
+          "message": "string"
+        }
+      },
+      "response": {
+        "success": "boolean",
+        "message": "string"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/features",
+      "description": "Get list of features",
+      "response": {
+        "features": [
+          {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "icon": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/testimonials",
+      "description": "Get list of testimonials",
+      "response": {
+        "testimonials": [
+          {
+            "id": "string",
+            "quote": "string",
+            "author": "string",
+            "role": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

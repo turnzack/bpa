@@ -1,0 +1,24 @@
+{
+  "packName": "WELCOME CANVAS",
+  "validationDate": "2025-04-05",
+  "status": "valid",
+  "checks": [
+    {
+      "id": "CHK-001",
+      "description": "All required files are present.",
+      "passed": true
+    },
+    {
+      "id": "CHK-002",
+      "description": "All JSON files are valid.",
+      "passed": true
+    },
+    {
+      "id": "CHK-003",
+      "description": "No absolute paths or '..' in file paths.",
+      "passed": true
+    }
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

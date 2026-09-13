@@ -1,0 +1,22 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/contact",
+      "method": "POST",
+      "description": "Send contact form submission",
+      "request": {
+        "name": "string",
+        "email": "string",
+        "message": "string"
+      },
+      "response": {
+        "success": "boolean",
+        "message": "string"
+      }
+    }
+  ],
+  "errorHandling": {
+    "400": "Bad Request",
+    "500": "Internal Server Error"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "stateManagement": {
+    "library": "React Context + useReducer",
+    "globalState": {
+      "theme": "light",
+      "language": "en",
+      "isMenuOpen": false
+    },
+    "actions": [
+      { "type": "SET_THEME", "payload": "string" },
+      { "type": "SET_LANGUAGE", "payload": "string" },
+      { "type": "TOGGLE_MENU" }
+    ]
+  },
+  "componentState": {
+    "Hero": {
+      "animationState": "idle",
+      "isHovered": false
+    },
+    "Navbar": {
+      "isScrolled": false
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "projectInfo": {
+    "title": "Game Character Pack",
+    "exportedAt": "2025-12-12T15:51:08.941Z",
+    "engineTarget": "Generic / Unity / Unreal"
+  },
+  "characterAsset": "Walking.fbx",
+  "controls": [
+    {
+      "actionName": "Walking",
+      "inputs": {
+        "primaryKey": "KeyW",
+        "displayLabel": "Z",
+        "modifiers": null
+      },
+      "playback": {
+        "speed": 1,
+        "loop": true
+      }
+    },
+    {
+      "actionName": "Walking",
+      "inputs": {
+        "primaryKey": "KeyS",
+        "displayLabel": "S",
+        "modifiers": null
+      },
+      "playback": {
+        "speed": -1,
+        "loop": true
+      }
+    },
+    {
+      "actionName": "Fast Run (1)",
+      "inputs": {
+        "primaryKey": "KeyW",
+        "displayLabel": "Z",
+        "modifiers": [
+          "Shift"
+        ]
+      },
+      "playback": {
+        "speed": 1,
+        "loop": true
+      }
+    },
+    {
+      "actionName": "Running Jump",
+      "inputs": {
+        "primaryKey": "Space",
+        "displayLabel": "SPACE",
+        "modifiers": null
+      },
+      "playback": {
+        "speed": 1,
+        "loop": true
+      }
+    },
+    {
+      "actionName": "mixamo.com",
+      "inputs": {
+        "primaryKey": "KeyR",
+        "displayLabel": "R",
+        "modifiers": null
+      },
+      "playback": {
+        "speed": 1,
+        "loop": true
+      }
+    },
+    {
+      "actionName": "Take 001",
+      "inputs": {
+        "primaryKey": "KeyT",
+        "displayLabel": "T",
+        "modifiers": null
+      },
+      "playback": {
+        "speed": 1,
+        "loop": true
+      }
+    }
+  ],
+  "gamepadSettings": {
+    "deadzone": 0.15,
+    "lookSpeedX": 4,
+    "lookSpeedY": 2.5,
+    "invertLookY": false
+  }
+}

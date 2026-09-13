@@ -1,0 +1,28 @@
+{
+  "state": {
+    "landingPages": "LandingPage[]",
+    "currentPageId": "string | null",
+    "editorMode": "'edit' | 'preview' | 'responsive'",
+    "selectedComponentId": "string | null",
+    "themes": "Theme[]",
+    "activeThemeId": "string | null"
+  },
+  "actions": {
+    "createLandingPage": "(page: LandingPage) => void",
+    "updateLandingPage": "(pageId: string, updates: Partial<LandingPage>) => void",
+    "deleteLandingPage": "(pageId: string) => void",
+    "setCurrentPage": "(pageId: string) => void",
+    "setEditorMode": "(mode: 'edit' | 'preview' | 'responsive') => void",
+    "selectComponent": "(componentId: string | null) => void",
+    "addSection": "(pageId: string, section: Section) => void",
+    "updateSection": "(pageId: string, sectionId: string, updates: Partial<Section>) => void",
+    "removeSection": "(pageId: string, sectionId: string) => void",
+    "addComponent": "(pageId: string, sectionId: string, component: Component) => void",
+    "updateComponent": "(pageId: string, sectionId: string, componentId: string, updates: Partial<Component>) => void",
+    "removeComponent": "(pageId: string, sectionId: string, componentId: string) => void",
+    "setTheme": "(themeId: string) => void",
+    "createTheme": "(theme: Theme) => void",
+    "updateTheme": "(themeId: string, updates: Partial<Theme>) => void",
+    "deleteTheme": "(themeId: string) => void"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "NebulaCalc",
+  "version": "1.0.0",
+  "description": "La Calculatrice Cognitive Immersive - PRD complet avec 10 modules architecturaux",
+  "author": "Guest",
+  "category": "other",
+  "folder": "guest_nebula_calc",
+  "tasks": [
+    {
+      "id": "core",
+      "module": "tmpl_nebula_calc_core",
+      "title": "Moteur de calcul",
+      "priority": "must-have",
+      "description": "Implémenter les opérations de base, scientifiques et financières avec précision."
+    },
+    {
+      "id": "memory",
+      "module": "tmpl_nebula_calc_memory",
+      "title": "Mémoire contextuelle",
+      "priority": "must-have",
+      "description": "Sauvegarde automatique des résultats et expressions avec épinglage."
+    },
+    {
+      "id": "converter",
+      "module": "tmpl_nebula_calc_converter",
+      "title": "Convertisseur intelligent",
+      "priority": "should-have",
+      "description": "Conversions de devises et unités avec taux en temps réel."
+    },
+    {
+      "id": "history",
+      "module": "tmpl_nebula_calc_history",
+      "title": "Historique timeline",
+      "priority": "should-have",
+      "description": "Timeline interactive avec recherche et filtres."
+    },
+    {
+      "id": "visualization",
+      "module": "tmpl_nebula_calc_visualization",
+      "title": "Visualisation de données",
+      "priority": "should-have",
+      "description": "Graphiques interactifs pour fonctions et statistiques."
+    },
+    {
+      "id": "theme",
+      "module": "tmpl_nebula_calc_theme",
+      "title": "Thème glassmorphique",
+      "priority": "must-have",
+      "description": "Dark mode avec effet de verre et personnalisation."
+    },
+    {
+      "id": "ai",
+      "module": "tmpl_nebula_calc_ai",
+      "title": "Assistant IA",
+      "priority": "nice-to-have",
+      "description": "Suggestions intelligentes basées sur le contexte."
+    },
+    {
+      "id": "export",
+      "module": "tmpl_nebula_calc_export",
+      "title": "Exportation",
+      "priority": "nice-to-have",
+      "description": "Export en PDF, CSV, image avec aperçu."
+    },
+    {
+      "id": "shortcuts",
+      "module": "tmpl_nebula_calc_shortcuts",
+      "title": "Raccourcis",
+      "priority": "nice-to-have",
+      "description": "Raccourcis clavier et gestes tactiles."
+    },
+    {
+      "id": "settings",
+      "module": "tmpl_nebula_calc_settings",
+      "title": "Paramètres",
+      "priority": "should-have",
+      "description": "Préférences utilisateur (précision, langue, unités)."
+    }
+  ]
+}

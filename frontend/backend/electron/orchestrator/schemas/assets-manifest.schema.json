@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/assets-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyVersion", "assets"],
+  "properties": {
+    "policyVersion": { "type": "string" },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path"],
+        "properties": {
+          "id": { "type": "string" },
+          "path": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      }
+    }
+  }
+}

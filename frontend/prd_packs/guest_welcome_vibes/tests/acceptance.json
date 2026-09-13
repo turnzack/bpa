@@ -1,0 +1,29 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "La landing page affiche un message de bienvenue coloré et animé.",
+      "test": "Vérifier que le titre, le sous-titre et le CTA sont visibles et animés."
+    },
+    {
+      "id": "AC-002",
+      "description": "Le bouton de bascule de thème change le mode clair/sombre.",
+      "test": "Cliquer sur le bouton et vérifier que les couleurs changent."
+    },
+    {
+      "id": "AC-003",
+      "description": "La page est responsive sur mobile et desktop.",
+      "test": "Tester sur différentes tailles d'écran."
+    },
+    {
+      "id": "AC-004",
+      "description": "Le chargement du message est géré avec un indicateur.",
+      "test": "Simuler un délai réseau et vérifier l'affichage du loader."
+    },
+    {
+      "id": "AC-005",
+      "description": "Les erreurs de chargement sont gérées avec un message d'erreur.",
+      "test": "Simuler une erreur API et vérifier l'affichage de l'erreur."
+    }
+  ]
+}

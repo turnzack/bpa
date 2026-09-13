@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "KIROV5 ORCHESTRATOR — G6 Fusion",
+  "version": "16.1.0",
+  "description": "Fusion v16 + KIROV4 : Pipeline modulaire, Bridge Polling, GitHub Push et Injection Directe.",
+  "permissions": [
+    "storage",
+    "downloads",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "alarms"
+  ],
+  "host_permissions": [
+    "*://*.deepseek.com/*",
+    "*://chat.deepseek.com/*",
+    "*://chatgpt.com/*",
+    "*://*.openai.com/*",
+    "*://gemini.google.com/*",
+    "*://*.kimi.com/*",
+    "*://kimi.ai/*",
+    "*://*.moonshot.cn/*",
+    "*://*.perplexity.ai/*",
+    "https://api.deepseek.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.mistral.ai/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
+    "https://api.github.com/*",
+    "http://127.0.0.1:5006/*",
+    "http://localhost:5006/*",
+    "https://forge-kohl-kappa.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "KIROV5 Orchestrator",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.deepseek.com/*",
+        "*://chat.deepseek.com/*",
+        "*://chatgpt.com/*",
+        "*://gemini.google.com/*",
+        "*://*.kimi.com/*",
+        "*://kimi.ai/*",
+        "*://*.moonshot.cn/*",
+        "*://*.perplexity.ai/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

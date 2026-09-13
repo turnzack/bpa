@@ -1,0 +1,23 @@
+{
+  "projectName": "PRODUCTION READY INDUSTRIALIZATION",
+  "folderName": "guest_production_ready_industrialization",
+  "phase": "phase5",
+  "description": "Audit complet du projet pour l'industrialiser à 100%. Détection des composants mockés et du stockage local temporaire, puis proposition d'un contrat de migration vers un backend de production sécurisé. Implémentation des bonnes pratiques manquantes (gestion globale des erreurs, routage sécurisé, authentification) pour un déploiement en production.",
+  "objectives": [
+    "Auditer le code existant pour identifier les mocks et le stockage local",
+    "Définir un contrat de migration vers un backend sécurisé",
+    "Implémenter la gestion globale des erreurs",
+    "Sécuriser le routage et ajouter l'authentification si nécessaire",
+    "Préparer le projet pour un déploiement en production"
+  ],
+  "stack": {
+    "frontend": "React/TypeScript",
+    "backend": "API REST sécurisée (à définir)",
+    "stateManagement": "Redux Toolkit ou Context API"
+  },
+  "assumptions": [
+    "Le projet existant est une application React/TypeScript",
+    "Des composants mockés et du stockage local (localStorage) sont utilisés",
+    "L'équipe souhaite industrialiser le projet pour la production"
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/phase2-domain.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyVersion",
+    "phase",
+    "projectId",
+    "domainContract",
+    "stateContract",
+    "apiContract",
+    "dependenciesRequested",
+    "testsRequired",
+    "decisions",
+    "warnings",
+    "status"
+  ],
+  "properties": {
+    "policyVersion": {
+      "type": "string",
+      "const": "gold-5.0.0"
+    },
+    "phase": {
+      "type": "string",
+      "const": "domain-contracts"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "blueprintHash": {
+      "type": "string"
+    },
+    "domainContract": {
+      "type": "object",
+      "required": ["entities", "valueObjects", "businessRules", "permissions"],
+      "properties": {
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/entity" } },
+        "valueObjects": { "type": "array", "items": { "$ref": "#/$defs/valueObject" } },
+        "businessRules": { "type": "array", "items": { "$ref": "#/$defs/businessRule" } },
+        "permissions": { "type": "array", "items": { "$ref": "#/$defs/permission" } }
+      }
+    },
+    "stateContract": {
+      "type": "object",
+      "required": ["clientStores", "serverState", "stateMachines", "invariants"],
+      "properties": {
+        "clientStores": { "type": "array" },
+        "serverState": { "type": "array" },
+        "stateMachines": { "type": "array" },
+        "invariants": { "type": "array" }
+      }
+    },
+    "apiContract": {
+      "type": "object",
+      "required": ["endpoints", "schemas", "authorization", "idempotency", "errors"],
+      "properties": {
+        "endpoints": { "type": "array" },
+        "schemas": { "type": "array" },
+        "authorization": { "type": "array" },
+        "idempotency": { "type": "array" },
+        "errors": { "type": "array" }
+      }
+    },
+    "dependenciesRequested": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "testsRequired": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "decisions": { "type": "array" },
+    "warnings": { "type": "array" },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "needs_review"]
+    }
+  },
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "fields"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "name": { "type": "string", "minLength": 1 },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "required"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$" },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "date", "uuid", "unknown"]
+        },
+        "required": { "type": "boolean" },
+        "immutable": { "type": "boolean" }
+      }
+    },
+    "valueObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "fields"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "fields": { "type": "array" }
+      }
+    },
+    "businessRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "severity"],
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+      }
+    },
+    "permission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource", "operation", "roles"],
+      "properties": {
+        "resource": { "type": "string" },
+        "operation": { "type": "string" },
+        "roles": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

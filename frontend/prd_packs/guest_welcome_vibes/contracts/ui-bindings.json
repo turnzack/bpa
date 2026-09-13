@@ -1,0 +1,28 @@
+{
+  "bindings": [
+    {
+      "component": "ThemeToggle",
+      "state": "theme.mode",
+      "action": "TOGGLE_THEME",
+      "events": ["onClick"]
+    },
+    {
+      "component": "WelcomeMessage",
+      "state": "message",
+      "action": "SET_MESSAGE",
+      "events": []
+    },
+    {
+      "component": "LoadingIndicator",
+      "state": "loading",
+      "action": "SET_LOADING",
+      "events": []
+    },
+    {
+      "component": "ErrorBoundary",
+      "state": "error",
+      "action": "SET_ERROR",
+      "events": []
+    }
+  ]
+}

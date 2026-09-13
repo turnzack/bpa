@@ -1,0 +1,35 @@
+{
+  "stateManagement": {
+    "library": "Redux Toolkit",
+    "slices": [
+      {
+        "name": "auth",
+        "state": {
+          "user": "User | null",
+          "token": "string | null",
+          "status": "'idle' | 'loading' | 'succeeded' | 'failed'"
+        },
+        "actions": ["login", "logout", "fetchCurrentUser"],
+        "selectors": ["selectUser", "selectToken", "selectAuthStatus"]
+      },
+      {
+        "name": "products",
+        "state": {
+          "items": "Product[]",
+          "status": "'idle' | 'loading' | 'succeeded' | 'failed'"
+        },
+        "actions": ["fetchProducts", "createProduct", "updateProduct", "deleteProduct"],
+        "selectors": ["selectAllProducts", "selectProductById", "selectProductsStatus"]
+      },
+      {
+        "name": "orders",
+        "state": {
+          "items": "Order[]",
+          "status": "'idle' | 'loading' | 'succeeded' | 'failed'"
+        },
+        "actions": ["fetchOrders", "createOrder", "updateOrderStatus"],
+        "selectors": ["selectAllOrders", "selectOrderById", "selectOrdersStatus"]
+      }
+    ]
+  }
+}

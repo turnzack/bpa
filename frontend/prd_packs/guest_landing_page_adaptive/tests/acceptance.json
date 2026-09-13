@@ -1,0 +1,29 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "La landing page doit être responsive sur mobile, tablette et desktop.",
+      "test": "Vérifier que le layout s'adapte aux différentes tailles d'écran."
+    },
+    {
+      "id": "AC-002",
+      "description": "Le mode sombre doit être activable et désactivable.",
+      "test": "Cliquer sur le bouton de bascule et vérifier que le thème change et persiste."
+    },
+    {
+      "id": "AC-003",
+      "description": "Le formulaire de contact doit valider les emails et afficher des erreurs si invalide.",
+      "test": "Soumettre un email invalide et vérifier le message d'erreur."
+    },
+    {
+      "id": "AC-004",
+      "description": "Les animations doivent être désactivées si l'utilisateur a 'prefers-reduced-motion'.",
+      "test": "Simuler la préférence et vérifier qu'aucune animation n'est jouée."
+    },
+    {
+      "id": "AC-005",
+      "description": "Toutes les sections doivent être accessibles au clavier.",
+      "test": "Naviguer avec la touche Tab et vérifier que tous les éléments sont focusables."
+    }
+  ]
+}

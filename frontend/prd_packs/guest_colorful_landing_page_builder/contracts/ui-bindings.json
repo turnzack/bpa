@@ -1,0 +1,34 @@
+{
+  "bindings": [
+    {
+      "component": "EditorCanvas",
+      "state": ["currentPage", "editorMode", "selectedComponentId"],
+      "actions": ["selectComponent", "updateComponent", "addComponent", "removeComponent"]
+    },
+    {
+      "component": "ComponentPalette",
+      "state": [],
+      "actions": ["addComponent"]
+    },
+    {
+      "component": "ThemePanel",
+      "state": ["themes", "activeThemeId"],
+      "actions": ["setTheme", "createTheme", "updateTheme", "deleteTheme"]
+    },
+    {
+      "component": "PreviewPane",
+      "state": ["currentPage"],
+      "actions": []
+    },
+    {
+      "component": "Toolbar",
+      "state": ["editorMode"],
+      "actions": ["setEditorMode"]
+    },
+    {
+      "component": "PageList",
+      "state": ["landingPages", "currentPageId"],
+      "actions": ["setCurrentPage", "createLandingPage", "deleteLandingPage"]
+    }
+  ]
+}

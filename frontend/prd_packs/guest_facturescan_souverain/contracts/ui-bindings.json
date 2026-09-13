@@ -1,0 +1,46 @@
+{
+  "screens": [
+    {
+      "name": "Login",
+      "route": "/auth",
+      "state": "auth.session",
+      "actions": ["signIn", "signUp"]
+    },
+    {
+      "name": "Home",
+      "route": "/(tabs)",
+      "state": "documents.items",
+      "actions": ["fetchDocuments", "startScan"]
+    },
+    {
+      "name": "Scan",
+      "route": "/invoice/scan",
+      "state": "scanJobs",
+      "actions": ["uploadDocument", "processDocument"]
+    },
+    {
+      "name": "Validate",
+      "route": "/invoice/validate",
+      "state": "documents.items[selected]",
+      "actions": ["validateDocument"]
+    },
+    {
+      "name": "History",
+      "route": "/(tabs)/history",
+      "state": "documents.items",
+      "actions": ["fetchDocuments"]
+    },
+    {
+      "name": "Profile",
+      "route": "/(tabs)/profile",
+      "state": "auth.session",
+      "actions": ["signOut", "updateProfile"]
+    },
+    {
+      "name": "Payment",
+      "route": "/payment",
+      "state": "payments",
+      "actions": ["createCheckoutSession"]
+    }
+  ]
+}

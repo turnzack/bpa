@@ -1,0 +1,56 @@
+{
+  "name": "BRIC",
+  "folderName": "guest_bric",
+  "version": "1.0.0",
+  "description": "Pack PRD Souverain pour BRIC — Spécification UI/UX & Moteur",
+  "author": "KIROV Game Studio",
+  "repository": "https://github.com/turnzack/v0-reponse",
+  "license": "MIT",
+  "tasks": {
+    "must-have": [
+      {
+        "id": "task-1",
+        "title": "Moteur Canvas 2D Phaser & Grand Écran",
+        "description": "Rendu et physique arcade réactive"
+      },
+      {
+        "id": "task-2",
+        "title": "Interface HUD React Overlay",
+        "description": "Affichage Score, Vies et Niveau"
+      },
+      {
+        "id": "task-3",
+        "title": "Synthèse Audio ZzFX",
+        "description": "Effets sonores 8-bit procéduraux"
+      }
+    ],
+    "should-have": [
+      {
+        "id": "task-4",
+        "title": "Audit GateRunner Grade GOLD",
+        "description": "Certification automatique de conformité"
+      }
+    ],
+    "nice-to-have": [
+      {
+        "id": "task-5",
+        "title": "Multi-Niveaux & Power-Ups",
+        "description": "Bonus et accélération dynamique"
+      }
+    ]
+  },
+  "dependencies": {
+    "frontend": [
+      "react",
+      "phaser",
+      "lucide-react"
+    ],
+    "backend": [
+      "electron"
+    ]
+  },
+  "scripts": {
+    "start": "npm run dev",
+    "build": "vite build"
+  }
+}

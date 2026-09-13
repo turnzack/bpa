@@ -1,0 +1,81 @@
+{
+  "name": "neonstack",
+  "displayName": "NeonStack: Puzzle Arcade Synthwave avec IA Adaptative et Mode Créatif",
+  "description": "Jeu de puzzle arcade rétro avec esthétique néon, IA adaptative et mode créatif.",
+  "version": "1.0.0",
+  "category": "game",
+  "author": "Guest",
+  "license": "MIT",
+  "tasks": [
+    {
+      "id": "core_engine",
+      "title": "Moteur de jeu principal",
+      "description": "Implémenter la grille, les pièces, les rotations, les collisions, la gestion des lignes, le score et les niveaux.",
+      "priority": "must-have",
+      "module": "tmpl_neonstack_core_engine"
+    },
+    {
+      "id": "ai_adaptive",
+      "title": "IA adaptative",
+      "description": "Ajuster la difficulté en temps réel selon les performances du joueur.",
+      "priority": "must-have",
+      "module": "tmpl_neonstack_ai_adaptive"
+    },
+    {
+      "id": "creative_mode",
+      "title": "Mode créatif",
+      "description": "Permettre la création de niveaux personnalisés.",
+      "priority": "should-have",
+      "module": "tmpl_neonstack_creative_mode"
+    },
+    {
+      "id": "ui_hud",
+      "title": "Interface HUD",
+      "description": "Afficher les informations de jeu en temps réel.",
+      "priority": "must-have",
+      "module": "tmpl_neonstack_ui_hud"
+    },
+    {
+      "id": "audio_system",
+      "title": "Système audio",
+      "description": "Générer des effets sonores 8-bit et une musique de fond synthwave.",
+      "priority": "should-have",
+      "module": "tmpl_neonstack_audio_system"
+    },
+    {
+      "id": "visual_effects",
+      "title": "Effets visuels",
+      "description": "Ajouter des effets néon, particules et animations.",
+      "priority": "should-have",
+      "module": "tmpl_neonstack_visual_effects"
+    },
+    {
+      "id": "settings_personalization",
+      "title": "Paramètres et personnalisation",
+      "description": "Permettre de personnaliser thèmes, skins, contrôles.",
+      "priority": "should-have",
+      "module": "tmpl_neonstack_settings_personalization"
+    },
+    {
+      "id": "progression_system",
+      "title": "Système de progression",
+      "description": "Gérer niveaux, expérience, succès et déblocage de contenu.",
+      "priority": "nice-to-have",
+      "module": "tmpl_neonstack_progression_system"
+    },
+    {
+      "id": "menu_navigation",
+      "title": "Navigation et menus",
+      "description": "Gérer la navigation entre les écrans du jeu.",
+      "priority": "must-have",
+      "module": "tmpl_neonstack_menu_navigation"
+    },
+    {
+      "id": "leaderboard_social",
+      "title": "Classement et partage social",
+      "description": "Afficher les meilleurs scores et permettre le partage.",
+      "priority": "nice-to-have",
+      "module": "tmpl_neonstack_leaderboard_social"
+    }
+  ]
+}

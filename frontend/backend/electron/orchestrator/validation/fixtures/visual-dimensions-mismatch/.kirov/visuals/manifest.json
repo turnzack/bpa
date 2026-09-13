@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "projectId": "visual-dimensions-mismatch",
+  "baselineVersion": "version-001",
+  "viewports": [
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 1024,
+      "deviceScaleFactor": 1
+    }
+  ],
+  "routes": [
+    "/"
+  ],
+  "threshold": {
+    "maxDiffPixels": 0,
+    "maxDiffPixelRatio": 0
+  }
+}

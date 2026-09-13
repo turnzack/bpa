@@ -1,0 +1,34 @@
+{
+  "endpoints": [
+    {
+      "path": "/api/message",
+      "method": "GET",
+      "description": "Récupère le message de bienvenue.",
+      "response": {
+        "200": {
+          "type": "object",
+          "properties": {
+            "title": "string",
+            "subtitle": "string",
+            "ctaLabel": "string"
+          }
+        }
+      }
+    },
+    {
+      "path": "/api/theme",
+      "method": "PUT",
+      "description": "Met à jour le thème.",
+      "request": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string", "enum": ["light", "dark"] },
+          "colors": { "type": "object", "properties": { "primary": "string", "secondary": "string", "accent": "string" } }
+        }
+      },
+      "response": {
+        "200": { "type": "object", "properties": { "success": "boolean" } }
+      }
+    }
+  ]
+}

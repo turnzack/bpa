@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "workflows": [
+    {
+      "id": "navigate-to-saved",
+      "startRoute": "/",
+      "steps": [
+        {
+          "action": "click",
+          "target": { "role": "link", "name": "Go to Saved" }
+        },
+        {
+          "action": "expect-url",
+          "value": "/saved"
+        },
+        {
+          "action": "expect-text",
+          "target": { "testId": "status" },
+          "value": "You are on saved page"
+        }
+      ]
+    }
+  ]
+}

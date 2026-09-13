@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/runtime-report.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "routesExpected",
+    "routesTested",
+    "routesPassed",
+    "routesFailed",
+    "consoleErrors",
+    "pageErrors",
+    "networkErrors",
+    "results"
+  ],
+  "properties": {
+    "status": { "enum": ["passed", "failed"] },
+    "routesExpected": { "type": "array", "items": { "type": "string" } },
+    "routesTested": { "type": "array", "items": { "type": "string" } },
+    "routesPassed": { "type": "array", "items": { "type": "string" } },
+    "routesFailed": { "type": "array", "items": { "type": "string" } },
+    "consoleErrors": { "type": "array" },
+    "pageErrors": { "type": "array" },
+    "networkErrors": { "type": "array" },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["route", "status", "visual"],
+        "properties": {
+          "route": { "type": "string" },
+          "status": { "enum": ["passed", "failed"] },
+          "httpStatus": { "type": "number" },
+          "rootMounted": { "type": "boolean" },
+          "hasVisibleContent": { "type": "boolean" },
+          "errorBoundaryVisible": { "type": "boolean" },
+          "consoleErrors": { "type": "array" },
+          "pageErrors": { "type": "array" },
+          "networkErrors": { "type": "array" },
+          "visual": { "type": "object" }
+        }
+      }
+    }
+  }
+}

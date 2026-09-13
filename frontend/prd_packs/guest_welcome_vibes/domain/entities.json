@@ -1,0 +1,33 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "Visiteur de la landing page.",
+      "attributes": [
+        { "name": "id", "type": "string", "description": "Identifiant unique." },
+        { "name": "name", "type": "string", "description": "Nom du visiteur (optionnel)." },
+        { "name": "email", "type": "string", "description": "Email du visiteur (optionnel)." },
+        { "name": "preferences", "type": "object", "description": "Préférences de thème et de langue." }
+      ]
+    },
+    {
+      "name": "Theme",
+      "description": "Thème visuel de la page.",
+      "attributes": [
+        { "name": "primaryColor", "type": "string", "description": "Couleur principale." },
+        { "name": "secondaryColor", "type": "string", "description": "Couleur secondaire." },
+        { "name": "accentColor", "type": "string", "description": "Couleur d'accent." },
+        { "name": "darkMode", "type": "boolean", "description": "Indique si le mode sombre est activé." }
+      ]
+    },
+    {
+      "name": "Message",
+      "description": "Message de bienvenue affiché.",
+      "attributes": [
+        { "name": "title", "type": "string", "description": "Titre principal." },
+        { "name": "subtitle", "type": "string", "description": "Sous-titre." },
+        { "name": "ctaLabel", "type": "string", "description": "Libellé du bouton d'appel à l'action." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,548 @@
+# Plan Complet : Éditeur de Jeu 3D avec Personnage Animé
+
+## 🎯 Vision du Projet
+
+Créer une application web complète de conception de jeux permettant de :
+1. **Importer** des modèles 3D (FBX) depuis `E:\SOLAROBJ\backend-node\data\jobs`
+2. **Placer** des objets sur une scène 3D avec grille en damier
+3. **Ajouter** un personnage avec animations (walk, run, jump, etc.)
+4. **Basculer** entre modes : 3D, 2D, Render, Game
+5. **Jouer** en mode Game avec contrôles tactiles (joystick virtuel)
+
+---
+
+## 📐 Architecture Globale
+
+### Frontend : Application Web Three.js
+**Fichier principal** : `game-editor.html`
+
+**Technologies** :
+- Three.js r128 (rendu 3D)
+- FBXLoader (import modèles)
+- AnimationMixer (animations)
+- OrbitControls (caméra éditeur)
+- FirstPersonControls (mode jeu)
+
+### Backend : API Node.js/Express
+**Routes** :
+- `GET /editor` → Sert l'éditeur
+- `GET /api/models` → Liste des FBX disponibles
+- `GET /api/animations/:modelId` → Animations d'un modèle
+- `POST /api/scene/save` → Sauvegarde la scène
+- `GET /api/scene/load/:id` → Charge une scène
+
+---
+
+## 🎨 Interface Utilisateur
+
+### Layout Principal
+
+```
+┌─────────────────────────────────────────────┐
+│ 🎮 Game Editor      [3D][2D][Render][Game] │ ← Mode Switcher
+├─────────────────────────────────────────────┤
+│ 📦 Assets  │                                │
+│ ┌────────┐ │                                │
+│ │ Cube   │ │                                │
+│ │ Sphere │ │        VIEWPORT 3D             │
+│ │ Player │ │      (Scène en Damier)         │
+│ │ Tree   │ │                                │
+│ └────────┘ │                                │
+├────────────┴────────────────────────────────┤
+│ 🎬 Animations: [Walk][Run][Jump][Idle]     │ ← Animation Controls
+├─────────────────────────────────────────────┤
+│ [▶️ Play] [💾 Save] [📥 Load] [🗑️ Clear]   │ ← Toolbar
+└─────────────────────────────────────────────┘
+```
+
+### Mode Game (Plein Écran)
+
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│                                             │
+│              GAME VIEWPORT                  │
+│           (Vue 3ème personne)               │
+│                                             │
+│                                             │
+├─────────────────────────────────────────────┤
+│  🕹️         [A] Jump                       │
+│  ↑          [B] Run                         │
+│ ←+→  Joystick                               │
+│  ↓                                          │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ Modules Principaux
+
+### 1. Scene Manager
+**Responsabilités** :
+- Créer la grille en damier
+- Gérer les objets de la scène
+- Ajouter/supprimer des modèles
+- Sauvegarder/charger la scène
+
+**Fonctions** :
+```javascript
+class SceneManager {
+    createGrid(size, divisions)
+    addModel(fbxPath, position)
+    removeModel(id)
+    saveScene()
+    loadScene(data)
+}
+```
+
+### 2. Asset Browser
+**Responsabilités** :
+- Lister les FBX disponibles
+- Prévisualisation des modèles
+- Drag & Drop vers la scène
+
+**Source** : `E:\SOLAROBJ\backend-node\data\jobs\*/output/*.fbx`
+
+### 3. Character Controller
+**Responsabilités** :
+- Charger le personnage
+- Gérer les animations
+- Contrôler les mouvements
+
+**Animations supportées** :
+- Idle (repos)
+- Walk (marche)
+- Run (course)
+- Jump (saut)
+- Custom (personnalisées)
+
+**Fonctions** :
+```javascript
+class CharacterController {
+    loadCharacter(fbxPath)
+    loadAnimations(animationPaths)
+    playAnimation(name)
+    move(direction, speed)
+    jump()
+}
+```
+
+### 4. View Mode Manager
+**Modes** :
+
+#### 3D Mode (Éditeur)
+- Caméra OrbitControls
+- Grille visible
+- Gizmos de transformation
+- Sélection d'objets
+
+#### 2D Mode (Top-Down)
+- Caméra orthographique
+- Vue de dessus
+- Placement précis
+
+#### Render Mode (Aperçu)
+- Caméra cinématique
+- Éclairage optimisé
+- Pas de grille
+
+#### Game Mode (Jouable)
+- Caméra 3ème personne
+- Contrôles actifs
+- Physique activée
+
+### 5. Input Manager (Mode Game)
+**Contrôles Tactiles** :
+
+```javascript
+class VirtualJoystick {
+    // Joystick gauche : Déplacement
+    onMove(direction) // {x, y}
+    
+    // Boutons droite
+    onJump()  // Bouton A
+    onRun()   // Bouton B
+}
+```
+
+**Mapping Animations** :
+- Joystick immobile → `Idle`
+- Joystick avant (lent) → `Walk`
+- Joystick avant + Bouton B → `Run`
+- Bouton A → `Jump`
+
+---
+
+## 📋 Workflow Utilisateur
+
+### Phase 1 : Construction de la Scène
+1. Ouvrir l'éditeur
+2. Mode **3D** activé
+3. Parcourir les assets (panneau gauche)
+4. Cliquer sur un modèle pour l'ajouter
+5. Placer sur la grille
+6. Répéter pour créer le décor
+
+### Phase 2 : Ajout du Personnage
+1. Sélectionner "Player" dans les assets
+2. Placer sur la scène
+3. Ouvrir le panneau "Animations"
+4. Assigner les animations :
+   - Walk → [Walking.fbx](file:///E:/SOLAROBJ/backend-node/data/jobs/1766516817524/output/Walking.fbx)
+   - Run → `Fast Run (1).fbx`
+   - Jump → `Running Jump.fbx`
+
+### Phase 3 : Test en Mode Game
+1. Cliquer sur bouton **[Game]**
+2. La caméra passe en 3ème personne
+3. Le joystick virtuel apparaît
+4. Déplacer le personnage avec le joystick
+5. Tester les animations
+
+### Phase 4 : Sauvegarde
+1. Cliquer sur **[💾 Save]**
+2. Donner un nom à la scène
+3. La scène est sauvegardée en JSON
+
+---
+
+## 🗂️ Structure des Données
+
+### Scene JSON
+```json
+{
+  "id": "scene_001",
+  "name": "Ma Première Scène",
+  "grid": {
+    "size": 20,
+    "divisions": 20
+  },
+  "objects": [
+    {
+      "id": "obj_001",
+      "type": "static",
+      "modelPath": "/data/jobs/123/output/tree.fbx",
+      "position": [0, 0, 5],
+      "rotation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    }
+  ],
+  "player": {
+    "modelPath": "/data/jobs/456/output/character.fbx",
+    "position": [0, 0, 0],
+    "animations": {
+      "idle": "/data/jobs/456/output/Idle.fbx",
+      "walk": "/data/jobs/456/output/Walking.fbx",
+      "run": "/data/jobs/456/output/Fast Run (1).fbx",
+      "jump": "/data/jobs/456/output/Running Jump.fbx"
+    }
+  },
+  "camera": {
+    "position": [10, 10, 10],
+    "target": [0, 0, 0]
+  }
+}
+```
+
+---
+
+## 🎮 Implémentation Détaillée
+
+### Étape 1 : Grille en Damier
+```javascript
+function createCheckerboardGrid(size, divisions) {
+    const gridHelper = new THREE.GridHelper(size, divisions, 0x444444, 0x222222);
+    scene.add(gridHelper);
+    
+    // Damier au sol
+    const geometry = new THREE.PlaneGeometry(size, size);
+    const material = new THREE.MeshStandardMaterial({
+        map: createCheckerboardTexture(),
+        side: THREE.DoubleSide
+    });
+    const plane = new THREE.Mesh(geometry, material);
+    plane.rotation.x = -Math.PI / 2;
+    scene.add(plane);
+}
+
+function createCheckerboardTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    const tileSize = 64;
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            ctx.fillStyle = (i + j) % 2 === 0 ? '#ffffff' : '#cccccc';
+            ctx.fillRect(i * tileSize, j * tileSize, tileSize, tileSize);
+        }
+    }
+    
+    return new THREE.CanvasTexture(canvas);
+}
+```
+
+### Étape 2 : Chargement FBX
+```javascript
+const fbxLoader = new THREE.FBXLoader();
+
+function loadModel(path, position) {
+    fbxLoader.load(path, (fbx) => {
+        fbx.position.set(...position);
+        fbx.scale.setScalar(0.01); // Ajuster l'échelle
+        scene.add(fbx);
+        
+        // Si animations présentes
+        if (fbx.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(fbx);
+            mixers.push(mixer);
+        }
+    });
+}
+```
+
+### Étape 3 : Système d'Animations
+```javascript
+class AnimationController {
+    constructor(character) {
+        this.character = character;
+        this.mixer = new THREE.AnimationMixer(character);
+        this.animations = {};
+        this.currentAction = null;
+    }
+    
+    addAnimation(name, fbxPath) {
+        fbxLoader.load(fbxPath, (fbx) => {
+            const clip = fbx.animations[0];
+            const action = this.mixer.clipAction(clip);
+            this.animations[name] = action;
+        });
+    }
+    
+    play(name, fadeTime = 0.2) {
+        const action = this.animations[name];
+        if (!action) return;
+        
+        if (this.currentAction && this.currentAction !== action) {
+            this.currentAction.fadeOut(fadeTime);
+        }
+        
+        action.reset().fadeIn(fadeTime).play();
+        this.currentAction = action;
+    }
+}
+```
+
+### Étape 4 : Joystick Virtuel
+```javascript
+class VirtualJoystick {
+    constructor(container) {
+        this.container = container;
+        this.active = false;
+        this.position = { x: 0, y: 0 };
+        
+        this.createJoystick();
+        this.setupEvents();
+    }
+    
+    createJoystick() {
+        this.base = document.createElement('div');
+        this.base.className = 'joystick-base';
+        
+        this.stick = document.createElement('div');
+        this.stick.className = 'joystick-stick';
+        
+        this.base.appendChild(this.stick);
+        this.container.appendChild(this.base);
+    }
+    
+    setupEvents() {
+        this.base.addEventListener('touchstart', (e) => {
+            this.active = true;
+        });
+        
+        this.base.addEventListener('touchmove', (e) => {
+            if (!this.active) return;
+            
+            const touch = e.touches[0];
+            const rect = this.base.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let deltaX = touch.clientX - centerX;
+            let deltaY = touch.clientY - centerY;
+            
+            // Limiter au rayon
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = rect.width / 2;
+            
+            if (distance > maxDistance) {
+                deltaX = (deltaX / distance) * maxDistance;
+                deltaY = (deltaY / distance) * maxDistance;
+            }
+            
+            this.position.x = deltaX / maxDistance;
+            this.position.y = -deltaY / maxDistance;
+            
+            this.stick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        });
+        
+        this.base.addEventListener('touchend', () => {
+            this.active = false;
+            this.position = { x: 0, y: 0 };
+            this.stick.style.transform = 'translate(0, 0)';
+        });
+    }
+}
+```
+
+### Étape 5 : Mode Game
+```javascript
+class GameMode {
+    constructor(scene, character, animController) {
+        this.scene = scene;
+        this.character = character;
+        this.animController = animController;
+        this.joystick = new VirtualJoystick(document.body);
+        
+        this.setupCamera();
+        this.setupButtons();
+    }
+    
+    setupCamera() {
+        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.cameraOffset = new THREE.Vector3(0, 3, -5);
+    }
+    
+    update(deltaTime) {
+        const input = this.joystick.position;
+        
+        // Déplacement
+        if (Math.abs(input.x) > 0.1 || Math.abs(input.y) > 0.1) {
+            const speed = this.isRunning ? 5 : 2;
+            const direction = new THREE.Vector3(input.x, 0, input.y).normalize();
+            
+            this.character.position.add(direction.multiplyScalar(speed * deltaTime));
+            
+            // Rotation du personnage
+            const angle = Math.atan2(direction.x, direction.z);
+            this.character.rotation.y = angle;
+            
+            // Animation
+            if (this.isRunning) {
+                this.animController.play('run');
+            } else {
+                this.animController.play('walk');
+            }
+        } else {
+            this.animController.play('idle');
+        }
+        
+        // Caméra suit le personnage
+        const targetPos = this.character.position.clone().add(this.cameraOffset);
+        this.camera.position.lerp(targetPos, 0.1);
+        this.camera.lookAt(this.character.position);
+    }
+}
+```
+
+---
+
+## 🎨 CSS pour les Contrôles
+
+```css
+.joystick-base {
+    position: fixed;
+    bottom: 50px;
+    left: 50px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+}
+
+.joystick-stick {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s;
+}
+
+.game-button {
+    position: fixed;
+    bottom: 50px;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    font-size: 20px;
+    color: white;
+}
+
+.btn-jump {
+    right: 50px;
+}
+
+.btn-run {
+    right: 130px;
+}
+```
+
+---
+
+## 📦 Plan d'Implémentation
+
+### Phase 1 : Infrastructure (2-3h)
+- [x] Créer `game-editor.html`
+- [ ] Setup Three.js + FBXLoader
+- [ ] Créer la grille en damier
+- [ ] Système de caméra multi-modes
+
+### Phase 2 : Asset Management (2h)
+- [ ] API backend pour lister les FBX
+- [ ] Panneau de navigation des assets
+- [ ] Système de drag & drop
+
+### Phase 3 : Character System (3h)
+- [ ] CharacterController
+- [ ] AnimationController
+- [ ] Chargement multi-animations
+- [ ] Transition fluide entre animations
+
+### Phase 4 : Game Mode (3h)
+- [ ] VirtualJoystick
+- [ ] Boutons d'action
+- [ ] Caméra 3ème personne
+- [ ] Logique de déplacement
+
+### Phase 5 : Scene Management (2h)
+- [ ] Sauvegarde/Chargement JSON
+- [ ] API backend pour persistence
+- [ ] Liste des scènes sauvegardées
+
+### Phase 6 : Polish & UX (2h)
+- [ ] Interface responsive
+- [ ] Feedback visuel
+- [ ] Tutoriel intégré
+- [ ] Optimisations performances
+
+**Temps total estimé : 14-16 heures**
+
+---
+
+## 🚀 Prochaines Étapes
+
+1. Valider le plan avec vous
+2. Commencer par la Phase 1 (Infrastructure)
+3. Tester chaque module indépendamment
+4. Intégrer progressivement
+
+**Voulez-vous que je commence l'implémentation ?**

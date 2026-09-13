@@ -1,0 +1,39 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "L'application ne contient aucun mock de données en production.",
+      "test": "Rechercher les occurrences de 'mock' ou 'fake' dans le code source."
+    },
+    {
+      "id": "AC-002",
+      "description": "Toutes les données persistantes sont stockées dans un backend sécurisé.",
+      "test": "Vérifier qu'aucun localStorage/sessionStorage n'est utilisé pour les données métier."
+    },
+    {
+      "id": "AC-003",
+      "description": "L'authentification est requise pour les routes protégées.",
+      "test": "Tester l'accès aux routes sans token."
+    },
+    {
+      "id": "AC-004",
+      "description": "Les erreurs API sont gérées globalement et affichées à l'utilisateur.",
+      "test": "Simuler une erreur API et vérifier l'affichage d'un message d'erreur."
+    },
+    {
+      "id": "AC-005",
+      "description": "Les routes sont protégées selon les rôles (admin vs user).",
+      "test": "Tester l'accès aux routes admin avec un utilisateur non-admin."
+    },
+    {
+      "id": "AC-006",
+      "description": "Le code respecte les standards TypeScript strict.",
+      "test": "Exécuter tsc --noEmit sans erreur."
+    },
+    {
+      "id": "AC-007",
+      "description": "Les tests unitaires et d'intégration passent avec une couverture minimale de 80%.",
+      "test": "Exécuter la suite de tests et vérifier la couverture."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "stateMachines": [
+    {
+      "id": "theme",
+      "initial": "light",
+      "states": ["light", "dark"],
+      "transitions": [
+        { "from": "light", "to": "dark", "event": "TOGGLE_THEME" },
+        { "from": "dark", "to": "light", "event": "TOGGLE_THEME" }
+      ]
+    },
+    {
+      "id": "particleCanvas",
+      "initial": "idle",
+      "states": ["idle", "running", "paused"],
+      "transitions": [
+        { "from": "idle", "to": "running", "event": "START" },
+        { "from": "running", "to": "paused", "event": "PAUSE" },
+        { "from": "paused", "to": "running", "event": "RESUME" },
+        { "from": "running", "to": "idle", "event": "STOP" }
+      ]
+    }
+  ]
+}

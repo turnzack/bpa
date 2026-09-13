@@ -1,0 +1,98 @@
+{
+  "name": "NEONSTACK ARCADE",
+  "version": "1.0.0",
+  "description": "Pack PRD pour jeu de puzzle arcade rétro néon avec IA adaptative et mode créatif.",
+  "category": "game",
+  "folder": "guest_neonstack_arcade",
+  "modules": [
+    {
+      "id": "tmpl_neonstack_arcade_core",
+      "name": "Moteur de Jeu Principal",
+      "tasks": [
+        { "description": "Implémenter la grille 10x20", "priority": "must-have" },
+        { "description": "Gérer les pièces et rotations", "priority": "must-have" },
+        { "description": "Détection de collision et lignes complètes", "priority": "must-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_ai",
+      "name": "IA Adaptative",
+      "tasks": [
+        { "description": "Analyser les performances du joueur", "priority": "must-have" },
+        { "description": "Ajuster la difficulté dynamiquement", "priority": "must-have" },
+        { "description": "Générer des patterns de pièces", "priority": "should-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_audio",
+      "name": "Bande-son Dynamique",
+      "tasks": [
+        { "description": "Créer un moteur audio Web Audio API", "priority": "must-have" },
+        { "description": "Générer des boucles synthwave", "priority": "should-have" },
+        { "description": "Ajouter des effets sonores", "priority": "must-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_ui",
+      "name": "Interface Utilisateur",
+      "tasks": [
+        { "description": "Créer le menu principal", "priority": "must-have" },
+        { "description": "Implémenter le HUD", "priority": "must-have" },
+        { "description": "Écrans de fin et pause", "priority": "must-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_progression",
+      "name": "Progression et Compétences",
+      "tasks": [
+        { "description": "Système d'XP", "priority": "should-have" },
+        { "description": "Arbre de compétences", "priority": "should-have" },
+        { "description": "Sauvegarde du profil", "priority": "must-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_creative",
+      "name": "Mode Créatif",
+      "tasks": [
+        { "description": "Éditeur de niveaux", "priority": "should-have" },
+        { "description": "Partage de niveaux", "priority": "nice-to-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_online",
+      "name": "Multijoueur Asynchrone",
+      "tasks": [
+        { "description": "Classements", "priority": "should-have" },
+        { "description": "Défis entre amis", "priority": "nice-to-have" },
+        { "description": "Tournois", "priority": "nice-to-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_events",
+      "name": "Événements Saisonniers",
+      "tasks": [
+        { "description": "Calendrier d'événements", "priority": "nice-to-have" },
+        { "description": "Quêtes spéciales", "priority": "nice-to-have" },
+        { "description": "Récompenses", "priority": "nice-to-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_settings",
+      "name": "Paramètres",
+      "tasks": [
+        { "description": "Écran de réglages", "priority": "should-have" },
+        { "description": "Persistance des préférences", "priority": "should-have" },
+        { "description": "Accessibilité", "priority": "nice-to-have" }
+      ]
+    },
+    {
+      "id": "tmpl_neonstack_arcade_visuals",
+      "name": "Effets Visuels Néon",
+      "tasks": [
+        { "description": "Système de particules", "priority": "should-have" },
+        { "description": "Effets de lueur", "priority": "should-have" },
+        { "description": "Thème synthwave", "priority": "must-have" }
+      ]
+    }
+  ]
+}

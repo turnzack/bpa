@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/phase2-api.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyVersion",
+    "phase",
+    "endpoints",
+    "schemas",
+    "authorization",
+    "idempotency",
+    "errors",
+    "status"
+  ],
+  "properties": {
+    "policyVersion": { "const": "gold-5.0.0" },
+    "phase": { "const": "phase2C_ApiContract" },
+    "endpoints": { "type": "array", "items": { "$ref": "#/$defs/endpoint" } },
+    "schemas": { "type": "array" },
+    "authorization": { "type": "array" },
+    "idempotency": { "type": "array" },
+    "errors": { "type": "array" },
+    "status": { "enum": ["complete", "needs_review"] }
+  },
+  "$defs": {
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "method", "path", "requestSchema", "responses"],
+      "properties": {
+        "id": { "type": "string" },
+        "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+        "path": { "type": "string", "pattern": "^/" },
+        "workflowId": { "type": "string" },
+        "requiredState": { "type": "string" },
+        "requestSchema": { "type": "object" },
+        "responses": { "type": "object" }
+      }
+    }
+  }
+}

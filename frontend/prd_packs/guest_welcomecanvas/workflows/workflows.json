@@ -1,0 +1,22 @@
+{
+  "workflows": [
+    {
+      "name": "Initial Visit",
+      "steps": [
+        "User lands on the page",
+        "Hero section animates in",
+        "User scrolls through sections",
+        "User clicks call-to-action"
+      ]
+    },
+    {
+      "name": "Contact Form",
+      "steps": [
+        "User clicks contact button",
+        "Modal opens with form",
+        "User fills and submits",
+        "Success message displayed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "workflows": [
+    {
+      "name": "generatePack",
+      "description": "Workflow complet de génération d'un pack PRD/GDD.",
+      "steps": [
+        { "name": "ingestIdea", "description": "Collecter l'idée de l'utilisateur." },
+        { "name": "analyzeIdea", "description": "Analyser l'idée via l'IA et générer une proposition." },
+        { "name": "generateDocuments", "description": "Générer les documents PRD/GDD." },
+        { "name": "generatePrototype", "description": "Générer une maquette jouable (optionnel)." },
+        { "name": "generatePlan", "description": "Générer un plan de développement prédictif." },
+        { "name": "validatePack", "description": "Valider la cohérence du pack." },
+        { "name": "exportPack", "description": "Exporter le pack en ZIP." }
+      ]
+    },
+    {
+      "name": "analyzeSource", "description": "Analyser une source externe (URL, vidéo) pour en extraire l'essence métier.",
+      "steps": [
+        { "name": "extractMetadata", "description": "Extraire les métadonnées de la source." },
+        { "name": "analyzeTheme", "description": "Analyser la thématique profonde." },
+        { "name": "generateConcept", "description": "Générer un concept de jeu adapté." }
+      ]
+    }
+  ]
+}

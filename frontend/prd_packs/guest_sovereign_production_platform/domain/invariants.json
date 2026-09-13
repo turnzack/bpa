@@ -1,0 +1,29 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "Le prix d'un produit doit être positif ou nul.",
+      "condition": "product.price >= 0"
+    },
+    {
+      "id": "INV-002",
+      "description": "Le stock d'un produit ne peut pas être négatif.",
+      "condition": "product.stock >= 0"
+    },
+    {
+      "id": "INV-003",
+      "description": "Un utilisateur doit avoir un email unique.",
+      "condition": "∀ user1, user2, user1.email != user2.email"
+    },
+    {
+      "id": "INV-004",
+      "description": "Le total d'une commande doit être égal à la somme des prix des produits multipliés par les quantités.",
+      "condition": "order.total == sum(item.quantity * product.price)"
+    },
+    {
+      "id": "INV-005",
+      "description": "Une commande ne peut être modifiée que si son statut est 'pending'.",
+      "condition": "order.status == 'pending'"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+name = "v0-interface-versel"
+pages_build_output_dir = "dist"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+# Ajoutez DATABASE_URL et JWT_SECRET dans l'interface Cloudflare Pages

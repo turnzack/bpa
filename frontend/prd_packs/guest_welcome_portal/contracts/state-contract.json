@@ -1,0 +1,17 @@
+{
+  "stateManagement": {
+    "library": "React Context + useReducer",
+    "globalState": {
+      "theme": "light",
+      "language": "en",
+      "isModalOpen": false
+    },
+    "actions": {
+      "SET_THEME": "string",
+      "SET_LANGUAGE": "string",
+      "OPEN_MODAL": "void",
+      "CLOSE_MODAL": "void"
+    },
+    "reducer": "src/store/reducer.ts"
+  }
+}

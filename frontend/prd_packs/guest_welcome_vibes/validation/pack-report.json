@@ -1,0 +1,16 @@
+{
+  "report": {
+    "status": "VALID",
+    "checks": [
+      { "name": "Présence des fichiers obligatoires", "passed": true },
+      { "name": "Cohérence des entités", "passed": true },
+      { "name": "Invariants définis", "passed": true },
+      { "name": "Machines à états valides", "passed": true },
+      { "name": "Contrats API définis", "passed": true },
+      { "name": "Workflows complets", "passed": true },
+      { "name": "Critères d'acceptation définis", "passed": true }
+    ],
+    "warnings": [],
+    "unresolvedItems": []
+  }
+}

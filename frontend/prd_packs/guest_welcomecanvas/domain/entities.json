@@ -1,0 +1,33 @@
+{
+  "entities": [
+    {
+      "name": "Visitor",
+      "description": "A person visiting the landing page.",
+      "attributes": [
+        { "name": "id", "type": "string", "description": "Unique identifier" },
+        { "name": "sessionId", "type": "string", "description": "Session identifier" },
+        { "name": "referrer", "type": "string", "description": "Source of visit" }
+      ]
+    },
+    {
+      "name": "HeroContent",
+      "description": "Content displayed in the hero section.",
+      "attributes": [
+        { "name": "title", "type": "string", "description": "Main headline" },
+        { "name": "subtitle", "type": "string", "description": "Supporting text" },
+        { "name": "ctaLabel", "type": "string", "description": "Call-to-action button text" },
+        { "name": "ctaUrl", "type": "string", "description": "Call-to-action link" }
+      ]
+    },
+    {
+      "name": "Feature",
+      "description": "A feature highlighted on the landing page.",
+      "attributes": [
+        { "name": "id", "type": "string", "description": "Unique identifier" },
+        { "name": "title", "type": "string", "description": "Feature title" },
+        { "name": "description", "type": "string", "description": "Feature description" },
+        { "name": "icon", "type": "string", "description": "Icon name" }
+      ]
+    }
+  ]
+}

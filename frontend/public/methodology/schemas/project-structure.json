@@ -1,0 +1,15 @@
+{
+  "src": {
+    "api": "Contrats et appels API",
+    "assets": "Images et ressources statiques",
+    "components": {
+      "ui": "Composants atomiques réutilisables (Boutons, Cartes)",
+      "layout": "Composants de mise en page (Header, Sidebar)"
+    },
+    "hooks": "Hooks React personnalisés",
+    "pages": "Vues principales de l'application",
+    "services": "Logique métier et requêtes réseau",
+    "store": "Gestion de l'état global (Zustand)",
+    "types": "Définitions TypeScript (Modèles)"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "apiContract": {
+    "baseUrl": "http://localhost:5005",
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/api/analyze",
+        "description": "Analyse une idée de jeu et retourne une proposition structurée.",
+        "request": {
+          "idea": "string",
+          "category": "PackCategory"
+        },
+        "response": {
+          "proposal": "AnalysisProposal"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/generate-pack",
+        "description": "Génère un pack PRD/GDD complet à partir d'une proposition.",
+        "request": {
+          "proposal": "AnalysisProposal",
+          "options": {
+            "includePrototype": "boolean",
+            "includePlan": "boolean"
+          }
+        },
+        "response": {
+          "pack": "GeneratedPack"
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/validate-pack",
+        "description": "Valide un pack généré.",
+        "request": {
+          "pack": "GeneratedPack"
+        },
+        "response": {
+          "valid": "boolean",
+          "report": "ValidationReport"
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "description": "Vérifie la santé du backend.",
+        "response": {
+          "status": "string"
+        }
+      }
+    ]
+  }
+}

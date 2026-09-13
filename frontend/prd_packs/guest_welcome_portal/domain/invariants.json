@@ -1,0 +1,28 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "The landing page must be fully responsive across devices.",
+      "type": "ui",
+      "enforcement": "Use Tailwind responsive classes and test on multiple viewports."
+    },
+    {
+      "id": "INV-002",
+      "description": "All interactive elements must have accessible labels.",
+      "type": "accessibility",
+      "enforcement": "Use aria-label attributes and semantic HTML."
+    },
+    {
+      "id": "INV-003",
+      "description": "The color palette must maintain a contrast ratio of at least 4.5:1 for text.",
+      "type": "accessibility",
+      "enforcement": "Use Tailwind color utilities and verify with contrast checker."
+    },
+    {
+      "id": "INV-004",
+      "description": "Animations must not cause motion sickness; respect prefers-reduced-motion.",
+      "type": "accessibility",
+      "enforcement": "Use Framer Motion's useReducedMotion hook."
+    }
+  ]
+}

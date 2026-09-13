@@ -1,0 +1,22 @@
+{
+  "stateManagement": {
+    "library": "Redux Toolkit",
+    "slices": [
+      {
+        "name": "auth",
+        "initialState": { "user": null, "token": null },
+        "actions": ["login", "logout", "setUser"]
+      },
+      {
+        "name": "workflows",
+        "initialState": { "items": [], "currentWorkflow": null, "loading": false },
+        "actions": ["fetchWorkflows", "setCurrentWorkflow", "updateWorkflow", "deleteWorkflow"]
+      },
+      {
+        "name": "executions",
+        "initialState": { "items": [], "currentExecution": null },
+        "actions": ["fetchExecutions", "setCurrentExecution"]
+      }
+    ]
+  }
+}

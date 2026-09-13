@@ -1,0 +1,56 @@
+{
+  "stateMachines": [
+    {
+      "name": "LandingPageLifecycle",
+      "states": ["draft", "published", "archived"],
+      "transitions": [
+        {
+          "from": "draft",
+          "to": "published",
+          "event": "publish"
+        },
+        {
+          "from": "published",
+          "to": "draft",
+          "event": "unpublish"
+        },
+        {
+          "from": "published",
+          "to": "archived",
+          "event": "archive"
+        },
+        {
+          "from": "draft",
+          "to": "archived",
+          "event": "archive"
+        }
+      ]
+    },
+    {
+      "name": "EditorMode",
+      "states": ["edit", "preview", "responsive"],
+      "transitions": [
+        {
+          "from": "edit",
+          "to": "preview",
+          "event": "preview"
+        },
+        {
+          "from": "preview",
+          "to": "edit",
+          "event": "edit"
+        },
+        {
+          "from": "edit",
+          "to": "responsive",
+          "event": "responsive"
+        },
+        {
+          "from": "responsive",
+          "to": "edit",
+          "event": "edit"
+        }
+      ]
+    }
+  ]
+}

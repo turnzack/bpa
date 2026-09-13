@@ -1,0 +1,19 @@
+{
+  "invariants": [
+    {
+      "name": "UniqueFeatureIds",
+      "description": "Feature IDs must be unique across the system.",
+      "rule": "For all features, id must be unique."
+    },
+    {
+      "name": "ValidEmail",
+      "description": "User email must be in a valid format.",
+      "rule": "Email must match standard email regex."
+    },
+    {
+      "name": "NonEmptyTestimonials",
+      "description": "Testimonial quotes must not be empty.",
+      "rule": "Quote must have at least 1 character."
+    }
+  ]
+}

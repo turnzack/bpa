@@ -1,0 +1,29 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "Un projet doit avoir un nom non vide.",
+      "rule": "project.name.length > 0"
+    },
+    {
+      "id": "INV-002",
+      "description": "Un pack doit être associé à un projet existant.",
+      "rule": "pack.projectId exists in projects"
+    },
+    {
+      "id": "INV-003",
+      "description": "Le type de pack doit être PRD, GDD ou BOTH.",
+      "rule": "pack.type in ['PRD', 'GDD', 'BOTH']"
+    },
+    {
+      "id": "INV-004",
+      "description": "Chaque module doit avoir un nom unique dans le projet.",
+      "rule": "for each project, module.name is unique"
+    },
+    {
+      "id": "INV-005",
+      "description": "Le statut d'un module doit être planifié, en cours ou terminé.",
+      "rule": "module.status in ['planned', 'in-progress', 'completed']"
+    }
+  ]
+}

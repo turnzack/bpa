@@ -1,0 +1,24 @@
+{
+  "bindings": [
+    {
+      "component": "ThemeToggle",
+      "state": "theme.mode",
+      "action": "toggleTheme"
+    },
+    {
+      "component": "ContactForm",
+      "state": "contactForm.status",
+      "action": "submitContactForm"
+    },
+    {
+      "component": "ContactForm",
+      "state": "contactForm.data",
+      "action": "updateContactFormData"
+    },
+    {
+      "component": "AnalyticsTracker",
+      "state": "analytics.events",
+      "action": "trackEvent"
+    }
+  ]
+}

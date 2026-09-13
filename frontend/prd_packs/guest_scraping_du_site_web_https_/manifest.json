@@ -1,0 +1,35 @@
+{
+  "name": "SCRAPING DU SITE WEB HTTPS",
+  "version": "1.0.0",
+  "description": "Application Pro de Surveillance et d'Analyse de Contenu Web",
+  "category": "other",
+  "folder": "guest_scraping_du_site_web_https_",
+  "tasks": {
+    "must_have": [
+      "Créer le module Dashboard avec statistiques et graphiques",
+      "Implémenter le module Project Manager avec CRUD complet",
+      "Développer le module Scraper Engine avec configuration de sélecteurs",
+      "Créer le module Data Extraction avec tableau et export",
+      "Implémenter le module Change Detection avec diff et alertes",
+      "Créer le module Reporting avec génération de rapports",
+      "Mettre en place le module User Auth avec rôles",
+      "Intégrer le module API Integration pour services externes",
+      "Créer le module Settings avec préférences",
+      "Développer le module Help & Support"
+    ],
+    "should_have": [
+      "Ajouter des notifications en temps réel",
+      "Implémenter la planification avancée des tâches",
+      "Créer des modèles de rapports personnalisables",
+      "Ajouter la gestion des permissions fines",
+      "Intégrer un système de logs centralisé"
+    ],
+    "nice_to_have": [
+      "Support multi-langues",
+      "Mode sombre automatique",
+      "Intégration avec des services de stockage cloud",
+      "API publique pour les développeurs",
+      "Widgets personnalisables pour le dashboard"
+    ]
+  }
+}

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #1a1a1a;
+            font-family: sans-serif;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #error {
+            color: #ff4444;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">Chargement...</div>
+
+    <!-- Three.js via CDN (global, pas module) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
+
+    <script>
+        // Extract jobId from URL
+        const jobId = window.location.pathname.split('/').pop();
+        console.log('JobID:', jobId);
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // Loading manager
+        const manager = new THREE.LoadingManager();
+        manager.onProgress = function (url, loaded, total) {
+            const percent = Math.round((loaded / total) * 100);
+            document.getElementById('loading').innerText = 'Chargement... ' + percent + '%';
+        };
+        manager.onLoad = function () {
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        // Load model
+        function loadModel() {
+            document.getElementById('loading').innerText = 'Connexion...';
+
+            fetch('/jobs/' + jobId)
+                .then(function (resp) {
+                    if (!resp.ok) throw new Error('Job not found');
+                    return resp.json();
+                })
+                .then(function (job) {
+                    console.log('Job:', job);
+                    if (!job.objUrl) {
+                        throw new Error('No OBJ file');
+                    }
+
+                    const objPath = job.objUrl;
+                    document.getElementById('loading').innerText = 'Chargement modèle...';
+
+                    // Load OBJ only (simpler, more compatible)
+                    const loader = new THREE.OBJLoader(manager);
+                    loader.load(objPath, function (object) {
+                        // Center and scale
+                        const box = new THREE.Box3().setFromObject(object);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 5 / maxDim;
+
+                        object.position.sub(center);
+                        object.scale.setScalar(scale);
+
+                        // Add material
+                        object.traverse(function (child) {
+                            if (child.isMesh) {
+                                child.material = new THREE.MeshStandardMaterial({
+                                    color: 0xcccccc,
+                                    roughness: 0.5,
+                                    metalness: 0.1
+                                });
+                            }
+                        });
+
+                        scene.add(object);
+                    }, undefined, function (err) {
+                        console.error('Load error:', err);
+                        document.getElementById('loading').innerHTML = '<span id="error">Erreur chargement</span>';
+                    });
+                })
+                .catch(function (err) {
+                    console.error('Error:', err);
+                    document.getElementById('loading').innerHTML = '<span id="error">Erreur: ' + err.message + '</span>';
+                });
+        }
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Resize
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start
+        loadModel();
+        animate();
+    </script>
+</body>
+
+</html>

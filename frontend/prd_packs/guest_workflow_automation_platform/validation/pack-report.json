@@ -1,0 +1,17 @@
+{
+  "valid": true,
+  "checks": [
+    { "item": "manifest.json", "status": "valid" },
+    { "item": "README.md", "status": "valid" },
+    { "item": "domain/entities.json", "status": "valid" },
+    { "item": "domain/invariants.json", "status": "valid" },
+    { "item": "domain/state-machines.json", "status": "valid" },
+    { "item": "contracts/state-contract.json", "status": "valid" },
+    { "item": "contracts/api-contract.json", "status": "valid" },
+    { "item": "contracts/ui-bindings.json", "status": "valid" },
+    { "item": "workflows/workflows.json", "status": "valid" },
+    { "item": "tests/acceptance.json", "status": "valid" }
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

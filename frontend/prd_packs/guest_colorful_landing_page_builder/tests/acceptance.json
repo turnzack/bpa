@@ -1,0 +1,46 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "feature": "Create Landing Page",
+      "given": "User is on the dashboard",
+      "when": "User clicks 'New Page'",
+      "then": "A new draft page is created and user is taken to the editor"
+    },
+    {
+      "id": "AC-002",
+      "feature": "Drag and Drop Components",
+      "given": "User is in the editor with a section",
+      "when": "User drags a component from palette to the section",
+      "then": "The component appears in the section and is selectable"
+    },
+    {
+      "id": "AC-003",
+      "feature": "Real-time Preview",
+      "given": "User is editing a component",
+      "when": "User changes a property (e.g., text)",
+      "then": "The preview updates immediately without reload"
+    },
+    {
+      "id": "AC-004",
+      "feature": "Theme Customization",
+      "given": "User has a page open",
+      "when": "User changes the primary color in theme panel",
+      "then": "All elements using primary color update instantly"
+    },
+    {
+      "id": "AC-005",
+      "feature": "Publish Page",
+      "given": "User has a draft page with at least one section",
+      "when": "User clicks 'Publish'",
+      "then": "Page status becomes 'published' and a public URL is generated"
+    },
+    {
+      "id": "AC-006",
+      "feature": "Export Page",
+      "given": "User has a complete page",
+      "when": "User clicks 'Export'",
+      "then": "A zip file containing HTML and CSS is downloaded"
+    }
+  ]
+}

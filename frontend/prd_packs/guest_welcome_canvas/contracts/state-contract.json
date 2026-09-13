@@ -1,0 +1,36 @@
+{
+  "state": {
+    "theme": {
+      "type": "string",
+      "enum": ["light", "dark"],
+      "default": "light"
+    },
+    "particleCanvas": {
+      "type": "string",
+      "enum": ["idle", "running", "paused"],
+      "default": "idle"
+    }
+  },
+  "actions": [
+    {
+      "name": "toggleTheme",
+      "description": "Toggles between light and dark theme."
+    },
+    {
+      "name": "startParticles",
+      "description": "Starts the particle animation."
+    },
+    {
+      "name": "pauseParticles",
+      "description": "Pauses the particle animation."
+    },
+    {
+      "name": "resumeParticles",
+      "description": "Resumes the particle animation."
+    },
+    {
+      "name": "stopParticles",
+      "description": "Stops the particle animation."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "packName": "LANDING PAGE ADAPTIVE",
+  "validated": true,
+  "files": [
+    "manifest.json",
+    "README.md",
+    "domain/entities.json",
+    "domain/invariants.json",
+    "domain/state-machines.json",
+    "contracts/state-contract.json",
+    "contracts/api-contract.json",
+    "contracts/ui-bindings.json",
+    "workflows/workflows.json",
+    "tests/acceptance.json",
+    "validation/pack-report.json"
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

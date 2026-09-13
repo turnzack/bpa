@@ -1,0 +1,44 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "feature": "User Authentication",
+      "scenario": "User logs in with valid credentials",
+      "given": "User has an account",
+      "when": "User submits correct email and password",
+      "then": "System returns a JWT token and user info"
+    },
+    {
+      "id": "AC-002",
+      "feature": "Workflow Creation",
+      "scenario": "User creates a new workflow",
+      "given": "User is logged in",
+      "when": "User clicks 'New Workflow' and fills in name",
+      "then": "A draft workflow is created with a trigger node"
+    },
+    {
+      "id": "AC-003",
+      "feature": "Workflow Editing",
+      "scenario": "User adds a node to a workflow",
+      "given": "User has a draft workflow open in the editor",
+      "when": "User drags a node from the palette onto the canvas",
+      "then": "The node appears on the canvas and can be configured"
+    },
+    {
+      "id": "AC-004",
+      "feature": "Workflow Activation",
+      "scenario": "User activates a workflow",
+      "given": "User has a draft workflow with at least one trigger and one action",
+      "when": "User clicks 'Activate'",
+      "then": "Workflow status changes to 'active' and executions start"
+    },
+    {
+      "id": "AC-005",
+      "feature": "AI Workflow Generation",
+      "scenario": "User generates a workflow using AI",
+      "given": "User is on the AI generator modal",
+      "when": "User enters a description and clicks 'Generate'",
+      "then": "System displays a workflow draft with nodes and connections"
+    }
+  ]
+}

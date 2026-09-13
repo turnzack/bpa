@@ -1,0 +1,18 @@
+{
+  "api": {
+    "baseUrl": "https://api.example.com",
+    "endpoints": [
+      {
+        "path": "/welcome",
+        "method": "GET",
+        "description": "Fetches welcome content.",
+        "response": {
+          "title": "string",
+          "subtitle": "string",
+          "ctaText": "string"
+        }
+      }
+    ],
+    "authentication": "none"
+  }
+}

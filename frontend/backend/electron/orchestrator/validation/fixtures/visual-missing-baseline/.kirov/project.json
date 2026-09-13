@@ -1,0 +1,9 @@
+{
+  "requiredGates": [
+    "projectContract",
+    "dependencies",
+    "localImports",
+    "exports",
+    "visual"
+  ]
+}

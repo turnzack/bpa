@@ -1,0 +1,29 @@
+{
+  "globalState": {
+    "auth": {
+      "session": null | { "user": { "id": "string", "email": "string", "tenantId": "string" }, "accessToken": "string" }
+    },
+    "tenant": {
+      "current": null | { "id": "string", "name": "string", "plan": "free" | "pro" | "enterprise" }
+    },
+    "documents": {
+      "items": [],
+      "loading": false,
+      "error": null
+    },
+    "scanJobs": {
+      "items": [],
+      "loading": false,
+      "error": null
+    },
+    "payments": {
+      "items": [],
+      "loading": false,
+      "error": null
+    }
+  },
+  "persistence": {
+    "storage": "SecureStore",
+    "keys": ["auth_session", "tenant_id"]
+  }
+}

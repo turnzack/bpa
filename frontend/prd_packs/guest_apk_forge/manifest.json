@@ -1,0 +1,34 @@
+{
+ "name": "APK Forge",
+ "version": "1.0.0",
+ "description": "Plateforme intelligente de packaging Android avec IA prédictive",
+ "author": "Staff Engineer Team",
+ "repository": "https://github.com/org/apk-forge",
+ "license": "MIT",
+ "tasks": {
+ "must-have": [
+ { "id": "task-1", "title": "Orchestrateur de build avec machine à états", "description": "Implémenter le cœur de l'orchestration avec gestion des erreurs et reprise." },
+ { "id": "task-2", "title": "Interface de configuration Gradle et signature", "description": "Permettre de paramétrer les builds et les profils de signature." },
+ { "id": "task-3", "title": "Exécution du build avec streaming de logs", "description": "Lancer Gradle et afficher les logs en temps réel via WebSocket." }
+ ],
+ "should-have": [
+ { "id": "task-4", "title": "Analyse statique et tests automatisés", "description": "Intégrer des scanners de code et lancer les tests en parallèle." },
+ { "id": "task-5", "title": "Publication sur les stores (Google Play, Huawei)", "description": "Connecteurs pour déployer les APK sur les canaux de distribution." },
+ { "id": "task-6", "title": "Assistant IA pour prédire les erreurs", "description": "Utiliser un modèle d'IA pour analyser les logs et suggérer des corrections." }
+ ],
+ "nice-to-have": [
+ { "id": "task-7", "title": "Tableau de bord avec métriques avancées", "description": "Visualiser les tendances et exporter des rapports." },
+ { "id": "task-8", "title": "Support multi-projets et équipes", "description": "Gérer plusieurs projets Android avec des rôles utilisateur." }
+ ]
+ },
+ "dependencies": {
+ "frontend": ["react", "typescript", "zustand", "socket.io-client", "chart.js"],
+ "backend": ["node.js", "express", "socket.io", "axios", "crypto-js"]
+ },
+ "devDependencies": ["jest", "cypress", "eslint", "prettier"],
+ "scripts": {
+ "start": "concurrently \"npm run server\" \"npm run client\"",
+ "build": "tsc && vite build",
+ "test": "jest --coverage"
+ }
+}

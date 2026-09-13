@@ -1,0 +1,63 @@
+{
+  "baseUrl": "/api",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/landing-pages",
+      "description": "Get all landing pages",
+      "response": "LandingPage[]"
+    },
+    {
+      "method": "POST",
+      "path": "/landing-pages",
+      "description": "Create a new landing page",
+      "requestBody": "LandingPage",
+      "response": "LandingPage"
+    },
+    {
+      "method": "GET",
+      "path": "/landing-pages/:id",
+      "description": "Get a landing page by ID",
+      "response": "LandingPage"
+    },
+    {
+      "method": "PUT",
+      "path": "/landing-pages/:id",
+      "description": "Update a landing page",
+      "requestBody": "Partial<LandingPage>",
+      "response": "LandingPage"
+    },
+    {
+      "method": "DELETE",
+      "path": "/landing-pages/:id",
+      "description": "Delete a landing page",
+      "response": "void"
+    },
+    {
+      "method": "GET",
+      "path": "/themes",
+      "description": "Get all themes",
+      "response": "Theme[]"
+    },
+    {
+      "method": "POST",
+      "path": "/themes",
+      "description": "Create a new theme",
+      "requestBody": "Theme",
+      "response": "Theme"
+    },
+    {
+      "method": "PUT",
+      "path": "/themes/:id",
+      "description": "Update a theme",
+      "requestBody": "Partial<Theme>",
+      "response": "Theme"
+    },
+    {
+      "method": "DELETE",
+      "path": "/themes/:id",
+      "description": "Delete a theme",
+      "response": "void"
+    }
+  ]
+}

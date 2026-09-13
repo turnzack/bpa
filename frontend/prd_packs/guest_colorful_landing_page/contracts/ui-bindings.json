@@ -1,0 +1,29 @@
+{
+  "bindings": [
+    {
+      "component": "ThemeToggle",
+      "state": "ui.theme",
+      "actions": ["SET_THEME"]
+    },
+    {
+      "component": "Modal",
+      "state": "ui.modalOpen",
+      "actions": ["OPEN_MODAL", "CLOSE_MODAL"]
+    },
+    {
+      "component": "ContactForm",
+      "state": "form",
+      "actions": ["UPDATE_FORM_FIELD", "SUBMIT_FORM", "FORM_SUCCESS", "FORM_ERROR", "RESET_FORM"]
+    },
+    {
+      "component": "FeatureGrid",
+      "state": "content.features",
+      "actions": []
+    },
+    {
+      "component": "TestimonialCarousel",
+      "state": "content.testimonials",
+      "actions": []
+    }
+  ]
+}

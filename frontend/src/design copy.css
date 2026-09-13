@@ -1,0 +1,754 @@
+/* =========================================================================
+   🎨 TIGER IA - MEGA CENTRE DE CONTRÔLE DU DESIGN (design.css)
+   =========================================================================
+   TOUS les éléments de l'application sont paramétrables ici.
+   Chaque page, fenêtre, modal, bouton et icône possède ses variables.
+   ========================================================================= */
+
+:root {
+   /* =======================================================================
+     1. ARCHITECTURE GLOBALE & POSITIONS (Structure)
+     ======================================================================= */
+   --app-largeur-max: 100vw;
+   --app-hauteur-max: 100vh;
+
+   --header-position: relative;
+   --header-hauteur: 372px;
+
+   --footer-position: absolute;
+   --footer-bas: 0px;
+   --footer-gauche: 0px;
+   --footer-largeur: 100%;
+
+   --sidebar-droite-position: absolute;
+   --sidebar-droite-top: 72px;
+   --sidebar-droite-bas: 48px;
+   --sidebar-droite-largeur: 320px;
+
+   /* =======================================================================
+     2. FONDS & COULEURS GLOBALES (Arrière-plans)
+     ======================================================================= */
+   --app-bg-top: #0f0f0f;
+   --app-bg-bottom: #000000;
+
+   --couleur-texte-principal: #ffffff;
+   --couleur-texte-secondaire: #9ca3af;
+   --couleur-accent-cyan: #08b3c9;
+   --couleur-accent-rose: #e274a9;
+   --couleur-accent-vert: #22c55e;
+   --couleur-accent-violet: #a855f7;
+
+   --flou-global-arriere-plan: blur(12px);
+
+   /* =======================================================================
+     3. TYPOGRAPHIE (Polices et Tailles)
+     ======================================================================= */
+   --font-principale: 'Inter', sans-serif;
+   --font-titre: 'Inter', sans-serif;
+   --font-code: 'Consolas', monospace;
+
+   --taille-texte-nano: 10px;
+   --taille-texte-mini: 12px;
+   --taille-texte-base: 14px;
+   --taille-texte-titre: 20px;
+   --taille-texte-geant: 24px;
+
+   /* =======================================================================
+     4. EN-TÊTE (Header, Logo, Titres)
+     ======================================================================= */
+   --header-padding: 1rem 1.5rem;
+   --header-bg-couleur: rgba(0, 0, 0, 0.4);
+   --header-bordure-bas: 1px solid rgba(255, 255, 255, 0.1);
+   --header-ombre: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+   --logo-taille: 40px;
+   --logo-arrondi: 12px;
+   --logo-bg-couleur: #08b3c9;
+   --logo-ombre: 0 0 15px rgba(8, 179, 201, 0.4);
+   --logo-emoji-taille: 20px;
+
+   --titre-poids: 900;
+   --titre-couleur: #ffffff;
+   --titre-espacement: 0.05em;
+
+   --sous-titre-couleur: #08b3c9;
+   --sous-titre-poids: 500;
+
+   /* =======================================================================
+     5. MENU D'ACCUEIL (Grille, Applications, Icônes)
+     ======================================================================= */
+   --grille-max-largeur: 1024px;
+   --grille-marge-haut: 2rem;
+   --grille-marge-bas: 140px;
+   --grille-gap-x: 2rem;
+   --grille-gap-y: 2rem;
+
+   /* Boutons carrés (Applications) */
+   --app-icone-largeur: 96px;
+   --app-icone-hauteur: 96px;
+   --app-icone-arrondi: 24px;
+   --app-icone-bordure: 2px solid rgba(255, 255, 255, 0.1);
+   --app-icone-ombre: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+   --app-icone-ombre-survol: 0 0 30px rgba(255, 255, 255, 0.2);
+   --app-icone-scale-survol: 1.05;
+   --app-icone-emoji-taille: 36px;
+   --app-icone-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+   --app-texte-taille: 14px;
+   --app-texte-couleur: #ffffff;
+   --app-texte-poids: 700;
+   --app-texte-marge-haut: 12px;
+
+   /* =======================================================================
+     6. PIED DE PAGE & CHAT (Input, Boutons d'envoi, Barre de statut)
+     ======================================================================= */
+   --chat-conteneur-bg: rgba(0, 0, 0, 0.6);
+   --chat-conteneur-flou: blur(24px);
+   --chat-conteneur-bordure-haut: 1px solid rgba(255, 255, 255, 0.1);
+   --chat-conteneur-padding-haut: 8px;
+   --chat-conteneur-padding-bas: 12px;
+   --chat-conteneur-padding-x: 24px;
+
+   /* Barre de Statuts */
+   --statut-padding: 8px 24px;
+   --statut-bg: transparent;
+   --statut-bordure-bas: 1px solid rgba(255, 255, 255, 0.05);
+   --statut-gap: 24px;
+   --statut-texte-taille: 10px;
+   --statut-texte-poids: 700;
+   --statut-texte-espacement: 0.1em;
+   --statut-pastille-taille: 8px;
+
+   /* Zone de saisie (Input) */
+   --input-hauteur: 48px;
+   --input-largeur: 100%;
+   --input-bg-couleur: rgba(255, 255, 255, 0.05);
+   --input-bordure-couleur: rgba(255, 255, 255, 0.1);
+   --input-texte-taille: 14px;
+   --input-texte-couleur: #ffffff;
+   --input-placeholder-couleur: #9ca3af;
+   --input-arrondi: 9999px;
+   /* Pilule */
+   --input-padding-gauche: 24px;
+   --input-padding-droite: 64px;
+   --input-ombre-interne: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+   /* Bouton Envoyer */
+   --btn-envoi-taille: 40px;
+   --btn-envoi-bg: #08b3c9;
+   --btn-envoi-couleur: #ffffff;
+   --btn-envoi-arrondi: 9999px;
+   --btn-envoi-icone-taille: 20px;
+   --btn-envoi-position-droite: 8px;
+
+   /* =======================================================================
+     7. L'ESPACE DE TRAVAIL IDE (Editeur, Explorateur, Preview)
+     ======================================================================= */
+   --ide-toolbar-hauteur: 56px;
+   --ide-toolbar-bg: linear-gradient(to right, rgba(49, 46, 129, 0.4), rgba(0, 0, 0, 0.8));
+   --ide-toolbar-bordure: 1px solid rgba(99, 102, 241, 0.2);
+
+   /* Boutons Action (Suture, Refactor, Preview) */
+   --ide-btn-action-taille: 40px;
+   --ide-btn-action-arrondi: 12px;
+   --ide-btn-action-bg: rgba(255, 255, 255, 0.05);
+   --ide-btn-action-bordure: 1px solid rgba(255, 255, 255, 0.1);
+   --ide-btn-action-emoji: 20px;
+
+   /* Explorateur de Fichiers */
+   --explorateur-largeur: 256px;
+   --explorateur-bg: rgba(10, 10, 10, 0.95);
+   --explorateur-bordure-droite: 1px solid rgba(255, 255, 255, 0.1);
+   --explorateur-texte-taille: 12px;
+   --explorateur-dossier-couleur: #60a5fa;
+   --explorateur-fichier-couleur: #9ca3af;
+
+   /* Éditeur Monaco */
+   --editeur-bg: #1e1e1e;
+   --editeur-onglet-hauteur: 48px;
+   --editeur-onglet-bg: #252526;
+   --editeur-onglet-bordure: 1px solid #000000;
+
+   /* Fenêtre de Preview (Iframe) */
+   --preview-bg: #ffffff;
+   --preview-largeur: 50%;
+   --preview-bordure-gauche: 1px solid #000000;
+
+   /* =======================================================================
+     8. MOUCHARD (Terminal Latéral Droit)
+     ======================================================================= */
+   --mouchard-bg: #000000;
+   --mouchard-bordure-gauche: 1px solid rgba(255, 255, 255, 0.2);
+   --mouchard-ombre: -10px 0 30px rgba(0, 0, 0, 0.5);
+   --mouchard-entete-bg: #050505;
+   --mouchard-entete-hauteur: 48px;
+   --mouchard-titre-couleur: #08b3c9;
+   --mouchard-texte-taille: 12px;
+   --mouchard-texte-couleur-defaut: #52c1c9;
+   --mouchard-texte-couleur-erreur: #ef4444;
+
+   /* =======================================================================
+     9. FENÊTRES MODALES (Paramètres, PRD Packs)
+     ======================================================================= */
+   --modal-fond-assombrissement: rgba(0, 0, 0, 0.6);
+   --modal-fond-flou: blur(8px);
+
+   /* Conteneur principal de la Modale */
+   --modal-largeur-max: 1024px;
+   /* max-w-5xl */
+   --modal-hauteur-max: 85vh;
+   --modal-bg-top: rgba(132, 94, 124, 0.95);
+   --modal-bg-bottom: rgba(108, 48, 80, 0.95);
+   --modal-bordure: 1px solid rgba(255, 255, 255, 0.1);
+   --modal-arrondi: 24px;
+   --modal-ombre: 0 0 50px rgba(0, 0, 0, 0.8);
+
+   /* Modale PRD Packs Spécifique */
+   --modal-prd-bg: rgba(0, 0, 0, 0.95);
+   --modal-prd-bordure: 1px solid rgba(79, 70, 229, 0.5);
+   --modal-prd-entete-bg: rgba(49, 46, 129, 0.3);
+   --modal-prd-titre-couleur: #a5b4fc;
+
+   /* Menu Latéral des Modales */
+   --modal-sidebar-largeur: 256px;
+   --modal-sidebar-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+   --modal-onglet-padding: 12px 16px;
+   --modal-onglet-arrondi: 12px;
+   --modal-onglet-gap: 12px;
+   --modal-onglet-bg-actif: rgba(8, 179, 201, 0.2);
+   --modal-onglet-bordure-actif: 1px solid rgba(8, 179, 201, 0.5);
+   --modal-onglet-couleur-actif: #ffffff;
+   --modal-onglet-couleur-inactif: #9ca3af;
+}
+
+/* =========================================================================
+   APPLICATION AUTOMATIQUE DES VARIABLES (CLASSES UTILITAIRES)
+   Ces classes injectent les réglages ci-dessus dans les composants React.
+   ========================================================================= */
+
+/* Structure & Fonds */
+.design-app-root {
+   background: linear-gradient(to bottom right, var(--app-bg-top), var(--app-bg-bottom)) !important;
+   font-family: var(--font-principale) !important;
+   width: var(--app-largeur-max) !important;
+   height: var(--app-hauteur-max) !important;
+}
+
+/* Header */
+.design-header {
+   position: var(--header-position) !important;
+   height: var(--header-hauteur) !important;
+   padding: var(--header-padding) !important;
+   background: var(--header-bg-couleur) !important;
+   border-bottom: var(--header-bordure-bas) !important;
+   box-shadow: var(--header-ombre) !important;
+}
+
+.design-logo {
+   width: var(--logo-taille) !important;
+   height: var(--logo-taille) !important;
+   border-radius: var(--logo-arrondi) !important;
+   background: var(--logo-bg-couleur) !important;
+   box-shadow: var(--logo-ombre) !important;
+   font-size: var(--logo-emoji-taille) !important;
+}
+
+.design-titre {
+   font-size: var(--titre-taille) !important;
+   font-weight: var(--titre-poids) !important;
+   color: var(--titre-couleur) !important;
+   letter-spacing: var(--titre-espacement) !important;
+   font-family: var(--font-titre) !important;
+}
+
+.design-sous-titre {
+   font-size: var(--sous-titre-taille) !important;
+   color: var(--sous-titre-couleur) !important;
+   font-weight: var(--sous-titre-poids) !important;
+}
+
+/* Grille & Icônes Menu */
+.design-grille {
+   max-width: var(--grille-max-largeur) !important;
+   margin-top: var(--grille-marge-haut) !important;
+   margin-bottom: var(--grille-marge-bas) !important;
+   gap: var(--grille-gap-x) var(--grille-gap-y) !important;
+}
+
+.design-app-icone {
+   width: var(--app-icone-largeur) !important;
+   height: var(--app-icone-hauteur) !important;
+   border-radius: var(--app-icone-arrondi) !important;
+   border: var(--app-icone-bordure) !important;
+   font-size: var(--app-icone-emoji-taille) !important;
+   transition: var(--app-icone-transition) !important;
+   box-shadow: var(--app-icone-ombre) !important;
+}
+
+.design-app-icone:hover {
+   box-shadow: var(--app-icone-ombre-survol) !important;
+   transform: scale(var(--app-icone-scale-survol)) !important;
+}
+
+.design-app-texte {
+   font-size: var(--app-texte-taille) !important;
+   color: var(--app-texte-couleur) !important;
+   font-weight: var(--app-texte-poids) !important;
+   margin-top: var(--app-texte-marge-haut) !important;
+}
+
+/* Footer & Chat */
+.design-footer {
+   position: var(--footer-position) !important;
+   bottom: var(--footer-bas) !important;
+   left: var(--footer-gauche) !important;
+   width: var(--footer-largeur) !important;
+   background: var(--chat-conteneur-bg) !important;
+   border-top: var(--chat-conteneur-bordure-haut) !important;
+}
+
+.design-chat-input {
+   height: var(--input-hauteur) !important;
+   width: var(--input-largeur) !important;
+   background: var(--input-bg-couleur) !important;
+   border: var(--input-bordure-couleur) !important;
+   font-size: var(--input-texte-taille) !important;
+   color: var(--input-texte-couleur) !important;
+   border-radius: var(--input-arrondi) !important;
+   padding-left: var(--input-padding-gauche) !important;
+   padding-right: var(--input-padding-droite) !important;
+   box-shadow: var(--input-ombre-interne) !important;
+}
+
+.design-chat-input::placeholder {
+   color: var(--input-placeholder-couleur) !important;
+}
+
+.design-btn-envoi {
+   width: var(--btn-envoi-taille) !important;
+   height: var(--btn-envoi-taille) !important;
+   background: var(--btn-envoi-bg) !important;
+   color: var(--btn-envoi-couleur) !important;
+   border-radius: var(--btn-envoi-arrondi) !important;
+   font-size: var(--btn-envoi-icone-taille) !important;
+   right: var(--btn-envoi-position-droite) !important;
+}
+
+/* Mouchard (Terminal) */
+.design-mouchard-conteneur {
+   position: var(--sidebar-droite-position) !important;
+   top: var(--sidebar-droite-top) !important;
+   bottom: var(--sidebar-droite-bas) !important;
+   width: var(--sidebar-droite-largeur) !important;
+   background: var(--mouchard-bg) !important;
+   border-left: var(--mouchard-bordure-gauche) !important;
+   box-shadow: var(--mouchard-ombre) !important;
+}
+
+/* Tiger IA Design - Admin Studio FULL */
+:root {
+   --app-largeur-max: 120vw;
+   --app-hauteur-max: 136vh;
+   --header-position: fixed;
+   --header-top: -107px;
+   --header-left: 17px;
+   --header-largeur: 0%;
+   --header-z-index: 100;
+   --header-hauteur: 351px;
+   --footer-position: sticky;
+   --footer-bas: 13px;
+   --footer-gauche: 0px;
+   --footer-largeur: 100%;
+   --footer-z-index: 50;
+   --sidebar-droite-position: fixed;
+   --sidebar-droite-top: 22px;
+   --sidebar-droite-bas: 43px;
+   --sidebar-droite-largeur: 440px;
+   --app-bg-top: #0f0f0f;
+   --app-bg-bottom: #000000;
+   --couleur-texte-principal: #ffffff;
+   --couleur-texte-secondaire: #9ca3af;
+   --couleur-accent-cyan: #08b3c9;
+   --couleur-accent-rose: #e274a9;
+   --couleur-accent-vert: #22c55e;
+   --couleur-accent-violet: #a855f7;
+   --flou-global-arriere-plan: blur(12px);
+   --font-principale: 'Inter', sans-serif;
+   --font-titre: 'Inter', sans-serif;
+   --font-code: 'Consolas', monospace;
+   --taille-texte-nano: 17px;
+   --taille-texte-mini: 17px;
+   --taille-texte-base: 17px;
+   --taille-texte-titre: 17px;
+   --taille-texte-geant: 1px;
+   --header-padding: 0rem 0.0rem;
+   --header-bg-couleur: rgba(0, 0, 0, 0.4);
+   --header-bordure-bas: 1px solid rgba(255, 255, 255, 0.1);
+   --header-ombre: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+   --logo-taille: 78px;
+   --logo-arrondi: 272px;
+   --logo-bg-couleur: #ffb3e3;
+   --logo-ombre: 0 0 15px rgba(8, 179, 201, 0.4);
+   --logo-emoji-taille: 46px;
+   --titre-poids: 900;
+   --titre-couleur: #ffffff;
+   --titre-espacement: 0em;
+   --sous-titre-couleur: #08b3c9;
+   --sous-titre-poids: 500;
+   --grille-display: flex;
+   --grille-flex-wrap: nowrap;
+   --grille-justify: center;
+   --grille-overflow-x: hidden;
+   --grille-max-largeur: 1500px;
+   --grille-marge-haut: 3rem;
+   --grille-marge-bas: -36px;
+   --grille-gap-x: 2rem;
+   --grille-gap-y: 0rem;
+   --app-icone-largeur: 160px;
+   --app-icone-hauteur: 111px;
+   --app-icone-arrondi: 368px;
+   --app-icone-bordure: 2px solid rgba(255, 255, 255, 0.1);
+   --app-icone-ombre: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+   --app-icone-ombre-survol: 0 0 30px rgba(255, 255, 255, 0.2);
+   --app-icone-scale-survol: 1.65;
+   --app-icone-emoji-taille: 34px;
+   --app-icone-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+   --icone-reglages-bg: linear-gradient(135deg, #c87058, #934a36);
+   --icone-assistant-bg: linear-gradient(135deg, #9d508e, #622e5a);
+   --icone-projets-bg: linear-gradient(135deg, #d38b5d, #a26038);
+   --icone-packs-bg: linear-gradient(135deg, #445499, #252e66);
+   --icone-actualites-bg: linear-gradient(135deg, #389eb2, #1f6475);
+   --app-texte-taille: -3px;
+   --app-texte-couleur: #ffffff;
+   --app-texte-poids: 600;
+   --app-texte-marge-haut: -40px;
+   --carte-carrousel-hauteur: 270px;
+   --carte-carrousel-largeur: 323px;
+   --chat-bulles-espacement: 1px;
+   --chat-layout-gap: 107px;
+   --chat-separateur-marge-y: 9px;
+   --chat-main-position: fixed;
+   --chat-main-top: 50;
+   --chat-main-bottom: 0;
+   --chat-main-right: 0;
+   --chat-main-width: 100%;
+   --chat-conteneur-bg: rgba(0, 0, 0, 0.6);
+   --chat-conteneur-flou: blur(24px);
+   --chat-conteneur-bordure-haut: 1px solid rgba(255, 255, 255, 0.1);
+   --chat-conteneur-padding-haut: 8px;
+   --chat-conteneur-padding-bas: 12px;
+   --chat-conteneur-padding-x: 24px;
+   --statut-padding: 8px 24px;
+   --statut-bg: transparent;
+   --statut-bordure-bas: 1px solid rgba(255, 255, 255, 0.05);
+   --statut-gap: 24px;
+   --statut-texte-taille: 152px;
+   --statut-texte-poids: 700;
+   --statut-texte-espacement: 0.1em;
+   --statut-pastille-taille: 54px;
+   --input-hauteur: 58px;
+   --input-largeur: 100%;
+   --input-bg-couleur: rgba(255, 255, 255, 0.05);
+   --input-bordure-couleur: rgba(255, 255, 255, 0.1);
+   --input-texte-taille: -1px;
+   --input-texte-couleur: #ffffff;
+   --input-placeholder-couleur: #9ca3af;
+   --input-arrondi: 9999px;
+   --input-padding-gauche: 24px;
+   --input-padding-droite: 64px;
+   --input-ombre-interne: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+   --btn-envoi-position: absolute;
+   --btn-envoi-top: 50%;
+   --btn-envoi-bottom: auto;
+   --btn-envoi-left: auto;
+   --btn-envoi-right: 8px;
+   --btn-envoi-taille: 54px;
+   --btn-envoi-bg: #08b3c9;
+   --btn-envoi-couleur: #ffffff;
+   --btn-envoi-arrondi: 1500px;
+   --btn-envoi-icone-taille: -93px;
+   --trombone-position: sticky;
+   --trombone-top: auto;
+   --trombone-bottom: sticky;
+   --trombone-left: auto;
+   --trombone-right: auto;
+   --trombone-taille: 34px;
+   --trombone-couleur: #8366ea;
+   --trombone-margin: 5px;
+   --new-v0-position: static;
+   --new-v0-top: auto;
+   --new-v0-bottom: auto;
+   --new-v0-left: auto;
+   --new-v0-right: auto;
+   --new-v0-padding: 8px 12px;
+   --new-v0-taille: -89px;
+   --new-v0-bg: rgba(8, 179, 201, 0.1);
+   --new-v0-couleur: #08b3c9;
+   --new-v0-arrondi: 282px;
+   --new-v0-bordure: 1px solid rgba(8, 179, 201, 0.3);
+   --new-v0-margin: 0px;
+   --ide-toolbar-hauteur: -125px;
+   --ide-toolbar-bg: linear-gradient(to right, rgba(49, 46, 129, 0.4), rgba(0, 0, 0, 0.8));
+   --ide-toolbar-bordure: 1px solid rgba(99, 102, 241, 0.2);
+   --ide-btn-action-taille: 36px;
+   --ide-btn-action-arrondi: 12px;
+   --ide-btn-action-bg: rgba(255, 255, 255, 0.05);
+   --ide-btn-action-bordure: 1px solid rgba(255, 255, 255, 0.1);
+   --ide-btn-action-emoji: 33px;
+   --explorateur-largeur: 207px;
+   --explorateur-bg: rgba(10, 10, 10, 0.95);
+   --explorateur-bordure-droite: 1px solid rgba(255, 255, 255, 0.1);
+   --explorateur-texte-taille: 12px;
+   --explorateur-dossier-couleur: #60a5fa;
+   --explorateur-fichier-couleur: #9ca3af;
+   --editeur-bg: #1e1e1e;
+   --editeur-onglet-hauteur: 48px;
+   --editeur-onglet-bg: #252526;
+   --editeur-onglet-bordure: 1px solid #000000;
+   --preview-bg: #ffffff;
+   --preview-largeur: 50%;
+   --preview-bordure-gauche: 1px solid #000000;
+   --mouchard-bg: #000000;
+   --mouchard-bordure-gauche: 1px solid rgba(255, 255, 255, 0.2);
+   --mouchard-ombre: -10px 0 30px rgba(0, 0, 0, 0.5);
+   --mouchard-entete-bg: #050505;
+   --mouchard-entete-hauteur: 12px;
+   --mouchard-titre-couleur: #08b3c9;
+   --mouchard-texte-taille: 12px;
+   --mouchard-texte-couleur-defaut: #52c1c9;
+   --mouchard-texte-couleur-erreur: #ef4444;
+   --modal-fond-assombrissement: rgba(0, 0, 0, 0.6);
+   --modal-fond-flou: blur(8px);
+   --modal-largeur-max: 1024px;
+   --modal-hauteur-max: 85vh;
+   --modal-bg-top: rgba(132, 94, 124, 0.95);
+   --modal-bg-bottom: rgba(108, 48, 80, 0.95);
+   --modal-bordure: 1px solid rgba(255, 255, 255, 0.1);
+   --modal-arrondi: 24px;
+   --modal-ombre: 0 0 50px rgba(0, 0, 0, 0.8);
+   --modal-prd-bg: rgba(0, 0, 0, 0.95);
+   --modal-prd-bordure: 1px solid rgba(79, 70, 229, 0.5);
+   --modal-prd-entete-bg: rgba(49, 46, 129, 0.3);
+   --modal-prd-titre-couleur: #a5b4fc;
+   --modal-sidebar-largeur: 256px;
+   --modal-sidebar-bg: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+   --modal-onglet-padding: 12px 16px;
+   --modal-onglet-arrondi: 12px;
+   --modal-onglet-gap: 12px;
+   --modal-onglet-bg-actif: rgba(8, 179, 201, 0.2);
+   --modal-onglet-bordure-actif: 1px solid rgba(8, 179, 201, 0.5);
+   --modal-onglet-couleur-actif: #ffffff;
+   --modal-onglet-couleur-inactif: #9ca3af;
+
+}
+
+body {
+   background: linear-gradient(to bottom right, var(--app-bg-top), var(--app-bg-bottom)) !important;
+   color: var(--couleur-texte-principal) !important;
+   font-family: var(--font-principale) !important;
+   font-size: var(--taille-texte-base) !important;
+   min-height: 125vh;
+   margin: 0;
+   zoom: 0.8;
+   overflow-x: hidden;
+}
+
+/* Applications Utilitaires Automatiques */
+.design-app-root {
+   background: linear-gradient(to bottom right, var(--app-bg-top), var(--app-bg-bottom)) !important;
+   font-family: var(--font-principale) !important;
+   width: var(--app-largeur-max) !important;
+   height: var(--app-hauteur-max) !important;
+}
+
+.design-header {
+   position: var(--header-position) !important;
+   top: var(--header-top) !important;
+   left: var(--header-left) !important;
+   width: var(--header-largeur) !important;
+   z-index: var(--header-z-index) !important;
+   height: var(--header-hauteur) !important;
+   padding: var(--header-padding) !important;
+   background: var(--header-bg-couleur) !important;
+   border-bottom: var(--header-bordure-bas) !important;
+   box-shadow: var(--header-ombre) !important;
+}
+
+.design-logo {
+   width: var(--logo-taille) !important;
+   height: var(--logo-taille) !important;
+   border-radius: var(--logo-arrondi) !important;
+   background: var(--logo-bg-couleur) !important;
+   box-shadow: var(--logo-ombre) !important;
+   font-size: var(--logo-emoji-taille) !important;
+}
+
+.design-titre {
+   font-size: var(--taille-texte-titre) !important;
+   font-weight: var(--titre-poids) !important;
+   color: var(--titre-couleur) !important;
+   letter-spacing: var(--titre-espacement) !important;
+   font-family: var(--font-titre) !important;
+}
+
+.design-sous-titre {
+   font-size: var(--taille-texte-base) !important;
+   color: var(--sous-titre-couleur) !important;
+   font-weight: var(--sous-titre-poids) !important;
+}
+
+.design-grille {
+   display: var(--grille-display) !important;
+   flex-wrap: var(--grille-flex-wrap) !important;
+   justify-content: var(--grille-justify) !important;
+   overflow-x: var(--grille-overflow-x) !important;
+   max-width: var(--grille-max-largeur) !important;
+   margin-top: var(--grille-marge-haut) !important;
+   margin-bottom: var(--grille-marge-bas) !important;
+   gap: var(--grille-gap-x) var(--grille-gap-y) !important;
+}
+
+.design-app-icone {
+   width: var(--app-icone-largeur) !important;
+   height: var(--app-icone-hauteur) !important;
+   border-radius: var(--app-icone-arrondi) !important;
+   border: var(--app-icone-bordure) !important;
+   font-size: var(--app-icone-emoji-taille) !important;
+   transition: var(--app-icone-transition) !important;
+   box-shadow: var(--app-icone-ombre) !important;
+}
+
+.design-icone-reglages {
+   background: var(--icone-reglages-bg) !important;
+}
+
+.design-icone-assistant {
+   background: var(--icone-assistant-bg) !important;
+}
+
+.design-icone-projets {
+   background: var(--icone-projets-bg) !important;
+}
+
+.design-icone-packs {
+   background: var(--icone-packs-bg) !important;
+}
+
+.design-icone-actualites {
+   background: var(--icone-actualites-bg) !important;
+}
+
+.design-app-icone:hover {
+   box-shadow: var(--app-icone-ombre-survol) !important;
+   transform: scale(var(--app-icone-scale-survol)) !important;
+}
+
+.design-app-texte {
+   font-size: var(--app-texte-taille) !important;
+   color: var(--app-texte-couleur) !important;
+   font-weight: var(--app-texte-poids) !important;
+   margin-top: var(--app-texte-marge-haut) !important;
+}
+
+.design-footer {
+   position: var(--footer-position) !important;
+   bottom: var(--footer-bas) !important;
+   left: var(--footer-gauche) !important;
+   width: var(--footer-largeur) !important;
+   z-index: var(--footer-z-index) !important;
+   background: var(--chat-conteneur-bg) !important;
+   border-top: var(--chat-conteneur-bordure-haut) !important;
+}
+
+.design-chat-main {
+   position: var(--chat-main-position) !important;
+   top: var(--chat-main-top) !important;
+   bottom: var(--chat-main-bottom) !important;
+   right: var(--chat-main-right) !important;
+   width: var(--chat-main-width) !important;
+}
+
+.design-chat-layout {
+   gap: var(--chat-layout-gap) !important;
+}
+
+.design-chat-bulles {
+   gap: var(--chat-bulles-espacement) !important;
+}
+
+.design-carte-carrousel {
+   height: var(--carte-carrousel-hauteur) !important;
+   width: var(--carte-carrousel-largeur) !important;
+}
+
+.design-chat-separateur {
+   margin-top: var(--chat-separateur-marge-y) !important;
+   margin-bottom: var(--chat-separateur-marge-y) !important;
+}
+
+.design-chat-input {
+   height: var(--input-hauteur) !important;
+   width: var(--input-largeur) !important;
+   background: var(--input-bg-couleur) !important;
+   border: var(--input-bordure-couleur) !important;
+   font-size: var(--input-texte-taille) !important;
+   color: var(--input-texte-couleur) !important;
+   border-radius: var(--input-arrondi) !important;
+   padding-left: var(--input-padding-gauche) !important;
+   padding-right: var(--input-padding-droite) !important;
+   box-shadow: var(--input-ombre-interne) !important;
+}
+
+.design-chat-input::placeholder {
+   color: var(--input-placeholder-couleur) !important;
+}
+
+.design-btn-envoi {
+   position: var(--btn-envoi-position) !important;
+   top: var(--btn-envoi-top) !important;
+   bottom: var(--btn-envoi-bottom) !important;
+   left: var(--btn-envoi-left) !important;
+   right: var(--btn-envoi-right) !important;
+   width: var(--btn-envoi-taille) !important;
+   height: var(--btn-envoi-taille) !important;
+   background: var(--btn-envoi-bg) !important;
+   color: var(--btn-envoi-couleur) !important;
+   border-radius: var(--btn-envoi-arrondi) !important;
+   font-size: var(--btn-envoi-icone-taille) !important;
+}
+
+.design-btn-trombone {
+   position: var(--trombone-position) !important;
+   top: var(--trombone-top) !important;
+   bottom: var(--trombone-bottom) !important;
+   left: var(--trombone-left) !important;
+   right: var(--trombone-right) !important;
+   font-size: var(--trombone-taille) !important;
+   color: var(--trombone-couleur) !important;
+   margin: var(--trombone-margin) !important;
+}
+
+.design-btn-new-v0 {
+   position: var(--new-v0-position) !important;
+   top: var(--new-v0-top) !important;
+   bottom: var(--new-v0-bottom) !important;
+   left: var(--new-v0-left) !important;
+   right: var(--new-v0-right) !important;
+   padding: var(--new-v0-padding) !important;
+   font-size: var(--new-v0-taille) !important;
+   background: var(--new-v0-bg) !important;
+   color: var(--new-v0-couleur) !important;
+   border-radius: var(--new-v0-arrondi) !important;
+   border: var(--new-v0-bordure) !important;
+   margin: var(--new-v0-margin) !important;
+}
+
+.design-mouchard-conteneur {
+   position: var(--sidebar-droite-position) !important;
+   top: var(--sidebar-droite-top) !important;
+   bottom: var(--sidebar-droite-bas) !important;
+   width: var(--sidebar-droite-largeur) !important;
+   background: var(--mouchard-bg) !important;
+   border-left: var(--mouchard-bordure-gauche) !important;
+   box-shadow: var(--mouchard-ombre) !important;
+}

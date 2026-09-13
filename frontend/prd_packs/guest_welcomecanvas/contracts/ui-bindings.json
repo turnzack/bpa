@@ -1,0 +1,22 @@
+{
+  "bindings": [
+    {
+      "component": "Hero",
+      "dataSource": "HeroContent",
+      "state": "HeroAnimation",
+      "events": ["onClick", "onHover"]
+    },
+    {
+      "component": "FeatureCard",
+      "dataSource": "Feature",
+      "state": "none",
+      "events": ["onHover"]
+    },
+    {
+      "component": "Navbar",
+      "dataSource": "none",
+      "state": "globalState",
+      "events": ["onScroll", "onClick"]
+    }
+  ]
+}

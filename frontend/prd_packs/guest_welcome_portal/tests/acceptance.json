@@ -1,0 +1,29 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "The landing page loads without errors.",
+      "test": "Open the page in a browser and verify no console errors."
+    },
+    {
+      "id": "AC-002",
+      "description": "The hero section displays a colorful gradient background.",
+      "test": "Check that the hero section has a gradient background."
+    },
+    {
+      "id": "AC-003",
+      "description": "The CTA button opens a modal with a welcome message.",
+      "test": "Click the CTA button and verify the modal appears."
+    },
+    {
+      "id": "AC-004",
+      "description": "The page is responsive on mobile, tablet, and desktop.",
+      "test": "Resize the browser to different widths and verify layout adapts."
+    },
+    {
+      "id": "AC-005",
+      "description": "All interactive elements have accessible names.",
+      "test": "Use a screen reader to navigate and verify labels."
+    }
+  ]
+}

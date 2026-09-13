@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/design-tokens.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyVersion", "colors", "typography", "spacing"],
+  "properties": {
+    "policyVersion": { "type": "string" },
+    "colors": { "type": "object" },
+    "typography": { "type": "object" },
+    "spacing": { "type": "object" },
+    "shadows": { "type": "object" },
+    "radii": { "type": "object" }
+  }
+}

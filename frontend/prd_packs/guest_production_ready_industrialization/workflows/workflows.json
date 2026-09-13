@@ -1,0 +1,25 @@
+{
+  "workflows": [
+    {
+      "name": "UserLogin",
+      "description": "Authentification d'un utilisateur",
+      "steps": [
+        { "action": "login", "onSuccess": "fetchCurrentUser", "onError": "showError" }
+      ]
+    },
+    {
+      "name": "BrowseProducts",
+      "description": "Chargement et affichage des produits",
+      "steps": [
+        { "action": "fetchProducts", "onSuccess": "displayProducts", "onError": "showError" }
+      ]
+    },
+    {
+      "name": "CreateOrder",
+      "description": "Création d'une commande",
+      "steps": [
+        { "action": "createOrder", "onSuccess": "fetchOrders", "onError": "showError" }
+      ]
+    }
+  ]
+}

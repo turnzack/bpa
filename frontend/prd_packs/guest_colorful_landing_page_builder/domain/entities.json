@@ -1,0 +1,56 @@
+{
+  "entities": [
+    {
+      "name": "LandingPage",
+      "description": "A complete landing page composed of sections and components.",
+      "properties": {
+        "id": "string",
+        "title": "string",
+        "slug": "string",
+        "theme": "Theme",
+        "sections": "Section[]",
+        "createdAt": "Date",
+        "updatedAt": "Date"
+      }
+    },
+    {
+      "name": "Section",
+      "description": "A horizontal block within a landing page, containing components.",
+      "properties": {
+        "id": "string",
+        "type": "string",
+        "components": "Component[]",
+        "styles": "object"
+      }
+    },
+    {
+      "name": "Component",
+      "description": "A UI element like heading, text, image, button, etc.",
+      "properties": {
+        "id": "string",
+        "type": "string",
+        "props": "object",
+        "styles": "object"
+      }
+    },
+    {
+      "name": "Theme",
+      "description": "Color palette and typography settings.",
+      "properties": {
+        "id": "string",
+        "name": "string",
+        "colors": {
+          "primary": "string",
+          "secondary": "string",
+          "accent": "string",
+          "background": "string",
+          "text": "string"
+        },
+        "fonts": {
+          "heading": "string",
+          "body": "string"
+        }
+      }
+    }
+  ]
+}

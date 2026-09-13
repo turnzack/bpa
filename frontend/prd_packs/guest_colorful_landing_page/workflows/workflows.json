@@ -1,0 +1,27 @@
+{
+  "workflows": [
+    {
+      "name": "SubmitContactForm",
+      "description": "User submits the contact form.",
+      "steps": [
+        "User fills in name, email, and message.",
+        "User clicks submit.",
+        "Form validates input.",
+        "If valid, form status becomes 'submitting'.",
+        "API call is made to /api/contact.",
+        "On success, status becomes 'success' and a confirmation message is shown.",
+        "On failure, status becomes 'error' and an error message is shown.",
+        "User can reset the form."
+      ]
+    },
+    {
+      "name": "BrowseFeatures",
+      "description": "User scrolls through the features section.",
+      "steps": [
+        "User navigates to the features section.",
+        "Feature cards are displayed with animations.",
+        "User can hover over cards to see effects."
+      ]
+    }
+  ]
+}

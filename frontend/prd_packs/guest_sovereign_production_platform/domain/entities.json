@@ -1,0 +1,47 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "Utilisateur de la plateforme",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "email", "type": "string", "required": true, "format": "email" },
+        { "name": "passwordHash", "type": "string", "required": true },
+        { "name": "role", "type": "enum", "values": ["admin", "user"], "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true },
+        { "name": "updatedAt", "type": "datetime", "required": true }
+      ],
+      "relations": []
+    },
+    {
+      "name": "Product",
+      "description": "Produit géré par la plateforme",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": false },
+        { "name": "price", "type": "number", "required": true, "min": 0 },
+        { "name": "stock", "type": "integer", "required": true, "min": 0 },
+        { "name": "createdAt", "type": "datetime", "required": true },
+        { "name": "updatedAt", "type": "datetime", "required": true }
+      ],
+      "relations": []
+    },
+    {
+      "name": "Order",
+      "description": "Commande passée par un utilisateur",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "userId", "type": "string", "required": true },
+        { "name": "items", "type": "array", "required": true, "items": { "type": "object", "properties": { "productId": { "type": "string" }, "quantity": { "type": "integer" } } } },
+        { "name": "total", "type": "number", "required": true },
+        { "name": "status", "type": "enum", "values": ["pending", "paid", "shipped", "delivered", "cancelled"], "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ],
+      "relations": [
+        { "name": "belongsTo", "target": "User", "type": "many-to-one" },
+        { "name": "contains", "target": "Product", "type": "many-to-many" }
+      ]
+    }
+  ]
+}

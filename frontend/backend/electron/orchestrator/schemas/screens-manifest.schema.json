@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/screens-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyVersion", "screens"],
+  "properties": {
+    "policyVersion": { "type": "string" },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path"],
+        "properties": {
+          "id": { "type": "string" },
+          "path": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

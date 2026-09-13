@@ -1,0 +1,65 @@
+{
+  "baseUrl": "/api/v1",
+  "endpoints": [
+    {
+      "path": "/auth/login",
+      "method": "POST",
+      "request": { "body": { "email": "string", "password": "string" } },
+      "response": { "token": "string", "user": "User" }
+    },
+    {
+      "path": "/auth/register",
+      "method": "POST",
+      "request": { "body": { "email": "string", "password": "string", "role": "string" } },
+      "response": { "token": "string", "user": "User" }
+    },
+    {
+      "path": "/auth/me",
+      "method": "GET",
+      "request": { "headers": { "Authorization": "Bearer <token>" } },
+      "response": { "user": "User" }
+    },
+    {
+      "path": "/products",
+      "method": "GET",
+      "request": { "query": { "page": "number", "limit": "number" } },
+      "response": { "items": "Product[]", "total": "number" }
+    },
+    {
+      "path": "/products",
+      "method": "POST",
+      "request": { "body": { "name": "string", "description": "string", "price": "number", "stock": "integer" } },
+      "response": { "product": "Product" }
+    },
+    {
+      "path": "/products/:id",
+      "method": "PUT",
+      "request": { "params": { "id": "string" }, "body": { "name": "string", "description": "string", "price": "number", "stock": "integer" } },
+      "response": { "product": "Product" }
+    },
+    {
+      "path": "/products/:id",
+      "method": "DELETE",
+      "request": { "params": { "id": "string" } },
+      "response": { "success": "boolean" }
+    },
+    {
+      "path": "/orders",
+      "method": "GET",
+      "request": { "headers": { "Authorization": "Bearer <token>" } },
+      "response": { "items": "Order[]" }
+    },
+    {
+      "path": "/orders",
+      "method": "POST",
+      "request": { "headers": { "Authorization": "Bearer <token>" }, "body": { "items": [{ "productId": "string", "quantity": "integer" }] } },
+      "response": { "order": "Order" }
+    },
+    {
+      "path": "/orders/:id/status",
+      "method": "PATCH",
+      "request": { "headers": { "Authorization": "Bearer <token>" }, "params": { "id": "string" }, "body": { "status": "string" } },
+      "response": { "order": "Order" }
+    }
+  ]
+}

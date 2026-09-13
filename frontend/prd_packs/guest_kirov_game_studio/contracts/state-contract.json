@@ -1,0 +1,24 @@
+{
+  "stateContract": {
+    "name": "AppState",
+    "description": "État global de l'application KIROV Game Studio.",
+    "properties": [
+      { "name": "pipelineStatus", "type": "PipelineStatus", "required": true },
+      { "name": "currentProject", "type": "Project | null", "required": true },
+      { "name": "currentPack", "type": "Pack | null", "required": true },
+      { "name": "proposal", "type": "AnalysisProposal | null", "required": true },
+      { "name": "error", "type": "string | null", "required": true },
+      { "name": "bridgeStatus", "type": "BridgeConfigStatus", "required": true },
+      { "name": "intelligenceMode", "type": "IntelligenceMode", "required": true }
+    ],
+    "actions": [
+      { "name": "setPipelineStatus", "payload": "PipelineStatus" },
+      { "name": "setCurrentProject", "payload": "Project | null" },
+      { "name": "setCurrentPack", "payload": "Pack | null" },
+      { "name": "setProposal", "payload": "AnalysisProposal | null" },
+      { "name": "setError", "payload": "string | null" },
+      { "name": "setBridgeStatus", "payload": "BridgeConfigStatus" },
+      { "name": "setIntelligenceMode", "payload": "IntelligenceMode" }
+    ]
+  }
+}

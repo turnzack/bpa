@@ -1,0 +1,119 @@
+{
+  "name": "TETRIS EVOLUTION",
+  "version": "1.0.0",
+  "description": "Plateforme de puzzle adaptative et sociale basée sur Tetris, avec IA, multijoueur, personnalisation et analytics.",
+  "category": "game",
+  "folder": "guest_tetris_evolution",
+  "modules": [
+    {
+      "id": "tmpl_tetris_evolution_core_engine",
+      "name": "Core Engine",
+      "description": "Moteur de jeu Tetris pur",
+      "tasks": [
+        {"type": "must-have", "description": "Implémenter la logique de base du Tetris (grille, pièces, collisions, rotation, lignes complètes)"},
+        {"type": "must-have", "description": "Gérer le score, les niveaux et la vitesse"},
+        {"type": "should-have", "description": "Ajouter des fonctionnalités avancées (hold, next pieces)"},
+        {"type": "nice-to-have", "description": "Support de différents modes de jeu (marathon, sprint)"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_ui_ux",
+      "name": "UI/UX",
+      "description": "Interface utilisateur complète",
+      "tasks": [
+        {"type": "must-have", "description": "Créer les écrans principaux (menu, jeu, pause, game over)"},
+        {"type": "must-have", "description": "Appliquer le design system néon futuriste"},
+        {"type": "should-have", "description": "Ajouter des animations et transitions fluides"},
+        {"type": "nice-to-have", "description": "Support multilingue"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_ai_opponent",
+      "name": "AI Opponent",
+      "description": "Adversaire IA adaptatif",
+      "tasks": [
+        {"type": "must-have", "description": "Implémenter un algorithme de décision pour l'IA"},
+        {"type": "must-have", "description": "Ajuster la difficulté selon le niveau du joueur"},
+        {"type": "should-have", "description": "Permettre de jouer contre l'IA en mode solo"},
+        {"type": "nice-to-have", "description": "IA avec différents styles de jeu"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_multiplayer",
+      "name": "Multiplayer",
+      "description": "Multijoueur en temps réel",
+      "tasks": [
+        {"type": "must-have", "description": "Mettre en place la communication WebSocket"},
+        {"type": "must-have", "description": "Créer un système de matchmaking et de salles"},
+        {"type": "should-have", "description": "Synchroniser les états de jeu en temps réel"},
+        {"type": "nice-to-have", "description": "Chat intégré"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_social_features",
+      "name": "Social Features",
+      "description": "Fonctionnalités sociales",
+      "tasks": [
+        {"type": "must-have", "description": "Créer un classement mondial"},
+        {"type": "must-have", "description": "Permettre le partage de scores sur les réseaux sociaux"},
+        {"type": "should-have", "description": "Créer des profils utilisateurs"},
+        {"type": "nice-to-have", "description": "Défis entre amis"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_customization",
+      "name": "Customization",
+      "description": "Personnalisation de l'expérience",
+      "tasks": [
+        {"type": "must-have", "description": "Implémenter un système de thèmes"},
+        {"type": "must-have", "description": "Permettre le choix des skins de pièces"},
+        {"type": "should-have", "description": "Gérer les effets sonores personnalisés"},
+        {"type": "nice-to-have", "description": "Éditeur de thème"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_progression",
+      "name": "Progression",
+      "description": "Progression du joueur",
+      "tasks": [
+        {"type": "must-have", "description": "Implémenter un système de niveaux et d'XP"},
+        {"type": "must-have", "description": "Créer des succès (achievements)"},
+        {"type": "should-have", "description": "Débloquer des récompenses"},
+        {"type": "nice-to-have", "description": "Arbre de progression"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_analytics",
+      "name": "Analytics",
+      "description": "Statistiques de jeu",
+      "tasks": [
+        {"type": "must-have", "description": "Collecter les données de jeu (score, temps, lignes)"},
+        {"type": "must-have", "description": "Afficher un tableau de bord avec graphiques"},
+        {"type": "should-have", "description": "Permettre l'export des statistiques"},
+        {"type": "nice-to-have", "description": "Analyse prédictive"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_audio",
+      "name": "Audio",
+      "description": "Gestion audio",
+      "tasks": [
+        {"type": "must-have", "description": "Implémenter les effets sonores pour les actions du jeu"},
+        {"type": "must-have", "description": "Ajouter une musique de fond"},
+        {"type": "should-have", "description": "Contrôle du volume et activation/désactivation"},
+        {"type": "nice-to-have", "description": "Musique dynamique selon le niveau"}
+      ]
+    },
+    {
+      "id": "tmpl_tetris_evolution_settings",
+      "name": "Settings",
+      "description": "Paramètres du jeu",
+      "tasks": [
+        {"type": "must-have", "description": "Créer un écran de réglages"},
+        {"type": "must-have", "description": "Permettre de choisir la difficulté"},
+        {"type": "should-have", "description": "Personnaliser les commandes clavier"},
+        {"type": "nice-to-have", "description": "Options d'accessibilité (daltonisme, taille de police)"}
+      ]
+    }
+  ]
+}

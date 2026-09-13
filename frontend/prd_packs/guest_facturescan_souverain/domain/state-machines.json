@@ -1,0 +1,31 @@
+{
+  "stateMachines": [
+    {
+      "entity": "Document",
+      "states": ["uploaded", "processing", "validated", "paid"],
+      "transitions": [
+        { "from": "uploaded", "to": "processing", "event": "START_PROCESSING" },
+        { "from": "processing", "to": "validated", "event": "VALIDATE" },
+        { "from": "validated", "to": "paid", "event": "PAY" },
+        { "from": "processing", "to": "uploaded", "event": "PROCESSING_FAILED" }
+      ]
+    },
+    {
+      "entity": "ScanJob",
+      "states": ["pending", "processing", "completed", "failed"],
+      "transitions": [
+        { "from": "pending", "to": "processing", "event": "START" },
+        { "from": "processing", "to": "completed", "event": "SUCCESS" },
+        { "from": "processing", "to": "failed", "event": "ERROR" }
+      ]
+    },
+    {
+      "entity": "Payment",
+      "states": ["pending", "succeeded", "failed"],
+      "transitions": [
+        { "from": "pending", "to": "succeeded", "event": "PAYMENT_SUCCESS" },
+        { "from": "pending", "to": "failed", "event": "PAYMENT_FAILED" }
+      ]
+    }
+  ]
+}

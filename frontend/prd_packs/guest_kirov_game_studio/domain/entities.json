@@ -1,0 +1,50 @@
+{
+  "entities": [
+    {
+      "name": "Project",
+      "description": "Un projet de jeu vidéo en cours de conception.",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": false },
+        { "name": "genre", "type": "string", "required": false },
+        { "name": "platform", "type": "string", "required": false },
+        { "name": "createdAt", "type": "datetime", "required": true },
+        { "name": "updatedAt", "type": "datetime", "required": true }
+      ],
+      "relations": [
+        { "name": "packs", "type": "one-to-many", "target": "Pack" },
+        { "name": "modules", "type": "one-to-many", "target": "Module" }
+      ]
+    },
+    {
+      "name": "Pack",
+      "description": "Un pack PRD/GDD généré pour un projet.",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "projectId", "type": "string", "required": true },
+        { "name": "type", "type": "enum", "values": ["PRD", "GDD", "BOTH"], "required": true },
+        { "name": "content", "type": "json", "required": true },
+        { "name": "version", "type": "string", "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ],
+      "relations": [
+        { "name": "project", "type": "many-to-one", "target": "Project" }
+      ]
+    },
+    {
+      "name": "Module",
+      "description": "Un module architectural du projet (ex: tmpl_core).",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "projectId", "type": "string", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": false },
+        { "name": "status", "type": "enum", "values": ["planned", "in-progress", "completed"], "required": true }
+      ],
+      "relations": [
+        { "name": "project", "type": "many-to-one", "target": "Project" }
+      ]
+    }
+  ]
+}

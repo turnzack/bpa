@@ -1,0 +1,9 @@
+{
+  "name": "SOVEREIGN PRODUCTION PLATFORM",
+  "version": "1.0.0",
+  "description": "PRD pour l'industrialisation complète d'un projet React/TypeScript, incluant l'audit des mocks, la migration vers un backend sécurisé, et l'implémentation des bonnes pratiques de production.",
+  "author": "Sovereign Guest",
+  "license": "UNLICENSED",
+  "dependencies": {},
+  "scripts": {}
+}

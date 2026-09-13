@@ -1,0 +1,9 @@
+{
+  "viewports": [
+    { "id": "desktop", "width": 1280, "height": 720 }
+  ],
+  "routes": [ "/" ],
+  "threshold": {
+    "maxDiffPixelRatio": 0.05
+  }
+}

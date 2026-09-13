@@ -1,0 +1,19 @@
+{
+  "name": "LANDING PAGE ADAPTIVE",
+  "version": "1.0.0",
+  "description": "PRD pour une landing page adaptative moderne avec React, TypeScript et Vite.",
+  "author": "Sovereign Guest PRD Generator",
+  "stack": {
+    "frontend": "React 18 + TypeScript + Vite",
+    "styling": "Tailwind CSS + Glassmorphism",
+    "state": "Zustand",
+    "routing": "React Router"
+  },
+  "features": [
+    "Design responsive et adaptatif",
+    "Mode sombre avec glassmorphism",
+    "Animations fluides au scroll",
+    "Formulaire de contact avec validation",
+    "Intégration analytics"
+  ]
+}

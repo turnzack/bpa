@@ -1,0 +1,20 @@
+{
+  "packName": "WELCOME VIBES",
+  "packVersion": "1.0.0",
+  "packType": "sovereign-guest-prd",
+  "folderName": "guest_welcome_vibes",
+  "description": "Landing page colorée de bienvenue avec animations et design moderne.",
+  "technologies": ["React", "TypeScript", "Vite", "TailwindCSS", "Framer Motion"],
+  "files": [
+    "README.md",
+    "domain/entities.json",
+    "domain/invariants.json",
+    "domain/state-machines.json",
+    "contracts/state-contract.json",
+    "contracts/api-contract.json",
+    "contracts/ui-bindings.json",
+    "workflows/workflows.json",
+    "tests/acceptance.json",
+    "validation/pack-report.json"
+  ]
+}

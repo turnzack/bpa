@@ -1,0 +1,120 @@
+{
+  "name": "WORKFLOW ORCHESTRATOR",
+  "version": "1.0.0",
+  "description": "Plateforme d'orchestration de workflows autonomes avec IA générative",
+  "category": "other",
+  "folder": "guest_workflow_orchestrator",
+  "tasks": [
+    {
+      "id": "tmpl_workflow_orchestrator_canvas",
+      "name": "Workflow Canvas",
+      "priority": "must-have",
+      "description": "Canevas visuel interactif pour la création et modification de workflows par glisser-déposer.",
+      "details": [
+        "Implémenter un canevas node-based avec React Flow",
+        "Créer une palette de nœuds avec différents types d'actions",
+        "Permettre la connexion entre nœuds par glisser-déposer",
+        "Gérer la sauvegarde et le chargement du workflow en JSON"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_ai_optimizer",
+      "name": "AI Optimizer",
+      "priority": "must-have",
+      "description": "Analyse les workflows et propose des optimisations automatiques.",
+      "details": [
+        "Intégrer un appel à un service d'IA pour analyser le workflow",
+        "Afficher les suggestions d'optimisation avec score de confiance",
+        "Permettre d'appliquer une suggestion directement au workflow"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_error_detection",
+      "name": "Error Detection",
+      "priority": "must-have",
+      "description": "Détecte proactivement les erreurs dans les workflows et alerte l'utilisateur.",
+      "details": [
+        "Collecter les erreurs d'exécution et les afficher dans un tableau de bord",
+        "Générer des recommandations de correction via l'IA",
+        "Permettre le filtrage par sévérité et par workflow"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_dynamic_adaptation",
+      "name": "Dynamic Adaptation",
+      "priority": "should-have",
+      "description": "Adapte dynamiquement les workflows en fonction des changements de contexte.",
+      "details": [
+        "Créer un builder de règles d'adaptation (condition/action)",
+        "Afficher l'historique des adaptations effectuées",
+        "Permettre l'activation/désactivation des règles"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_service_integration",
+      "name": "Service Integration",
+      "priority": "must-have",
+      "description": "Gère les connexions aux services externes et leur authentification.",
+      "details": [
+        "Permettre l'ajout d'intégrations avec formulaire (nom, type, URL, clé)",
+        "Tester la connexion à chaque intégration",
+        "Afficher le statut de chaque intégration"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_execution_monitor",
+      "name": "Execution Monitor",
+      "priority": "must-have",
+      "description": "Surveille l'exécution des workflows en temps réel.",
+      "details": [
+        "Afficher des graphiques temps réel de performance",
+        "Lister les exécutions récentes avec statut",
+        "Fournir une vue détaillée avec logs"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_automation_templates",
+      "name": "Automation Templates",
+      "priority": "should-have",
+      "description": "Bibliothèque de modèles de workflows pré-construits.",
+      "details": [
+        "Afficher une galerie de modèles avec catégories et recherche",
+        "Permettre l'aperçu du workflow du modèle",
+        "Créer un nouveau workflow à partir d'un modèle"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_user_collaboration",
+      "name": "User Collaboration",
+      "priority": "should-have",
+      "description": "Permet la collaboration entre utilisateurs sur les workflows.",
+      "details": [
+        "Partager un workflow avec d'autres utilisateurs avec permissions",
+        "Ajouter des commentaires sur les nœuds ou le workflow",
+        "Gérer l'historique des versions avec restauration"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_scheduler",
+      "name": "Scheduler",
+      "priority": "should-have",
+      "description": "Planifie l'exécution des workflows selon des horaires ou des événements.",
+      "details": [
+        "Créer des déclencheurs cron avec validation",
+        "Créer des déclencheurs webhook",
+        "Activer/désactiver les déclencheurs"
+      ]
+    },
+    {
+      "id": "tmpl_workflow_orchestrator_security_governance",
+      "name": "Security & Governance",
+      "priority": "nice-to-have",
+      "description": "Assure la sécurité des workflows et la conformité.",
+      "details": [
+        "Afficher les politiques de sécurité actuelles",
+        "Gérer les rôles des utilisateurs",
+        "Consulter les logs d'audit"
+      ]
+    }
+  ]
+}

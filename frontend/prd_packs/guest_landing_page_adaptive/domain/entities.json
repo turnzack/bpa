@@ -1,0 +1,34 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "Visiteur de la landing page",
+      "attributes": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "message": "string",
+        "subscribed": "boolean"
+      }
+    },
+    {
+      "name": "ContactForm",
+      "description": "Formulaire de contact soumis par un utilisateur",
+      "attributes": {
+        "name": "string",
+        "email": "string",
+        "message": "string",
+        "submittedAt": "datetime"
+      }
+    },
+    {
+      "name": "AnalyticsEvent",
+      "description": "Événement d'analyse (clic, vue, etc.)",
+      "attributes": {
+        "type": "string",
+        "timestamp": "datetime",
+        "metadata": "object"
+      }
+    }
+  ]
+}

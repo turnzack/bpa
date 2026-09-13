@@ -1,0 +1,49 @@
+{
+  "workflows": [
+    {
+      "name": "Create Workflow",
+      "description": "User creates a new workflow from scratch or from a template.",
+      "steps": [
+        "User clicks 'New Workflow' button.",
+        "User enters name and description.",
+        "User optionally selects a template.",
+        "System creates a draft workflow with initial trigger node.",
+        "User is redirected to the visual editor."
+      ]
+    },
+    {
+      "name": "Edit Workflow",
+      "description": "User edits nodes and connections in the visual editor.",
+      "steps": [
+        "User opens an existing workflow.",
+        "User drags nodes from palette onto canvas.",
+        "User configures node parameters.",
+        "User connects nodes.",
+        "User saves changes.",
+        "System validates invariants and updates workflow."
+      ]
+    },
+    {
+      "name": "Activate Workflow",
+      "description": "User activates a workflow to start execution.",
+      "steps": [
+        "User clicks 'Activate' on a draft workflow.",
+        "System validates workflow completeness.",
+        "System changes status to 'active'.",
+        "System schedules executions based on triggers."
+      ]
+    },
+    {
+      "name": "Generate Workflow with AI",
+      "description": "User uses AI to generate a workflow from a description.",
+      "steps": [
+        "User clicks 'Generate with AI'.",
+        "User enters a description of the process.",
+        "System sends description to AI service.",
+        "AI returns a workflow draft.",
+        "User reviews and edits the draft.",
+        "User saves the workflow."
+      ]
+    }
+  ]
+}

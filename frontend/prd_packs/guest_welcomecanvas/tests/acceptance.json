@@ -1,0 +1,24 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "Landing page loads successfully on all devices.",
+      "test": "Open page on mobile, tablet, desktop; verify no layout issues."
+    },
+    {
+      "id": "AC-002",
+      "description": "Hero section displays animated gradient background.",
+      "test": "Verify animation runs smoothly."
+    },
+    {
+      "id": "AC-003",
+      "description": "Call-to-action button navigates to the specified URL.",
+      "test": "Click button and verify navigation."
+    },
+    {
+      "id": "AC-004",
+      "description": "Contact form validates input and shows success message.",
+      "test": "Submit empty form, verify error; submit valid form, verify success."
+    }
+  ]
+}

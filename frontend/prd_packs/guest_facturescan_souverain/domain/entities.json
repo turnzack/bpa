@@ -1,0 +1,65 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "Utilisateur de la plateforme",
+      "attributes": [
+        { "name": "id", "type": "uuid", "required": true },
+        { "name": "email", "type": "string", "required": true },
+        { "name": "passwordHash", "type": "string", "required": true },
+        { "name": "role", "type": "enum", "values": ["admin", "member"], "required": true },
+        { "name": "tenantId", "type": "uuid", "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "Tenant",
+      "description": "Organisation ou entreprise cliente",
+      "attributes": [
+        { "name": "id", "type": "uuid", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "subscriptionPlan", "type": "enum", "values": ["free", "pro", "enterprise"], "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "Document",
+      "description": "Document scanné (facture, devis, contrat)",
+      "attributes": [
+        { "name": "id", "type": "uuid", "required": true },
+        { "name": "tenantId", "type": "uuid", "required": true },
+        { "name": "userId", "type": "uuid", "required": true },
+        { "name": "type", "type": "enum", "values": ["invoice", "quote", "contract"], "required": true },
+        { "name": "status", "type": "enum", "values": ["uploaded", "processing", "validated", "paid"], "required": true },
+        { "name": "fileUrl", "type": "string", "required": true },
+        { "name": "extractedData", "type": "json", "required": false },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "ScanJob",
+      "description": "Tâche de traitement d'un document",
+      "attributes": [
+        { "name": "id", "type": "uuid", "required": true },
+        { "name": "documentId", "type": "uuid", "required": true },
+        { "name": "status", "type": "enum", "values": ["pending", "processing", "completed", "failed"], "required": true },
+        { "name": "progress", "type": "integer", "required": true },
+        { "name": "result", "type": "json", "required": false },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "Payment",
+      "description": "Paiement effectué via Stripe",
+      "attributes": [
+        { "name": "id", "type": "uuid", "required": true },
+        { "name": "tenantId", "type": "uuid", "required": true },
+        { "name": "amount", "type": "decimal", "required": true },
+        { "name": "currency", "type": "string", "required": true },
+        { "name": "stripePaymentId", "type": "string", "required": true },
+        { "name": "status", "type": "enum", "values": ["succeeded", "failed", "pending"], "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    }
+  ]
+}

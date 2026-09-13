@@ -1,0 +1,36 @@
+{
+  "acceptanceTests": [
+    {
+      "id": "AT-001",
+      "feature": "Authentification",
+      "scenario": "Un utilisateur peut se connecter avec des identifiants valides",
+      "given": "Un utilisateur enregistré avec email et mot de passe",
+      "when": "Il soumet le formulaire de connexion avec les bons identifiants",
+      "then": "Il est redirigé vers la page d'accueil et son nom est affiché"
+    },
+    {
+      "id": "AT-002",
+      "feature": "Gestion des produits",
+      "scenario": "Un administrateur peut créer un nouveau produit",
+      "given": "Un utilisateur avec le rôle admin est connecté",
+      "when": "Il remplit le formulaire de création et le soumet",
+      "then": "Le produit apparaît dans la liste des produits"
+    },
+    {
+      "id": "AT-003",
+      "feature": "Gestion des commandes",
+      "scenario": "Un utilisateur peut passer une commande",
+      "given": "Un utilisateur connecté avec des produits disponibles",
+      "when": "Il sélectionne des produits et valide la commande",
+      "then": "La commande est créée avec le statut 'pending' et le total correct"
+    },
+    {
+      "id": "AT-004",
+      "feature": "Gestion des erreurs",
+      "scenario": "Une erreur API est affichée de manière conviviale",
+      "given": "Une requête API échoue",
+      "when": "L'application reçoit une erreur",
+      "then": "Un message d'erreur est affiché à l'utilisateur sans crash de l'application"
+    }
+  ]
+}

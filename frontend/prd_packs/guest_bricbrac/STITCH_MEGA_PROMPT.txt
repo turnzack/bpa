@@ -1,0 +1,87 @@
+[KIROV5 STITCH DESIGN CONTRACT v2]
+
+PROJET :
+bricbrac
+
+OBJECTIF :
+Concevoir l'interface complète du projet sous forme de plusieurs écrans HTML exportables, accompagnés d'un contrat visuel et fonctionnel exploitable par un convertisseur Vite + React + Tailwind + TypeScript.
+
+IMPORTANT :
+Tu es responsable de la conception visuelle et de la description des interactions. Tu ne dois pas générer de structure Next.js, React ou Vite. Le convertisseur aval se chargera de transformer tes écrans HTML en composants React.
+
+## 1. COMPRÉHENSION DU PRODUIT
+Avant de générer les écrans :
+- identifie les utilisateurs cibles, les tâches principales, les écrans nécessaires, les relations, les états et les actions critiques.
+Ne crée pas de pages décoratives sans fonction produit.
+
+## 2. ÉCRANS OBLIGATOIRES
+Génère tous les écrans nécessaires au parcours principal. Pour chaque écran, définis : identifiant stable, titre, route logique, description, sections, composants, assets, interactions, états, variantes responsive.
+Chaque écran doit être autonome et exportable.
+
+## 3. CONTRAT VISUEL
+Définis un design system original et cohérent :
+couleurs, surfaces, texte, bordures, états, typographies, tailles, espacements, rayons, ombres, gradients, breakpoints, transitions, durées d'animation.
+Créer une direction artistique premium originale, cohérente avec le domaine métier, sans copier une marque existante.
+Ne remplace pas automatiquement la direction artistique par du noir/blanc, du glassmorphism ou du bento grid. Utilise ces techniques uniquement si elles correspondent au produit.
+Conserve une hiérarchie visuelle stable entre tous les écrans.
+
+## 4. FIDÉLITÉ DE CONVERSION
+Le HTML doit conserver : les classes de design, les dimensions importantes, les espacements, les ratios d'image, les noms d'assets, les labels visibles, les attributs data-*, la structure des sections, les états sélectionnés ou actifs.
+Ne fusionne pas plusieurs éléments visuels distincts dans un seul bloc monolithique.
+
+## 5. STRUCTURE HTML
+Utilise du HTML sémantique : header, nav, main, aside, section, article, form, label, button, a.
+Utilise un button pour une action et un lien pour une navigation. N'utilise pas un div cliquable à la place d'un button sans justification. Les éléments interactifs doivent avoir un label accessible.
+
+## 6. IDENTIFIANTS STABLES
+Chaque section importante doit avoir : un id stable, un data-screen, un data-section, un data-component.
+Chaque interaction doit avoir : un data-interaction-id, un data-behavior, un data-target si nécessaire.
+Exemple : <button data-interaction-id="open-settings" data-behavior="navigate" data-target="/settings">Settings</button>
+
+## 7. NAVIGATION
+Pour chaque navigation interne : indique la route cible, utilise href pour une navigation, utilise data-target si le bouton est programmatique. Ne laisse jamais href vide, n'utilise jamais href="#".
+Si la destination est inconnue, utilise : data-behavior="requires-analysis" et documente l'hypothèse dans le manifeste.
+
+## 8. INTERACTIONS
+Déclare les interactions dans le manifeste : navigation, sélection, toggle, tab, modal, drawer, formulaire, recherche, filtrage, copie, téléchargement, export, changement de thème, pagination, zoom, pan.
+Une interaction doit avoir un comportement attendu. N'utilise pas de console.log.
+
+## 9. ÉTATS UI
+Pour chaque écran pertinent, prépare : default, hover, focus, active, selected, disabled, loading, empty, error, success, offline.
+Les états non visibles dans la capture doivent être décrits dans le manifeste.
+
+## 10. RESPONSIVE
+Décris au minimum : mobile, tablette, desktop. Indique les éléments masqués/réorganisés, etc.
+
+## 11. ASSETS
+Pour chaque asset : id, nom, chemin logique, type, dimensions, rôle, alt text. Ne remplace pas un asset par un placeholder. S'il est absent, déclare-le dans warnings.
+
+## 12. RÈGLES DE QUALITÉ
+Aucun Lorem ipsum. Aucun écran vide. Aucun bouton sans intention. Aucun écran non référencé.
+
+## 13. SORTIE ATTENDUE
+Retourne les fichiers HTML complets, plus :
+- design-tokens.json
+- screens-manifest.json
+- interactions-manifest.json
+- assets-manifest.json
+- responsive-manifest.json
+- reference screenshots (si applicables).
+Le HTML ne doit pas contenir de code React, Next.js ou Vite.
+
+--- DEMANDE UTILISATEUR ---
+Génère l'application avec ces packs et directives.
+
+--- PACKS PRD SÉLECTIONNÉS (1) ---
+• PACK : GUEST_BRICBRAC
+
+# BRICBRAC
+
+## Contexte & Description
+Jeu Tetris 2D
+
+## Objectifs & Architecture (Grade GOLD)
+- **Moteur Jeu** : Canvas 2D Phaser (Néon Arcade / Grand Écran 100% jouable).
+- **Interface UI/HUD** : React HUD Overlay (Scoreboard néon, Indicateur de Vies, Niveau, Contrôles).
+- **Audio** : Synthétiseur ZzFX (Effets sonores 8-bit procéduraux).
+- **Persistance & HMR** : Câblage via window.gameAPI.

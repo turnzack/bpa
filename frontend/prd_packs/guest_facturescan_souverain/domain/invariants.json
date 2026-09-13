@@ -1,0 +1,46 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "Un utilisateur doit appartenir à un tenant valide.",
+      "type": "constraint",
+      "enforcement": "La clé étrangère tenantId doit référencer un tenant existant."
+    },
+    {
+      "id": "INV-002",
+      "description": "Un document doit avoir un type valide (invoice, quote, contract).",
+      "type": "constraint",
+      "enforcement": "Validation au niveau de l'API et de la base de données."
+    },
+    {
+      "id": "INV-003",
+      "description": "Le montant extrait d'une facture doit être positif.",
+      "type": "validation",
+      "enforcement": "Vérification dans le service d'extraction."
+    },
+    {
+      "id": "INV-004",
+      "description": "Un utilisateur ne peut accéder qu'aux documents de son tenant.",
+      "type": "security",
+      "enforcement": "Politiques RLS dans Supabase et middleware d'authentification."
+    },
+    {
+      "id": "INV-005",
+      "description": "Le nombre de scans gratuits est limité par mois pour les comptes gratuits.",
+      "type": "business",
+      "enforcement": "Compteur dans la base et vérification avant traitement."
+    },
+    {
+      "id": "INV-006",
+      "description": "Les paiements doivent être vérifiés via le webhook Stripe.",
+      "type": "security",
+      "enforcement": "Validation de la signature du webhook."
+    },
+    {
+      "id": "INV-007",
+      "description": "Les données extraites doivent être validées par un humain avant d'être utilisées.",
+      "type": "workflow",
+      "enforcement": "Statut 'validated' requis pour les opérations de paiement."
+    }
+  ]
+}

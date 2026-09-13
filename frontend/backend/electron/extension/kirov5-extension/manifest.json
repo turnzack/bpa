@@ -1,0 +1,85 @@
+{
+  "manifest_version": 3,
+  "name": "KIROV5 Orchestrator — Elite Forge",
+  "version": "5.1.1",
+  "description": "Fusion v16 + KIROV4 : pipeline 4 couches, bridge :5006/Vercel, push GitHub, injection directe, Smart Capture, multi-LLM. FIX 5.1.1: structure React (.tsx/.ts/.css) préservée à l'écriture disque.",
+  "permissions": [
+    "storage",
+    "downloads",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "alarms"
+  ],
+  "host_permissions": [
+    "*://*.deepseek.com/*",
+    "*://chat.deepseek.com/*",
+    "*://chatgpt.com/*",
+    "*://*.openai.com/*",
+    "*://gemini.google.com/*",
+    "*://*.kimi.com/*",
+    "*://kimi.ai/*",
+    "*://*.kimi.ai/*",
+    "*://*.moonshot.cn/*",
+    "*://kimi.moonshot.cn/*",
+    "*://*.perplexity.ai/*",
+    "*://perplexity.ai/*",
+    "*://claude.ai/*",
+    "*://*.claude.ai/*",
+    "*://mistral.ai/*",
+    "*://*.mistral.ai/*",
+    "https://api.deepseek.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.mistral.ai/*",
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*",
+    "http://127.0.0.1:5006/*",
+    "http://localhost:5006/*",
+    "https://api.github.com/*",
+    "https://forge-kohl-kappa.vercel.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "KIROV5 Orchestrator",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.deepseek.com/*",
+        "*://chat.deepseek.com/*",
+        "*://chatgpt.com/*",
+        "*://gemini.google.com/*",
+        "*://*.kimi.com/*",
+        "*://kimi.ai/*",
+        "*://*.kimi.ai/*",
+        "*://*.moonshot.cn/*",
+        "*://kimi.moonshot.cn/*",
+        "*://*.perplexity.ai/*",
+        "*://perplexity.ai/*",
+        "*://claude.ai/*",
+        "*://*.claude.ai/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

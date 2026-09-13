@@ -1,0 +1,15 @@
+{
+  "stateMachines": [
+    {
+      "entity": "Order",
+      "states": ["pending", "paid", "shipped", "delivered", "cancelled"],
+      "transitions": [
+        { "from": "pending", "to": "paid", "event": "PAY" },
+        { "from": "pending", "to": "cancelled", "event": "CANCEL" },
+        { "from": "paid", "to": "shipped", "event": "SHIP" },
+        { "from": "shipped", "to": "delivered", "event": "DELIVER" },
+        { "from": "paid", "to": "cancelled", "event": "REFUND" }
+      ]
+    }
+  ]
+}

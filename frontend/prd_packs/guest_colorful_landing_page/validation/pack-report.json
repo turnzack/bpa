@@ -1,0 +1,16 @@
+{
+  "valid": true,
+  "checks": [
+    { "name": "manifest", "status": "passed" },
+    { "name": "entities", "status": "passed" },
+    { "name": "invariants", "status": "passed" },
+    { "name": "state-machines", "status": "passed" },
+    { "name": "state-contract", "status": "passed" },
+    { "name": "api-contract", "status": "passed" },
+    { "name": "ui-bindings", "status": "passed" },
+    { "name": "workflows", "status": "passed" },
+    { "name": "acceptance", "status": "passed" }
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

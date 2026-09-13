@@ -1,0 +1,21 @@
+{
+  "name": "Colorful Landing Page",
+  "version": "1.0.0",
+  "description": "A vibrant and modern landing page built with React and TypeScript, featuring a bold color palette, smooth animations, and responsive design.",
+  "technologies": ["React", "TypeScript", "Vite", "Tailwind CSS", "Framer Motion"],
+  "folderName": "guest_colorful_landing_page",
+  "packType": "sovereign-guest-prd",
+  "schemaVersion": "1.0.0",
+  "files": [
+    "README.md",
+    "domain/entities.json",
+    "domain/invariants.json",
+    "domain/state-machines.json",
+    "contracts/state-contract.json",
+    "contracts/api-contract.json",
+    "contracts/ui-bindings.json",
+    "workflows/workflows.json",
+    "tests/acceptance.json",
+    "validation/pack-report.json"
+  ]
+}

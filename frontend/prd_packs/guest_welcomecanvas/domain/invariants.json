@@ -1,0 +1,32 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "The hero title must not exceed 60 characters.",
+      "type": "length",
+      "target": "HeroContent.title",
+      "constraint": "maxLength: 60"
+    },
+    {
+      "id": "INV-002",
+      "description": "The hero subtitle must not exceed 140 characters.",
+      "type": "length",
+      "target": "HeroContent.subtitle",
+      "constraint": "maxLength: 140"
+    },
+    {
+      "id": "INV-003",
+      "description": "All call-to-action buttons must have a valid URL.",
+      "type": "format",
+      "target": "HeroContent.ctaUrl",
+      "constraint": "pattern: ^https?://"
+    },
+    {
+      "id": "INV-004",
+      "description": "The landing page must be fully responsive on mobile, tablet, and desktop.",
+      "type": "responsive",
+      "target": "Layout",
+      "constraint": "breakpoints: 320px, 768px, 1024px"
+    }
+  ]
+}

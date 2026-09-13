@@ -1,0 +1,39 @@
+{
+  "stateMachines": [
+    {
+      "name": "PipelineState",
+      "description": "États du pipeline de génération de packs.",
+      "states": ["idle", "analyzing", "generating", "validating", "done", "error"],
+      "transitions": [
+        { "from": "idle", "to": "analyzing", "event": "START_ANALYSIS" },
+        { "from": "analyzing", "to": "generating", "event": "ANALYSIS_COMPLETE" },
+        { "from": "generating", "to": "validating", "event": "GENERATION_COMPLETE" },
+        { "from": "validating", "to": "done", "event": "VALIDATION_SUCCESS" },
+        { "from": "validating", "to": "error", "event": "VALIDATION_FAILURE" },
+        { "from": "analyzing", "to": "error", "event": "ANALYSIS_FAILURE" },
+        { "from": "generating", "to": "error", "event": "GENERATION_FAILURE" },
+        { "from": "error", "to": "idle", "event": "RESET" }
+      ]
+    },
+    {
+      "name": "ProjectState",
+      "description": "États d'un projet de jeu.",
+      "states": ["draft", "in_design", "in_development", "completed", "archived"],
+      "transitions": [
+        { "from": "draft", "to": "in_design", "event": "START_DESIGN" },
+        { "from": "in_design", "to": "in_development", "event": "START_DEVELOPMENT" },
+        { "from": "in_development", "to": "completed", "event": "COMPLETE" },
+        { "from": "completed", "to": "archived", "event": "ARCHIVE" }
+      ]
+    },
+    {
+      "name": "ModuleState",
+      "description": "États d'un module architectural.",
+      "states": ["planned", "in-progress", "completed"],
+      "transitions": [
+        { "from": "planned", "to": "in-progress", "event": "START" },
+        { "from": "in-progress", "to": "completed", "event": "COMPLETE" }
+      ]
+    }
+  ]
+}

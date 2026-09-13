@@ -1,0 +1,24 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "Le formulaire de contact doit valider le format email.",
+      "type": "validation"
+    },
+    {
+      "id": "INV-002",
+      "description": "Le mode sombre doit être persistant entre les sessions (localStorage).",
+      "type": "persistence"
+    },
+    {
+      "id": "INV-003",
+      "description": "Les animations doivent être désactivées si l'utilisateur préfère réduire les animations (prefers-reduced-motion).",
+      "type": "accessibility"
+    },
+    {
+      "id": "INV-004",
+      "description": "Toutes les sections doivent être accessibles au clavier.",
+      "type": "accessibility"
+    }
+  ]
+}

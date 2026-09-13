@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "component": "ThemeToggle",
+      "state": "theme",
+      "action": "toggleTheme"
+    },
+    {
+      "component": "ParticleCanvas",
+      "state": "particleCanvas",
+      "actions": ["startParticles", "pauseParticles", "resumeParticles", "stopParticles"]
+    },
+    {
+      "component": "HeroSection",
+      "state": "pageContent",
+      "actions": []
+    }
+  ]
+}

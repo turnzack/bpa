@@ -1,0 +1,26 @@
+{
+  "projectName": "WELCOMECANVAS",
+  "folderName": "guest_welcomecanvas",
+  "description": "A colorful landing page to welcome visitors, designed with a vibrant and modern aesthetic.",
+  "version": "1.0.0",
+  "stack": {
+    "frontend": "React 18 + TypeScript + Vite",
+    "styling": "CSS Modules + CSS Variables",
+    "animations": "Framer Motion",
+    "icons": "Lucide React"
+  },
+  "structure": [
+    "src/components",
+    "src/hooks",
+    "src/styles",
+    "src/types",
+    "src/utils"
+  ],
+  "keyFeatures": [
+    "Colorful hero section with animated gradient background",
+    "Responsive layout for all devices",
+    "Smooth scroll animations",
+    "Interactive elements with hover effects",
+    "Accessible and semantic HTML"
+  ]
+}

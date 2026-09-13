@@ -1,0 +1,21 @@
+{
+  "stateMachines": [
+    {
+      "entity": "Order",
+      "states": ["pending", "paid", "shipped", "delivered"],
+      "transitions": [
+        { "from": "pending", "to": "paid", "event": "PAY" },
+        { "from": "paid", "to": "shipped", "event": "SHIP" },
+        { "from": "shipped", "to": "delivered", "event": "DELIVER" }
+      ]
+    },
+    {
+      "entity": "User",
+      "states": ["active", "disabled"],
+      "transitions": [
+        { "from": "active", "to": "disabled", "event": "DISABLE" },
+        { "from": "disabled", "to": "active", "event": "ENABLE" }
+      ]
+    }
+  ]
+}

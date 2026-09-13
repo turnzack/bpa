@@ -1,0 +1,25 @@
+{
+  "stateMachines": [
+    {
+      "id": "theme-toggle",
+      "description": "Machine à états pour le changement de thème.",
+      "states": ["light", "dark"],
+      "initialState": "light",
+      "transitions": [
+        { "from": "light", "to": "dark", "event": "TOGGLE" },
+        { "from": "dark", "to": "light", "event": "TOGGLE" }
+      ]
+    },
+    {
+      "id": "message-loading",
+      "description": "Machine à états pour le chargement du message de bienvenue.",
+      "states": ["loading", "success", "error"],
+      "initialState": "loading",
+      "transitions": [
+        { "from": "loading", "to": "success", "event": "LOAD_SUCCESS" },
+        { "from": "loading", "to": "error", "event": "LOAD_ERROR" },
+        { "from": "error", "to": "loading", "event": "RETRY" }
+      ]
+    }
+  ]
+}

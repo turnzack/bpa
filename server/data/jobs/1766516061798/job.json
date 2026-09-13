@@ -1,0 +1,23 @@
+{
+    "id": "1766516061798",
+    "status": "done",
+    "step": "Completed",
+    "progress": 1,
+    "videoPath": "e:\\SOLAROBJ\\backend-node\\data\\uploads\\upload_1766516061798.mp4",
+    "framesDir": "e:\\SOLAROBJ\\backend-node\\data\\jobs\\1766516061798\\frames",
+    "outputDir": "e:\\SOLAROBJ\\backend-node\\data\\jobs\\1766516061798\\output",
+    "objPath": "e:\\SOLAROBJ\\backend-node\\data\\jobs\\1766516061798\\output\\texturedMesh.obj",
+    "params": {
+        "quality": "fast",
+        "fps": 5,
+        "removeAudio": true,
+        "stabilization": false,
+        "motionDetection": true,
+        "autoCrop": true,
+        "autoExposure": true,
+        "outputFormat": "obj",
+        "detailLevel": "high",
+        "textureCompression": true,
+        "scanMode": "object"
+    }
+}

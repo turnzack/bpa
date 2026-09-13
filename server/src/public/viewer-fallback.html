@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Viewer 3D</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #ccc;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px 10px;
+            padding: 15px 30px;
+            background: #0077ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #0055cc;
+        }
+
+        .info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .icon {
+            font-size: 64px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">🎯</div>
+        <h1>Visualiseur 3D</h1>
+
+        <div class="info">
+            <p><strong>Job ID:</strong> <span id="jobId">Chargement...</span></p>
+            <p><strong>Statut:</strong> <span id="status">Vérification...</span></p>
+        </div>
+
+        <p>
+            Le visualiseur 3D interactif nécessite un navigateur moderne.<br>
+            Cliquez sur le bouton ci-dessous pour ouvrir le modèle dans votre navigateur.
+        </p>
+
+        <a href="#" id="openBtn" class="btn">🌐 Ouvrir dans le Navigateur</a>
+
+        <p style="font-size: 14px; color: #888; margin-top: 30px;">
+            Vous pourrez tourner, zoomer et explorer le modèle 3D en détail.
+        </p>
+    </div>
+
+    <script>
+        // Extract jobId from URL
+        var pathParts = window.location.pathname.split('/');
+        var jobId = pathParts[pathParts.length - 1];
+
+        document.getElementById('jobId').innerText = jobId;
+
+        // Set button URL
+        var fullUrl = window.location.protocol + '//' + window.location.host + '/viewer/' + jobId;
+        document.getElementById('openBtn').href = fullUrl;
+        document.getElementById('openBtn').target = '_blank';
+
+        // Try to fetch job status (simple XHR, no fancy stuff)
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/jobs/' + jobId, true);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                try {
+                    var job = JSON.parse(xhr.responseText);
+                    document.getElementById('status').innerText = job.status || 'Inconnu';
+
+                    if (job.status === 'done') {
+                        document.getElementById('status').innerText = '✅ Terminé';
+                        document.getElementById('status').style.color = '#4CAF50';
+                    }
+                } catch (e) {
+                    document.getElementById('status').innerText = 'Erreur';
+                }
+            } else {
+                document.getElementById('status').innerText = 'Introuvable';
+            }
+        };
+        xhr.onerror = function () {
+            document.getElementById('status').innerText = 'Erreur réseau';
+        };
+        xhr.send();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,36 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "A visitor to the landing page.",
+      "properties": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "preferences": {
+          "theme": "string",
+          "language": "string"
+        }
+      }
+    },
+    {
+      "name": "HeroContent",
+      "description": "Content displayed in the hero section.",
+      "properties": {
+        "title": "string",
+        "subtitle": "string",
+        "ctaText": "string",
+        "backgroundGradient": "string"
+      }
+    },
+    {
+      "name": "Feature",
+      "description": "A feature highlight on the landing page.",
+      "properties": {
+        "icon": "string",
+        "title": "string",
+        "description": "string"
+      }
+    }
+  ]
+}

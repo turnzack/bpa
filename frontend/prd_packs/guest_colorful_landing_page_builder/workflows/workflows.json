@@ -1,0 +1,48 @@
+{
+  "workflows": [
+    {
+      "name": "Create Landing Page",
+      "steps": [
+        "User clicks 'New Page' button",
+        "System creates a new draft page with default theme",
+        "User is redirected to editor"
+      ]
+    },
+    {
+      "name": "Edit Landing Page",
+      "steps": [
+        "User selects a page from the list",
+        "Editor loads with existing sections and components",
+        "User can drag components from palette to canvas",
+        "User can select a component and edit its properties in the inspector",
+        "Changes are reflected in real-time preview"
+      ]
+    },
+    {
+      "name": "Customize Theme",
+      "steps": [
+        "User opens theme panel",
+        "User selects a preset theme or creates a new one",
+        "User adjusts colors and fonts",
+        "Changes apply immediately to the page"
+      ]
+    },
+    {
+      "name": "Publish Landing Page",
+      "steps": [
+        "User clicks 'Publish' button",
+        "System validates the page (invariants)",
+        "If valid, page status changes to 'published'",
+        "Page becomes accessible via its slug"
+      ]
+    },
+    {
+      "name": "Export Landing Page",
+      "steps": [
+        "User clicks 'Export' button",
+        "System generates HTML/CSS code",
+        "User downloads the code as a zip file"
+      ]
+    }
+  ]
+}

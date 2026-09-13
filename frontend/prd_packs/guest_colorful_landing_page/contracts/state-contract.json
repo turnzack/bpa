@@ -1,0 +1,29 @@
+{
+  "state": {
+    "ui": {
+      "theme": "light",
+      "modalOpen": false,
+      "currentSection": "hero"
+    },
+    "form": {
+      "status": "idle",
+      "data": { "name": "", "email": "", "message": "" },
+      "errors": {}
+    },
+    "content": {
+      "features": [],
+      "testimonials": []
+    }
+  },
+  "actions": [
+    "SET_THEME",
+    "OPEN_MODAL",
+    "CLOSE_MODAL",
+    "SET_CURRENT_SECTION",
+    "UPDATE_FORM_FIELD",
+    "SUBMIT_FORM",
+    "FORM_SUCCESS",
+    "FORM_ERROR",
+    "RESET_FORM"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "1767815250002",
+  "status": "pending",
+  "progress": 0,
+  "videoPath": "E:\\SOLAROBJ\\backend-node\\data\\uploads\\upload_1767815250002.mp4",
+  "framesDir": "E:\\SOLAROBJ\\backend-node\\data\\jobs\\1767815250002\\frames",
+  "outputDir": "E:\\SOLAROBJ\\backend-node\\data\\jobs\\1767815250002\\output",
+  "params": {
+    "quality": "high",
+    "fps": 5,
+    "removeAudio": false,
+    "stabilization": false,
+    "motionDetection": false,
+    "autoCrop": false,
+    "autoExposure": false,
+    "outputFormat": "obj",
+    "detailLevel": "medium",
+    "textureCompression": false,
+    "scanMode": "object"
+  }
+}

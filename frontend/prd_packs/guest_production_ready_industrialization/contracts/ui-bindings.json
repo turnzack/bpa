@@ -1,0 +1,32 @@
+{
+  "bindings": [
+    {
+      "component": "LoginForm",
+      "state": "auth",
+      "actions": ["login"],
+      "props": { "onSuccess": "() => void" },
+      "uiEvents": { "submit": "login" }
+    },
+    {
+      "component": "ProductList",
+      "state": "products",
+      "actions": ["fetchProducts"],
+      "props": { "products": "Product[]", "loading": "boolean", "error": "string|null" },
+      "uiEvents": { "mount": "fetchProducts" }
+    },
+    {
+      "component": "OrderList",
+      "state": "orders",
+      "actions": ["fetchOrders"],
+      "props": { "orders": "Order[]", "loading": "boolean", "error": "string|null" },
+      "uiEvents": { "mount": "fetchOrders" }
+    },
+    {
+      "component": "CreateOrderForm",
+      "state": "orders",
+      "actions": ["createOrder"],
+      "props": { "onSuccess": "() => void" },
+      "uiEvents": { "submit": "createOrder" }
+    }
+  ]
+}

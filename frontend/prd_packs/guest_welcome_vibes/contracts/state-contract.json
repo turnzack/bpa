@@ -1,0 +1,27 @@
+{
+  "state": {
+    "theme": {
+      "type": "object",
+      "properties": {
+        "mode": { "type": "string", "enum": ["light", "dark"] },
+        "colors": { "type": "object", "properties": { "primary": "string", "secondary": "string", "accent": "string" } }
+      }
+    },
+    "message": {
+      "type": "object",
+      "properties": {
+        "title": "string",
+        "subtitle": "string",
+        "ctaLabel": "string"
+      }
+    },
+    "loading": { "type": "boolean" },
+    "error": { "type": "string" }
+  },
+  "actions": [
+    { "type": "TOGGLE_THEME" },
+    { "type": "SET_MESSAGE", "payload": { "title": "string", "subtitle": "string", "ctaLabel": "string" } },
+    { "type": "SET_LOADING", "payload": { "loading": "boolean" } },
+    { "type": "SET_ERROR", "payload": { "error": "string" } }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "description": "The landing page loads without errors.",
+      "test": "Navigate to the page and verify no console errors."
+    },
+    {
+      "id": "AC-002",
+      "description": "The hero section displays a colorful gradient background.",
+      "test": "Check that the hero section has a gradient background with at least 3 colors."
+    },
+    {
+      "id": "AC-003",
+      "description": "The particle canvas is visible and interactive.",
+      "test": "Move mouse over canvas and verify particles react."
+    },
+    {
+      "id": "AC-004",
+      "description": "Theme toggle switches between light and dark mode.",
+      "test": "Click toggle and verify background and text colors change."
+    },
+    {
+      "id": "AC-005",
+      "description": "The page is responsive.",
+      "test": "Resize browser to mobile width and verify layout adapts."
+    }
+  ]
+}

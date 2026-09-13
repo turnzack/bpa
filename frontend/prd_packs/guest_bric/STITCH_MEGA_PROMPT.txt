@@ -1,0 +1,12 @@
+[PROJET : BRIC]
+
+CONSIGNES UI/UX & STITCH MEGA PROMPT :
+Spécification du Jeu : "je veut un jeux de casse brique colore "
+
+DIRECTIVES DESIGN & ARCHITECTURE FACTORY (Grade GOLD) :
+1. Moteur : Canvas 2D Phaser (Néon Arcade / Grand Écran 100% jouable avec raquette, balle & briques).
+2. Interface (HUD) : Scoreboard néon, Indicateur de Vies, Niveau, Boutons Rejouer/Pause.
+3. Audio : Synthétiseur ZzFX (Sons d'impact brique, rebond raquette, défaite/victoire).
+4. Câblage : Window.gameAPI & HMR réactif.
+
+Veuillez générer la structure complète du code et des composants UI pour le projet BRIC.

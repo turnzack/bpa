@@ -1,0 +1,39 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-01",
+      "description": "Landing page loads successfully with no console errors.",
+      "test": "Open the page in a browser and check console for errors."
+    },
+    {
+      "id": "AC-02",
+      "description": "Hero section displays with animated gradient background.",
+      "test": "Visual inspection that the hero has a gradient animation."
+    },
+    {
+      "id": "AC-03",
+      "description": "Features section displays at least 3 feature cards.",
+      "test": "Check that the features grid contains at least 3 cards."
+    },
+    {
+      "id": "AC-04",
+      "description": "Testimonials carousel can be navigated.",
+      "test": "Click next/prev buttons and verify testimonial changes."
+    },
+    {
+      "id": "AC-05",
+      "description": "Contact form validates email format.",
+      "test": "Enter invalid email and submit; error message should appear."
+    },
+    {
+      "id": "AC-06",
+      "description": "Contact form shows success message on valid submission.",
+      "test": "Submit valid data and verify success message."
+    },
+    {
+      "id": "AC-07",
+      "description": "Page is responsive on mobile and desktop.",
+      "test": "Resize browser and verify layout adapts."
+    }
+  ]
+}

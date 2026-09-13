@@ -1,0 +1,78 @@
+{
+  "name": "KIROV5 Forge",
+  "version": "1.0.0",
+  "description": "Orchestrateur Souverain de Génération de Projets IA avec Correction Structurelle Automatique",
+  "author": "KIROV5 Team",
+  "tasks": [
+    {
+      "id": "core",
+      "title": "Moteur d'Orchestration Souverain",
+      "description": "Développer le dashboard d'orchestration avec état des agents, file d'attente, et routage de commandes.",
+      "priority": "must-have",
+      "module": "tmpl_kirov5_forge_core"
+    },
+    {
+      "id": "engine",
+      "title": "Moteur Headless Local (Port 5005)",
+      "description": "Implémenter l'API REST et WebSocket pour le moteur headless, avec gestion des processus.",
+      "priority": "must-have",
+      "module": "tmpl_kirov5_forge_engine"
+    },
+    {
+      "id": "artifact",
+      "title": "Correcteur d'Artefacts Structurels",
+      "description": "Corriger automatiquement les fichiers .txt en .tsx/.ts/.css, normaliser les chemins, et appliquer des correctifs React.",
+      "priority": "must-have",
+      "module": "tmpl_kirov5_forge_artifact"
+    },
+    {
+      "id": "pack",
+      "title": "Pack Builder & Registry",
+      "description": "Créer un éditeur de packs de génération et un registre avec recherche et versions.",
+      "priority": "should-have",
+      "module": "tmpl_kirov5_forge_pack"
+    },
+    {
+      "id": "validation",
+      "title": "Validation de Code en Temps Réel",
+      "description": "Intégrer ESLint, TypeScript et tests unitaires avec affichage des erreurs et indicateurs de qualité.",
+      "priority": "should-have",
+      "module": "tmpl_kirov5_forge_validation"
+    },
+    {
+      "id": "git",
+      "title": "Intégration Git & Versioning",
+      "description": "Initialiser des dépôts Git, faire des commits automatiques, gérer les branches et pousser vers GitHub.",
+      "priority": "should-have",
+      "module": "tmpl_kirov5_forge_git"
+    },
+    {
+      "id": "visualizer",
+      "title": "Visualisation de l'Arborescence Générée",
+      "description": "Afficher l'arborescence des fichiers générés avec aperçu et recherche.",
+      "priority": "should-have",
+      "module": "tmpl_kirov5_forge_visualizer"
+    },
+    {
+      "id": "multiagent",
+      "title": "Support Multi-Modèles IA",
+      "description": "Gérer plusieurs agents IA avec bascule dynamique et comparaison de résultats.",
+      "priority": "nice-to-have",
+      "module": "tmpl_kirov5_forge_multiagent"
+    },
+    {
+      "id": "automation",
+      "title": "Automatisation & Pipeline de Tests",
+      "description": "Configurer des pipelines de tests automatisés et les intégrer dans le flux de génération.",
+      "priority": "nice-to-have",
+      "module": "tmpl_kirov5_forge_automation"
+    },
+    {
+      "id": "ui",
+      "title": "Interface Utilisateur Souveraine",
+      "description": "Créer le popup, le panneau flottant et le dashboard avec design system glassmorphism.",
+      "priority": "must-have",
+      "module": "tmpl_kirov5_forge_ui"
+    }
+  ]
+}

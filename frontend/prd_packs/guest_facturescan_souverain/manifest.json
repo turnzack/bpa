@@ -1,0 +1,19 @@
+{
+  "projectName": "FACTURESCAN SOUVERAIN",
+  "version": "1.0.0",
+  "description": "Plateforme autonome de gestion documentaire intelligente avec IA on-device, OCR, paiements intégrés et architecture multi-tenant.",
+  "principles": [
+    "Souveraineté numérique : IA embarquée et fonctionnement hors-ligne",
+    "Autonomie : traitement local des documents sensibles",
+    "Modernité : stack React/TypeScript, APIs REST, architecture modulaire",
+    "Monétisation : abonnements et paiement à l'usage via Stripe"
+  ],
+  "stack": {
+    "frontend": "React Native (Expo SDK 54)",
+    "backend": "Node.js (Express)",
+    "database": "Supabase (PostgreSQL)",
+    "ai": ["YOLOv8", "Real-ESRGAN", "Gemma 2B (GGUF)"],
+    "payments": "Stripe"
+  },
+  "sourceLegacy": "E:\\PJS\\bpa"
+}

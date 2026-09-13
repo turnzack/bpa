@@ -1,0 +1,22 @@
+{
+  "invariants": [
+    {
+      "name": "uniqueUserEmail",
+      "description": "L'email d'un utilisateur doit être unique dans le système.",
+      "rule": "Chaque utilisateur doit avoir un email unique.",
+      "enforcement": "Le backend doit vérifier l'unicité lors de la création ou mise à jour."
+    },
+    {
+      "name": "positivePrice",
+      "description": "Le prix d'un produit doit être positif.",
+      "rule": "Le prix doit être > 0.",
+      "enforcement": "Validation côté client et serveur."
+    },
+    {
+      "name": "orderTotalConsistency",
+      "description": "Le total d'une commande doit être égal à la somme des sous-totaux.",
+      "rule": "total = somme(prix * quantité) pour chaque article.",
+      "enforcement": "Calculé côté serveur et vérifié côté client."
+    }
+  ]
+}

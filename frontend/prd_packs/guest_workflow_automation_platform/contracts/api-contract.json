@@ -1,0 +1,74 @@
+{
+  "baseUrl": "/api/v1",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Authenticate user and return JWT token.",
+      "request": { "email": "string", "password": "string" },
+      "response": { "token": "string", "user": { "id": "UUID", "email": "string", "role": "string" } }
+    },
+    {
+      "method": "GET",
+      "path": "/workflows",
+      "description": "List all workflows for the authenticated user.",
+      "response": [
+        { "id": "UUID", "name": "string", "status": "string", "updatedAt": "datetime" }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/workflows",
+      "description": "Create a new workflow.",
+      "request": { "name": "string", "description": "string", "nodes": [], "connections": [] },
+      "response": { "id": "UUID", "name": "string", "status": "draft" }
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/:id",
+      "description": "Get a specific workflow by ID.",
+      "response": { "id": "UUID", "name": "string", "description": "string", "nodes": [], "connections": [], "status": "string", "version": "integer" }
+    },
+    {
+      "method": "PUT",
+      "path": "/workflows/:id",
+      "description": "Update a workflow (only if in draft or paused state).",
+      "request": { "name": "string", "description": "string", "nodes": [], "connections": [] },
+      "response": { "id": "UUID", "name": "string", "status": "string" }
+    },
+    {
+      "method": "DELETE",
+      "path": "/workflows/:id",
+      "description": "Delete a workflow.",
+      "response": { "success": true }
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/:id/activate",
+      "description": "Activate a workflow.",
+      "response": { "id": "UUID", "status": "active" }
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/:id/pause",
+      "description": "Pause a workflow.",
+      "response": { "id": "UUID", "status": "paused" }
+    },
+    {
+      "method": "GET",
+      "path": "/executions",
+      "description": "List executions for a workflow.",
+      "parameters": { "workflowId": "UUID" },
+      "response": [
+        { "id": "UUID", "workflowId": "UUID", "status": "string", "startedAt": "datetime", "finishedAt": "datetime" }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/ai/generate-workflow",
+      "description": "Generate a workflow draft from a natural language description.",
+      "request": { "description": "string" },
+      "response": { "nodes": [], "connections": [] }
+    }
+  ]
+}

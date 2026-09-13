@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/visual-conversion.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyVersion",
+    "phase",
+    "batchId",
+    "blueprintHash",
+    "interactions",
+    "assets",
+    "tokens",
+    "visualDeviations",
+    "status"
+  ],
+  "properties": {
+    "policyVersion": { "const": "gold-5.0.0" },
+    "phase": { "const": "html-to-vite-conversion" },
+    "batchId": { "type": "string" },
+    "blueprintHash": { "type": "string", "pattern": "^sha256:" },
+    "interactions": { "$ref": "#/$defs/matrix" },
+    "assets": { "$ref": "#/$defs/assetMatrix" },
+    "tokens": { "$ref": "#/$defs/tokenMatrix" },
+    "visualDeviations": { "type": "array" },
+    "status": { "enum": ["complete", "needs_review"] }
+  },
+  "$defs": {
+    "matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implemented", "ambiguous", "missing"],
+      "properties": {
+        "implemented": { "type": "array", "items": { "type": "string" } },
+        "ambiguous": { "type": "array", "items": { "type": "string" } },
+        "missing": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "assetMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["copied", "missing", "replaced"],
+      "properties": {
+        "copied": { "type": "array" },
+        "missing": { "type": "array" },
+        "replaced": { "type": "array" }
+      }
+    },
+    "tokenMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["used", "missing", "overridden"],
+      "properties": {
+        "used": { "type": "array" },
+        "missing": { "type": "array" },
+        "overridden": { "type": "array" }
+      }
+    }
+  }
+}

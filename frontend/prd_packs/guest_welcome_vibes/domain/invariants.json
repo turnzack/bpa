@@ -1,0 +1,28 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "Le titre du message ne doit pas être vide.",
+      "rule": "title.length > 0",
+      "severity": "error"
+    },
+    {
+      "id": "INV-002",
+      "description": "Les couleurs du thème doivent être des codes hexadécimaux valides.",
+      "rule": "pattern: ^#[0-9A-Fa-f]{6}$",
+      "severity": "error"
+    },
+    {
+      "id": "INV-003",
+      "description": "Le mode sombre et le mode clair sont mutuellement exclusifs.",
+      "rule": "darkMode !== lightMode",
+      "severity": "warning"
+    },
+    {
+      "id": "INV-004",
+      "description": "Le libellé du CTA doit être non vide et de longueur maximale 30 caractères.",
+      "rule": "ctaLabel.length > 0 && ctaLabel.length <= 30",
+      "severity": "error"
+    }
+  ]
+}

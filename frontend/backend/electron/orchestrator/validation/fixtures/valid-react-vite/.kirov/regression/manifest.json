@@ -1,0 +1,11 @@
+{
+  "workflows": [
+    {
+      "id": "regression-home",
+      "startRoute": "/",
+      "steps": [
+        { "action": "expect-visible", "target": { "css": "#root" } }
+      ]
+    }
+  ]
+}

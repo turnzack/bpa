@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "workflows": [
+    {
+      "id": "increment-counter",
+      "startRoute": "/",
+      "steps": [
+        {
+          "action": "expect-text",
+          "target": { "testId": "count-value" },
+          "value": "0"
+        },
+        {
+          "action": "click",
+          "target": { "role": "button", "name": "Increment" }
+        },
+        {
+          "action": "expect-text",
+          "target": { "testId": "count-value" },
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}

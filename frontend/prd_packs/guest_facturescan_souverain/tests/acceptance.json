@@ -1,0 +1,52 @@
+{
+  "acceptanceCriteria": [
+    {
+      "id": "AC-001",
+      "feature": "Inscription et connexion",
+      "scenario": "Un utilisateur peut créer un compte et se connecter.",
+      "given": "Un nouvel utilisateur avec email et mot de passe",
+      "when": "Il s'inscrit avec un nom de tenant",
+      "then": "Il est connecté et voit l'écran d'accueil"
+    },
+    {
+      "id": "AC-002",
+      "feature": "Scan de document",
+      "scenario": "Un utilisateur peut scanner une facture.",
+      "given": "L'utilisateur est connecté",
+      "when": "Il prend une photo ou importe un fichier",
+      "then": "Le document est uploadé et un job de traitement est créé"
+    },
+    {
+      "id": "AC-003",
+      "feature": "Traitement IA",
+      "scenario": "Le système extrait les données de la facture.",
+      "given": "Un document uploadé",
+      "when": "Le traitement est lancé",
+      "then": "Les champs (montant, date, fournisseur) sont extraits et affichés"
+    },
+    {
+      "id": "AC-004",
+      "feature": "Validation",
+      "scenario": "L'utilisateur valide les données extraites.",
+      "given": "Un document avec données extraites",
+      "when": "L'utilisateur confirme",
+      "then": "Le document passe à 'validated'"
+    },
+    {
+      "id": "AC-005",
+      "feature": "Paiement",
+      "scenario": "L'utilisateur paie pour un scan supplémentaire.",
+      "given": "Un document validé",
+      "when": "L'utilisateur choisit de payer",
+      "then": "Il est redirigé vers Stripe et après succès le document passe à 'paid'"
+    },
+    {
+      "id": "AC-006",
+      "feature": "Multi-tenant",
+      "scenario": "Les données sont isolées par tenant.",
+      "given": "Deux tenants différents",
+      "when": "Un utilisateur du tenant A accède à la liste des documents",
+      "then": "Il ne voit que les documents du tenant A"
+    }
+  ]
+}

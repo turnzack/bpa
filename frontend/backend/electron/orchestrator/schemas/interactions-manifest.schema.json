@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kirov5.local/schemas/interactions-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policyVersion", "interactions"],
+  "properties": {
+    "policyVersion": { "type": "string" },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "screenId", "kind", "selector"],
+        "properties": {
+          "id": { "type": "string" },
+          "screenId": { "type": "string" },
+          "kind": { "type": "string" },
+          "selector": { "type": "string" },
+          "target": { "type": "string" },
+          "expected": { "type": "object" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "valid": true,
+  "checks": [
+    {
+      "name": "Required files present",
+      "status": "pass"
+    },
+    {
+      "name": "JSON syntax valid",
+      "status": "pass"
+    },
+    {
+      "name": "No absolute paths",
+      "status": "pass"
+    },
+    {
+      "name": "No path traversal",
+      "status": "pass"
+    }
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

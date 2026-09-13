@@ -1,0 +1,36 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "Utilisateur de l'application",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "email", "type": "string", "required": true },
+        { "name": "password", "type": "string", "required": true, "sensitive": true },
+        { "name": "role", "type": "enum", "values": ["admin", "user"], "required": true }
+      ]
+    },
+    {
+      "name": "Product",
+      "description": "Produit affiché dans l'application",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": false },
+        { "name": "price", "type": "number", "required": true },
+        { "name": "stock", "type": "number", "required": true }
+      ]
+    },
+    {
+      "name": "Order",
+      "description": "Commande passée par un utilisateur",
+      "attributes": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "userId", "type": "string", "required": true },
+        { "name": "items", "type": "array", "items": { "type": "object", "properties": { "productId": "string", "quantity": "number" } }, "required": true },
+        { "name": "total", "type": "number", "required": true },
+        { "name": "status", "type": "enum", "values": ["pending", "paid", "shipped", "delivered"], "required": true }
+      ]
+    }
+  ]
+}

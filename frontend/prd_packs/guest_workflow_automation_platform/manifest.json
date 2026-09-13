@@ -1,0 +1,13 @@
+{
+  "name": "Workflow Automation Platform",
+  "version": "1.0.0",
+  "description": "A niche visual workflow automation platform inspired by n8n, targeting SMEs and operational teams with pre-built templates, enhanced governance, and AI-assisted workflow design.",
+  "author": "Sovereign Guest PRD Generator",
+  "license": "MIT",
+  "tags": ["workflow", "automation", "visual", "n8n", "AI", "governance"],
+  "dependencies": {
+    "frontend": ["React", "TypeScript", "Vite", "ReactFlow", "TailwindCSS"],
+    "backend": ["Node.js", "Express", "PostgreSQL", "Redis"],
+    "ai": ["OpenAI API", "LangChain"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "bindings": [
+    {
+      "component": "Hero",
+      "dataSource": "HeroContent",
+      "state": {
+        "isAnimating": "HeroAnimation.state"
+      },
+      "events": {
+        "onStart": "START",
+        "onPause": "PAUSE"
+      }
+    },
+    {
+      "component": "FeatureCard",
+      "dataSource": "Feature",
+      "state": {},
+      "events": {}
+    },
+    {
+      "component": "Modal",
+      "dataSource": null,
+      "state": {
+        "isOpen": "globalState.isModalOpen"
+      },
+      "events": {
+        "onClose": "CLOSE_MODAL"
+      }
+    }
+  ]
+}

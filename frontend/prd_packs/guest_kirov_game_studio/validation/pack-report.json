@@ -1,0 +1,21 @@
+{
+  "packReport": {
+    "packName": "KIROV GAME STUDIO",
+    "packVersion": "1.0.0",
+    "generatedAt": "2025-04-12T00:00:00.000Z",
+    "files": [
+      { "path": "manifest.json", "status": "present", "valid": true },
+      { "path": "README.md", "status": "present", "valid": true },
+      { "path": "domain/entities.json", "status": "present", "valid": true },
+      { "path": "domain/invariants.json", "status": "present", "valid": true },
+      { "path": "domain/state-machines.json", "status": "present", "valid": true },
+      { "path": "contracts/state-contract.json", "status": "present", "valid": true },
+      { "path": "contracts/api-contract.json", "status": "present", "valid": true },
+      { "path": "contracts/ui-bindings.json", "status": "present", "valid": true },
+      { "path": "workflows/workflows.json", "status": "present", "valid": true },
+      { "path": "tests/acceptance.json", "status": "present", "valid": true },
+      { "path": "validation/pack-report.json", "status": "present", "valid": true }
+    ],
+    "summary": "Tous les fichiers obligatoires sont présents et valides."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "uiBindings": [
+    {
+      "component": "Header",
+      "props": ["bridgeStatus", "intelligenceMode"],
+      "actions": ["openApiKeyModal", "toggleIntelligenceMode"]
+    },
+    {
+      "component": "IdeaInput",
+      "props": ["pipelineStatus"],
+      "actions": ["submitIdea"]
+    },
+    {
+      "component": "ProposalViewer",
+      "props": ["proposal"],
+      "actions": ["acceptProposal", "rejectProposal"]
+    },
+    {
+      "component": "PackViewer",
+      "props": ["pack"],
+      "actions": ["downloadPack", "exportPack"]
+    },
+    {
+      "component": "ApiKeyModal",
+      "props": ["open", "bridgeStatus"],
+      "actions": ["saveApiKey", "closeModal"]
+    }
+  ]
+}

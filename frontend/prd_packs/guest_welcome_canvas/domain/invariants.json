@@ -1,0 +1,19 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "The hero title must not be empty.",
+      "condition": "heroTitle.length > 0"
+    },
+    {
+      "id": "INV-002",
+      "description": "The theme must be either 'light' or 'dark'.",
+      "condition": "themePreference === 'light' || themePreference === 'dark'"
+    },
+    {
+      "id": "INV-003",
+      "description": "All section IDs must be unique.",
+      "condition": "sections.map(s => s.id).length === new Set(sections.map(s => s.id)).size"
+    }
+  ]
+}

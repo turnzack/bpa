@@ -1,0 +1,29 @@
+{
+  "invariants": [
+    {
+      "id": "INV-001",
+      "description": "A landing page must have at least one section.",
+      "rule": "LandingPage.sections.length >= 1"
+    },
+    {
+      "id": "INV-002",
+      "description": "Each section must have at least one component.",
+      "rule": "Section.components.length >= 1"
+    },
+    {
+      "id": "INV-003",
+      "description": "Component types must be from the allowed set.",
+      "rule": "Component.type in ['heading', 'text', 'image', 'button', 'spacer', 'divider']"
+    },
+    {
+      "id": "INV-004",
+      "description": "Theme colors must be valid hex codes.",
+      "rule": "Theme.colors.* matches /^#[0-9A-Fa-f]{6}$/"
+    },
+    {
+      "id": "INV-005",
+      "description": "Landing page slug must be unique.",
+      "rule": "LandingPage.slug is unique across all pages"
+    }
+  ]
+}

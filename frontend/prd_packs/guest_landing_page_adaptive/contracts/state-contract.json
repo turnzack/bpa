@@ -1,0 +1,25 @@
+{
+  "state": {
+    "theme": {
+      "mode": "light"
+    },
+    "contactForm": {
+      "status": "idle",
+      "data": {
+        "name": "",
+        "email": "",
+        "message": ""
+      },
+      "error": null
+    },
+    "analytics": {
+      "events": []
+    }
+  },
+  "actions": {
+    "toggleTheme": "() => void",
+    "submitContactForm": "(data: ContactFormData) => Promise<void>",
+    "resetContactForm": "() => void",
+    "trackEvent": "(event: AnalyticsEvent) => void"
+  }
+}

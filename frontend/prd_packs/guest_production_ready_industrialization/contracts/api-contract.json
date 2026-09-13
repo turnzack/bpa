@@ -1,0 +1,25 @@
+{
+  "baseUrl": "/api/v1",
+  "auth": {
+    "login": { "method": "POST", "path": "/auth/login", "request": { "email": "string", "password": "string" }, "response": { "token": "string", "user": "User" } },
+    "logout": { "method": "POST", "path": "/auth/logout", "request": {}, "response": {} },
+    "me": { "method": "GET", "path": "/auth/me", "request": {}, "response": { "user": "User" } }
+  },
+  "products": {
+    "list": { "method": "GET", "path": "/products", "request": {}, "response": { "items": "Product[]" } },
+    "create": { "method": "POST", "path": "/products", "request": { "name": "string", "description": "string", "price": "number", "stock": "number" }, "response": { "product": "Product" } },
+    "update": { "method": "PUT", "path": "/products/:id", "request": { "name": "string", "description": "string", "price": "number", "stock": "number" }, "response": { "product": "Product" } },
+    "delete": { "method": "DELETE", "path": "/products/:id", "request": {}, "response": {} }
+  },
+  "orders": {
+    "list": { "method": "GET", "path": "/orders", "request": {}, "response": { "items": "Order[]" } },
+    "create": { "method": "POST", "path": "/orders", "request": { "items": [{ "productId": "string", "quantity": "number" }] }, "response": { "order": "Order" } },
+    "get": { "method": "GET", "path": "/orders/:id", "request": {}, "response": { "order": "Order" } }
+  },
+  "security": {
+    "authentication": "JWT Bearer token",
+    "authorization": "RBAC (admin/user)",
+    "validation": "Zod schemas côté serveur",
+    "errorFormat": "{ error: { code: string, message: string, details?: any } }"
+  }
+}

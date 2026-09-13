@@ -1,0 +1,27 @@
+{
+  "workflows": [
+    {
+      "name": "Authentification",
+      "steps": [
+        { "action": "login", "description": "L'utilisateur soumet ses identifiants." },
+        { "action": "fetchCurrentUser", "description": "Récupère les informations de l'utilisateur connecté." }
+      ]
+    },
+    {
+      "name": "Gestion des produits",
+      "steps": [
+        { "action": "fetchProducts", "description": "Charger la liste des produits." },
+        { "action": "createProduct", "description": "Créer un nouveau produit." },
+        { "action": "updateProduct", "description": "Mettre à jour un produit existant." },
+        { "action": "deleteProduct", "description": "Supprimer un produit." }
+      ]
+    },
+    {
+      "name": "Passer une commande",
+      "steps": [
+        { "action": "createOrder", "description": "Créer une commande avec les articles sélectionnés." },
+        { "action": "updateOrderStatus", "description": "Mettre à jour le statut de la commande (paiement, expédition, etc.)." }
+      ]
+    }
+  ]
+}

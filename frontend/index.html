@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>v0.reponse - OS Souverain v0.1.0 - idecode-2026</title>
+    <script>
+      // PURGE TOTALE AUTOMATIQUE v2.0.0 - FORCE RELOAD CACHE CHROME
+      (function() {
+        var CLEAN_KEY = 'kirov5_v207_prompt_overlay';
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var reg of regs) { reg.unregister(); }
+          }).catch(function() {});
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (var name of names) { caches.delete(name); }
+          }).catch(function() {});
+        }
+        // Supprimer toutes les anciennes clés de purge pour repartir propre
+        var oldKeys = ['tiger_v109_purged_final','tiger_v110_purged','tiger_v111_purged','tiger_enable_local_bridge'];
+        oldKeys.forEach(function(k) { try { localStorage.removeItem(k); } catch(e) {} });
+        if (!localStorage.getItem(CLEAN_KEY)) {
+          localStorage.setItem(CLEAN_KEY, '1');
+          window.location.reload(true);
+        }
+      })();
+    </script>
+    <script>
+      // Firewall réseau global Zero-Error pour mode Web Cloud SaaS (Fetch + XHR)
+      (function() {
+        var isElectron = Boolean(window.electron || window.electronAPI || (navigator.userAgent && navigator.userAgent.indexOf('Electron') !== -1));
+        var origFetch = window.fetch;
+        
+        var isLocal = Boolean(
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          isElectron
+        );
+
+        function shouldBlock(url) {
+          if (!url) return false;
+          if (typeof url !== 'string') url = String(url);
+          if (url.indexOf('turborepo-summary') !== -1 || url.indexOf('console.neon.tech') !== -1 || url.indexOf('ingest.sentry.io') !== -1) {
+            return 'mock_ok';
+          }
+          if (url.indexOf('localhost:500') !== -1 || url.indexOf('127.0.0.1:500') !== -1 || url.indexOf(':5006') !== -1) {
+            if (!isLocal) {
+              return 'mock_blocked';
+            }
+          }
+          return false;
+        }
+
+        window.fetch = function(input, init) {
+          var url = '';
+          try {
+            if (typeof input === 'string') { url = input; }
+            else if (input && input.url) { url = input.url; }
+            else if (input && input.href) { url = input.href; }
+            else if (input) { url = String(input); }
+          } catch(e) {}
+          
+          var blockType = shouldBlock(url);
+          if (blockType === 'mock_ok') {
+            return Promise.resolve(new Response(JSON.stringify({ ok: true, success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          if (blockType === 'mock_blocked') {
+            return Promise.resolve(new Response(JSON.stringify({ success: false, cloud_blocked: true }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          return origFetch.apply(this, arguments);
+        };
+
+        if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+          var origOpen = window.XMLHttpRequest.prototype.open;
+          var origSend = window.XMLHttpRequest.prototype.send;
+
+          window.XMLHttpRequest.prototype.open = function(method, url) {
+            var blockType = shouldBlock(url);
+            if (blockType) {
+              this._isBlocked = true;
+              return;
+            }
+            return origOpen.apply(this, arguments);
+          };
+
+          window.XMLHttpRequest.prototype.send = function(body) {
+            if (this._isBlocked) {
+              try {
+                Object.defineProperty(this, 'status', { value: 200, writable: true });
+                Object.defineProperty(this, 'statusText', { value: 'OK', writable: true });
+                Object.defineProperty(this, 'readyState', { value: 4, writable: true });
+                Object.defineProperty(this, 'responseText', { value: '{"success":false,"cloud_blocked":true}', writable: true });
+                Object.defineProperty(this, 'response', { value: '{"success":false,"cloud_blocked":true}', writable: true });
+              } catch(e) {}
+              var self = this;
+              setTimeout(function() {
+                if (typeof self.onreadystatechange === 'function') { self.onreadystatechange(); }
+                if (typeof self.onload === 'function') { self.onload(); }
+              }, 0);
+              return;
+            }
+            return origSend.apply(this, arguments);
+          };
+        }
+
+        if (navigator && navigator.sendBeacon) {
+          var origBeacon = navigator.sendBeacon;
+          navigator.sendBeacon = function(url, data) {
+            if (shouldBlock(url)) return true;
+            return origBeacon.apply(this, arguments);
+          };
+        }
+      })();
+
+      document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0' || e.key === '+' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract')) {
+          e.preventDefault();
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

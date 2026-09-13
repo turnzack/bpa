@@ -1,0 +1,17 @@
+export const Colors = {
+    background: '#0A0A0A',
+    surface: '#121212',
+    navBar: '#0A0A0A',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#A0A0A0',
+    accentBlue: '#0078FF',
+    accentPurple: '#7800FF',
+    accentRed: '#FF3B30',
+    accentGreen: '#34C759',
+    border: '#2A2A2A',
+    inputBg: '#1A1A1A',
+    iconActive: '#FFFFFF',
+    iconInactive: '#666666',
+    cardBg: '#161616',
+    modalBg: '#1E1E1E',
+};

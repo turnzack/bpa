@@ -1,0 +1,77 @@
+{
+  "entities": [
+    {
+      "name": "User",
+      "description": "A user of the platform.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "email", "type": "string", "required": true },
+        { "name": "passwordHash", "type": "string", "required": true },
+        { "name": "role", "type": "enum", "values": ["admin", "editor", "viewer"], "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "Workflow",
+      "description": "A visual representation of an automated process.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": false },
+        { "name": "ownerId", "type": "UUID", "required": true },
+        { "name": "nodes", "type": "array", "required": true },
+        { "name": "connections", "type": "array", "required": true },
+        { "name": "status", "type": "enum", "values": ["draft", "active", "paused", "archived"], "required": true },
+        { "name": "version", "type": "integer", "required": true },
+        { "name": "createdAt", "type": "datetime", "required": true },
+        { "name": "updatedAt", "type": "datetime", "required": true }
+      ]
+    },
+    {
+      "name": "Node",
+      "description": "A single step in a workflow.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "type", "type": "string", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "parameters", "type": "object", "required": true },
+        { "name": "position", "type": "object", "required": true }
+      ]
+    },
+    {
+      "name": "Connection",
+      "description": "A link between two nodes.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "sourceNodeId", "type": "UUID", "required": true },
+        { "name": "targetNodeId", "type": "UUID", "required": true },
+        { "name": "sourceHandle", "type": "string", "required": false },
+        { "name": "targetHandle", "type": "string", "required": false }
+      ]
+    },
+    {
+      "name": "Execution",
+      "description": "A record of a workflow run.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "workflowId", "type": "UUID", "required": true },
+        { "name": "triggeredBy", "type": "UUID", "required": true },
+        { "name": "status", "type": "enum", "values": ["success", "failed", "running"], "required": true },
+        { "name": "startedAt", "type": "datetime", "required": true },
+        { "name": "finishedAt", "type": "datetime", "required": false },
+        { "name": "logs", "type": "array", "required": false }
+      ]
+    },
+    {
+      "name": "Template",
+      "description": "A pre-built workflow template.",
+      "attributes": [
+        { "name": "id", "type": "UUID", "required": true },
+        { "name": "name", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": true },
+        { "name": "category", "type": "string", "required": true },
+        { "name": "workflowDefinition", "type": "object", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "name": "FireGuard AI - Pack PRD",
+  "version": "1.0.0",
+  "description": "Pack de PRDs pour la plateforme prédictive de sécurité incendie FireGuard AI.",
+  "author": "FireGuard AI Team",
+  "modules": [
+    {
+      "id": "tmpl_fireguard_ai_dashboard",
+      "name": "Dashboard",
+      "tasks": [
+        {"id": "dash_1", "description": "Afficher les statistiques en temps réel", "priority": "must-have"},
+        {"id": "dash_2", "description": "Visualiser les tendances de température et humidité", "priority": "should-have"},
+        {"id": "dash_3", "description": "Intégrer une carte interactive des sites", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_sensor_management",
+      "name": "Gestion des Capteurs",
+      "tasks": [
+        {"id": "sens_1", "description": "CRUD complet des capteurs", "priority": "must-have"},
+        {"id": "sens_2", "description": "Filtres par type et statut", "priority": "should-have"},
+        {"id": "sens_3", "description": "Historique des lectures", "priority": "should-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_risk_analysis",
+      "name": "Analyse des Risques",
+      "tasks": [
+        {"id": "risk_1", "description": "Calcul du score de risque", "priority": "must-have"},
+        {"id": "risk_2", "description": "Visualisation heatmap", "priority": "should-have"},
+        {"id": "risk_3", "description": "Configuration du modèle de risque", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_alert_system",
+      "name": "Système d'Alertes",
+      "tasks": [
+        {"id": "alert_1", "description": "Déclenchement d'alertes en temps réel", "priority": "must-have"},
+        {"id": "alert_2", "description": "Notifications multi-canaux", "priority": "should-have"},
+        {"id": "alert_3", "description": "Politique d'escalade", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_evacuation_planner",
+      "name": "Planificateur d'Évacuation",
+      "tasks": [
+        {"id": "evac_1", "description": "Éditeur de plans d'étage", "priority": "must-have"},
+        {"id": "evac_2", "description": "Simulation d'évacuation", "priority": "should-have"},
+        {"id": "evac_3", "description": "Affichage des chemins optimaux", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_incident_response",
+      "name": "Réponse aux Incidents",
+      "tasks": [
+        {"id": "inc_1", "description": "Gestion de l'incident en cours", "priority": "must-have"},
+        {"id": "inc_2", "description": "Assignation des équipes", "priority": "should-have"},
+        {"id": "inc_3", "description": "Suivi des actions", "priority": "should-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_weather_integration",
+      "name": "Intégration Météo",
+      "tasks": [
+        {"id": "weath_1", "description": "Affichage météo en temps réel", "priority": "must-have"},
+        {"id": "weath_2", "description": "Historique météo", "priority": "should-have"},
+        {"id": "weath_3", "description": "Corrélation avec incidents", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_maintenance_scheduler",
+      "name": "Planificateur de Maintenance",
+      "tasks": [
+        {"id": "maint_1", "description": "Planification des tâches", "priority": "must-have"},
+        {"id": "maint_2", "description": "Rappels automatiques", "priority": "should-have"},
+        {"id": "maint_3", "description": "Suivi des interventions", "priority": "should-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_reporting",
+      "name": "Génération de Rapports",
+      "tasks": [
+        {"id": "rep_1", "description": "Création de rapports personnalisés", "priority": "must-have"},
+        {"id": "rep_2", "description": "Export PDF/CSV", "priority": "should-have"},
+        {"id": "rep_3", "description": "Modèles prédéfinis", "priority": "nice-to-have"}
+      ]
+    },
+    {
+      "id": "tmpl_fireguard_ai_settings",
+      "name": "Paramètres",
+      "tasks": [
+        {"id": "set_1", "description": "Gestion des utilisateurs", "priority": "must-have"},
+        {"id": "set_2", "description": "Gestion des rôles et permissions", "priority": "should-have"},
+        {"id": "set_3", "description": "Préférences système", "priority": "nice-to-have"}
+      ]
+    }
+  ]
+}

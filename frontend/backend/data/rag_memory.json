@@ -1,0 +1,40 @@
+{
+  "templates": [
+    {
+      "id": "stitch_1786378075976",
+      "name": "Maquette Test Dashboard",
+      "source": "stitch-html",
+      "raw_html": "\n        <main class=\"bg-slate-900 text-white min-h-screen\">\n          <nav class=\"p-4 bg-slate-800 shadow-md\">Mon super menu</nav>\n          <section class=\"grid grid-cols-2 gap-4 p-8\">\n            <div class=\"bg-slate-700 rounded-xl\">Contenu Gauche</div>\n            <div class=\"bg-slate-700 rounded-xl\">Contenu Droit</div>\n          </section>\n        </main>\n      ",
+      "tokens": {
+        "classes_trouvees": 12,
+        "echantillon": [
+          "bg-slate-900",
+          "text-white",
+          "min-h-screen",
+          "p-4",
+          "bg-slate-800",
+          "shadow-md",
+          "grid",
+          "grid-cols-2",
+          "gap-4",
+          "p-8",
+          "bg-slate-700",
+          "rounded-xl"
+        ]
+      },
+      "created_at": "2026-08-10T16:07:55.987Z"
+    }
+  ],
+  "template_chunks": [
+    {
+      "id": "stitch_1786378075976_chunk_0",
+      "template_id": "stitch_1786378075976",
+      "component_type": "main",
+      "content": "<main class=\"bg-slate-900 text-white min-h-screen\">\n          <nav class=\"p-4 bg-slate-800 shadow-md\">Mon super menu</nav>\n          <section class=\"grid grid-cols-2 gap-4 p-8\">\n            <div class=\"bg-slate-700 rounded-xl\">Contenu Gauche</div>\n            <div class=\"bg-slate-700 rounded-xl\">Contenu Droit</div>\n          </section>\n        </main>",
+      "metadata": {
+        "index": 0,
+        "tag": "main"
+      }
+    }
+  ]
+}

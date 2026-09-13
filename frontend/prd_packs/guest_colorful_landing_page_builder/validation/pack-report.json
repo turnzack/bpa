@@ -1,0 +1,43 @@
+{
+  "valid": true,
+  "checks": [
+    {
+      "name": "Required files present",
+      "status": "pass"
+    },
+    {
+      "name": "JSON syntax valid",
+      "status": "pass"
+    },
+    {
+      "name": "Paths relative and safe",
+      "status": "pass"
+    },
+    {
+      "name": "Entities defined",
+      "status": "pass"
+    },
+    {
+      "name": "Invariants defined",
+      "status": "pass"
+    },
+    {
+      "name": "State machines defined",
+      "status": "pass"
+    },
+    {
+      "name": "Contracts defined",
+      "status": "pass"
+    },
+    {
+      "name": "Workflows defined",
+      "status": "pass"
+    },
+    {
+      "name": "Acceptance tests defined",
+      "status": "pass"
+    }
+  ],
+  "warnings": [],
+  "unresolvedItems": []
+}

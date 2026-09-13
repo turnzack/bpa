@@ -1,0 +1,53 @@
+{
+  "baseUrl": "/api",
+  "endpoints": [
+    {
+      "path": "/auth/signup",
+      "method": "POST",
+      "request": { "email": "string", "password": "string", "tenantName": "string" },
+      "response": { "session": { "accessToken": "string", "user": { "id": "string", "email": "string", "tenantId": "string" } } }
+    },
+    {
+      "path": "/auth/signin",
+      "method": "POST",
+      "request": { "email": "string", "password": "string" },
+      "response": { "session": { "accessToken": "string", "user": { "id": "string", "email": "string", "tenantId": "string" } } }
+    },
+    {
+      "path": "/documents",
+      "method": "GET",
+      "request": { "tenantId": "string" },
+      "response": { "documents": [ { "id": "string", "type": "string", "status": "string", "fileUrl": "string", "extractedData": "object" } ] }
+    },
+    {
+      "path": "/documents",
+      "method": "POST",
+      "request": { "file": "binary", "type": "string" },
+      "response": { "document": { "id": "string", "status": "uploaded" } }
+    },
+    {
+      "path": "/documents/:id/process",
+      "method": "POST",
+      "request": {},
+      "response": { "scanJob": { "id": "string", "status": "processing" } }
+    },
+    {
+      "path": "/documents/:id/validate",
+      "method": "POST",
+      "request": { "extractedData": "object" },
+      "response": { "document": { "id": "string", "status": "validated" } }
+    },
+    {
+      "path": "/payments/checkout",
+      "method": "POST",
+      "request": { "priceId": "string", "successUrl": "string", "cancelUrl": "string" },
+      "response": { "checkoutUrl": "string" }
+    },
+    {
+      "path": "/payments/webhook",
+      "method": "POST",
+      "request": { "payload": "object" },
+      "response": { "received": true }
+    }
+  ]
+}

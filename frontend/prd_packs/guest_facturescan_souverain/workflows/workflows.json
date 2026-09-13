@@ -1,0 +1,42 @@
+{
+  "workflows": [
+    {
+      "id": "WF-SCAN",
+      "name": "Scan de document",
+      "steps": [
+        { "name": "Capture", "description": "L'utilisateur prend une photo ou importe un fichier." },
+        { "name": "Upload", "description": "Le fichier est envoyé au backend." },
+        { "name": "Création du document", "description": "Un document avec statut 'uploaded' est créé." }
+      ]
+    },
+    {
+      "id": "WF-PROCESS",
+      "name": "Traitement IA",
+      "steps": [
+        { "name": "Prétraitement", "description": "Détection de flou, amélioration d'image." },
+        { "name": "OCR", "description": "Extraction du texte." },
+        { "name": "Analyse Gemma", "description": "Extraction des champs structurés." },
+        { "name": "Mise à jour du statut", "description": "Le document passe à 'processing' puis 'validated' si succès." }
+      ]
+    },
+    {
+      "id": "WF-VALIDATE",
+      "name": "Validation manuelle",
+      "steps": [
+        { "name": "Affichage des données extraites", "description": "L'utilisateur vérifie les champs." },
+        { "name": "Correction", "description": "L'utilisateur modifie les champs si nécessaire." },
+        { "name": "Confirmation", "description": "Le document passe à 'validated'." }
+      ]
+    },
+    {
+      "id": "WF-PAYMENT",
+      "name": "Paiement",
+      "steps": [
+        { "name": "Création de session", "description": "Le backend crée une session Stripe." },
+        { "name": "Redirection", "description": "L'utilisateur est redirigé vers Stripe." },
+        { "name": "Webhook", "description": "Stripe notifie le backend du succès." },
+        { "name": "Mise à jour", "description": "Le document passe à 'paid'." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "stateMachines": [
+    {
+      "name": "HeroAnimation",
+      "states": ["idle", "animating", "paused"],
+      "transitions": [
+        {
+          "from": "idle",
+          "to": "animating",
+          "event": "START"
+        },
+        {
+          "from": "animating",
+          "to": "paused",
+          "event": "PAUSE"
+        },
+        {
+          "from": "paused",
+          "to": "animating",
+          "event": "RESUME"
+        },
+        {
+          "from": "animating",
+          "to": "idle",
+          "event": "STOP"
+        }
+      ]
+    },
+    {
+      "name": "ModalState",
+      "states": ["closed", "open"],
+      "transitions": [
+        {
+          "from": "closed",
+          "to": "open",
+          "event": "OPEN"
+        },
+        {
+          "from": "open",
+          "to": "closed",
+          "event": "CLOSE"
+        }
+      ]
+    }
+  ]
+}
