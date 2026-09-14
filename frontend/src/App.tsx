@@ -334,14 +334,25 @@ function ScanView() {
       const token = localStorage.getItem("kirov5_jwt_token");
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/invoices/analyze", {
+      formData.append("message", "Analyse ce devis TCE en détail : article par article, compare les prix au marché, détecte les anomalies et donne un score de conformité global. Réponds en JSON avec les clés: articles, anomalies, score_conformite, total_ht, resume.");
+      const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
-      setResult(data);
+      // Parse JSON from AI response if needed
+      let result = data;
+      if (data.response && typeof data.response === "string") {
+        try {
+          const match = data.response.match(/```json\n?([\s\S]*?)\n?```/) || data.response.match(/(\{[\s\S]*\})/);
+          result = match ? JSON.parse(match[1]) : { resume: data.response, articles: [], anomalies: [], score_conformite: 0 };
+        } catch {
+          result = { resume: data.response, articles: [], anomalies: [], score_conformite: 0 };
+        }
+      }
+      setResult(result);
     } catch (e: any) {
       setError(e.message);
     } finally {
