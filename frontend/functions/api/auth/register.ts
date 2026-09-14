@@ -2,6 +2,8 @@ import { getNeonClient } from '../_lib/neonClient';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const SUPER_ADMIN_EMAILS = ['tce.reponse@gmail.com', 'patrice.adja@gmail.com'];
+
 export async function onRequestPost(context: any) {
   try {
     const env = context.env;
@@ -14,42 +16,51 @@ export async function onRequestPost(context: any) {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user'`;
 
     const { email, password } = await request.json() as any;
     if (!email || !password) {
       return new Response(JSON.stringify({ error: 'Email et mot de passe requis' }), { status: 400 });
     }
 
-    const existingUsers = await sql`SELECT * FROM users WHERE email = ${email.toLowerCase().trim()}`;
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existingUsers = await sql`SELECT * FROM users WHERE email = ${cleanEmail}`;
     if (existingUsers.length > 0) {
-      return new Response(JSON.stringify({ error: 'Cet agent existe déjà dans le Nexus.' }), { status: 409 });
+      return new Response(JSON.stringify({ error: 'Cet email est déjà utilisé.' }), { status: 409 });
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     const result = await sql`
-      INSERT INTO users (email, password_hash)
-      VALUES (${email.toLowerCase().trim()}, ${passwordHash})
-      RETURNING id, email
+      INSERT INTO users (email, password_hash, role)
+      VALUES (${cleanEmail}, ${passwordHash}, 'user')
+      RETURNING id, email, role
     `;
 
     const user = result[0];
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(cleanEmail);
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      env.JWT_SECRET || 'kirov5_sovereign_forge_secret_key_2026',
+      { userId: user.id, email: user.email, isSuperAdmin, role: isSuperAdmin ? 'superadmin' : 'user' },
+      env.JWT_SECRET || 'bpa_facture_scan_secret_key_2026',
       { expiresIn: '7d' }
     );
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Habilitation créée avec succès',
+      message: 'Inscription réussie',
       token,
-      userId: user.id
+      userId: user.id,
+      email: user.email,
+      isSuperAdmin,
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }

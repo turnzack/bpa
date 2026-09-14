@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 
+const SUPER_ADMIN_EMAILS = ['tce.reponse@gmail.com', 'patrice.adja@gmail.com'];
+
 export async function onRequestGet(context: any) {
   const env = context.env;
   const request = context.request;
@@ -15,19 +17,20 @@ export async function onRequestGet(context: any) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET || 'kirov5_sovereign_forge_secret_key_2026') as any;
-    
+    const decoded = jwt.verify(token, env.JWT_SECRET || 'bpa_facture_scan_secret_key_2026') as any;
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes((decoded.email || '').toLowerCase().trim());
+
     return new Response(JSON.stringify({
       authenticated: true,
       userId: decoded.userId,
       email: decoded.email,
-      isSuperAdmin: (decoded.email || '').toLowerCase().trim() === 'zacktunr@gmail.com',
-      role: ((decoded.email || '').toLowerCase().trim() === 'zacktunr@gmail.com') ? 'superadmin' : 'user'
+      isSuperAdmin,
+      role: isSuperAdmin ? 'superadmin' : 'user',
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ authenticated: false }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' }
