@@ -4,11 +4,7 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'kirov5-fallback-secret-key-32chars!';
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role?: string;
-  };
+  user?: any;
 }
 
 /**
