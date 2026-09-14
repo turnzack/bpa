@@ -28,7 +28,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://109-205-182-17.nip.io/api/$1" },
     { "source": "/admin-design", "destination": "/admin-design.html" },
-    { "source": "/((?!assets/|admin-design\\.html|.*\\.).*)", "destination": "/index.html" }
+    { "source": "/((?!assets/|api/|admin-design\\.html|.*\\.).*)", "destination": "/index.html" }
   ]
 }
