@@ -14,7 +14,7 @@ const router = Router();
  * POST /api/auth/signup
  * Crée un nouvel utilisateur avec email/mot de passe
  */
-router.post('/signup', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, redirectTo } = req.body;
 
@@ -47,13 +47,11 @@ router.post('/signup', async (req: Request, res: Response) => {
     }
 
     res.json({
+      success: true,
       message: 'Inscription réussie',
-      user: { id: data.user!.id, email: data.user!.email },
-      session: data.session ? {
-        accessToken: data.session.access_token,
-        refreshToken: data.session.refresh_token,
-        expiresIn: data.session.expires_in
-      } : null
+      token: data.session ? data.session.access_token : null,
+      userId: data.user!.id,
+      email: data.user!.email
     });
 
   } catch (error: any) {
@@ -70,7 +68,7 @@ router.post('/signup', async (req: Request, res: Response) => {
  * POST /api/auth/signin
  * Connecte un utilisateur avec email/mot de passe
  */
-router.post('/signin', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -89,18 +87,11 @@ router.post('/signin', async (req: Request, res: Response) => {
     }
 
     res.json({
+      success: true,
       message: 'Connexion réussie',
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        app_metadata: data.user.app_metadata,
-        user_metadata: data.user.user_metadata
-      },
-      session: {
-        accessToken: data.session.access_token,
-        refreshToken: data.session.refresh_token,
-        expiresIn: data.session.expires_in
-      }
+      token: data.session.access_token,
+      userId: data.user.id,
+      email: data.user.email
     });
 
   } catch (error: any) {
@@ -117,7 +108,7 @@ router.post('/signin', async (req: Request, res: Response) => {
  * POST /api/auth/signout
  * Déconnecte l'utilisateur et invalide la session
  */
-router.post('/signout', authenticateUser, async (req: AuthRequest, res: Response) => {
+router.post('/logout', authenticateUser, async (req: AuthRequest, res: Response) => {
   try {
     await masterSupabase.auth.signOut();
     res.json({ message: 'Déconnexion réussie' });
@@ -311,11 +302,9 @@ router.put('/profile', authenticateUser, async (req: AuthRequest, res: Response)
 router.get('/session', authenticateUser, async (req: AuthRequest, res: Response) => {
   try {
     res.json({
-      valid: true,
-      user: {
-        id: req.user!.id,
-        email: req.user!.email
-      }
+      authenticated: true,
+      userId: req.user!.id,
+      email: req.user!.email
     });
   } catch (error: any) {
     res.status(401).json({ valid: false, error: 'Session invalide' });
