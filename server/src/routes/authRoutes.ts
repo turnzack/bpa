@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { pool } from '../config/db';
+import { sql } from '../config/db';
 import { authenticateUser, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -19,9 +19,9 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     // Check if user exists
-    const userCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    if (userCheck.rows.length > 0) {
-      return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+    const existingUsers = await sql`SELECT * FROM users WHERE email = ${email.toLowerCase().trim()}`;
+    if (existingUsers.length > 0) {
+      return res.status(409).json({ error: 'Cet agent existe déjà dans le Nexus.' });
     }
 
     // Hash password
@@ -29,12 +29,13 @@ router.post('/register', async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Insert user
-    const insertResult = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, role',
-      [email, passwordHash]
-    );
+    const result = await sql`
+      INSERT INTO users (email, password_hash)
+      VALUES (${email.toLowerCase().trim()}, ${passwordHash})
+      RETURNING id, email, role
+    `;
 
-    const user = insertResult.rows[0];
+    const user = result[0];
 
     // Generate token
     const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, {
@@ -43,7 +44,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Inscription réussie',
+      message: 'Habilitation créée avec succès',
       token,
       userId: user.id,
       email: user.email
@@ -67,12 +68,12 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Find user
-    const userResult = await pool.query('SELECT id, email, password_hash, role FROM users WHERE email = $1', [email]);
-    if (userResult.rows.length === 0) {
+    const userResult = await sql`SELECT id, email, password_hash, role FROM users WHERE email = ${email.toLowerCase().trim()}`;
+    if (userResult.length === 0) {
       return res.status(401).json({ error: 'Identifiants invalides' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     // Check password
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
