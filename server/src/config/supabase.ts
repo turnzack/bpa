@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import WebSocket from 'ws';
 
 dotenv.config();
 
@@ -20,6 +21,12 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPAB
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false
+  },
+  global: {
+    fetch: fetch.bind(globalThis)
+  },
+  realtime: {
+    transport: WebSocket
   }
 });
 
@@ -29,6 +36,12 @@ export const masterSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SU
     persistSession: false,
     autoRefreshToken: false,
     detectSessionInUrl: false
+  },
+  global: {
+    fetch: fetch.bind(globalThis)
+  },
+  realtime: {
+    transport: WebSocket
   }
 });
 
@@ -39,6 +52,12 @@ export const createArtisanClient = (url: string, key: string) => {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false
+    },
+    global: {
+      fetch: fetch.bind(globalThis)
+    },
+    realtime: {
+      transport: WebSocket
     }
   });
 };
