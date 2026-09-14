@@ -23,7 +23,7 @@ export async function authenticateUser(
     const authHeader = req.headers.authorization || '';
 
     if (!authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Header d\\'autorisation manquant. Format requis: Bearer <token>' });
+      res.status(401).json({ error: "Header d'autorisation manquant. Format requis: Bearer <token>" });
       return;
     }
 
@@ -43,7 +43,7 @@ export async function authenticateUser(
     }
   } catch (error: any) {
     console.error('[authenticateUser] Middleware error:', error);
-    res.status(500).json({ error: 'Échec de l\\'authentification' });
+    res.status(500).json({ error: "Échec de l'authentification" });
   }
 }
 

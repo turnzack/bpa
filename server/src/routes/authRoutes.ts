@@ -51,7 +51,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
   } catch (error: any) {
     console.error('[register] Exception:', error);
-    res.status(500).json({ error: 'Erreur serveur lors de l\\'inscription' });
+    res.status(500).json({ error: "Erreur serveur lors de l'inscription" });
   }
 });
 
