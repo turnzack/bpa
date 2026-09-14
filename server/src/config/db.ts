@@ -17,9 +17,10 @@ export async function initDb() {
       );
     `;
 
-    // Ensure role column exists for older users table without breaking
+    // Ensure role and password_hash columns exist for older users table without breaking
     try {
       await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user';`;
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`;
     } catch (e) {
       // Ignore if it fails
     }
