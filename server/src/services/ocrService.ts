@@ -84,7 +84,7 @@ export async function processInvoiceOCR(fileBuffer: Buffer, mimeType: string) {
 
 async function callMindeeOCR(fileBuffer: Buffer, mimeType: string) {
     const formData = new FormData();
-    const blob = new Blob([fileBuffer], { type: mimeType });
+    const blob = new Blob([new Uint8Array(fileBuffer)], { type: mimeType });
     formData.append('document', blob);
 
     const response = await axios.post(MINDEE_ENDPOINT, formData, {

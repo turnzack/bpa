@@ -4,12 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import { masterSupabase } from '../config/supabase';
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email?: string;
-    app_metadata?: Record<string, any>;
-    user_metadata?: Record<string, any>;
-  };
+  user?: any;
 }
 
 /**

@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkScanPaymentStatus } from '../services/scanPaymentService';
+import { scanPaymentService } from '../services/scanPaymentService';
 import { masterSupabase } from '../config/supabase';
 
 const router = express.Router();
@@ -38,7 +38,7 @@ router.post('/check-scan-payment', authenticateUser, async (req: express.Request
             return res.status(401).json({ error: 'User email not found' });
         }
 
-        const hasValidPayment = await checkScanPaymentStatus(user.id, scanId);
+        const hasValidPayment = (await scanPaymentService.checkScanPayment(scanId, user.id)).paid;
 
         res.json({ hasValidPayment });
     } catch (error) {
