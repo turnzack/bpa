@@ -884,6 +884,9 @@ async function addExifToImages(framesDir: string) {
     console.log(`[EXIF] Completed for ${files.length} images.`);
 }
 
-app.listen(Number(port), "0.0.0.0", () => {
+import { initDb } from "./config/db";
+
+app.listen(Number(port), "0.0.0.0", async () => {
     console.log(`SolarScan backend listening on port ${port} (0.0.0.0)`);
+    await initDb();
 });

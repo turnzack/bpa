@@ -1,15 +1,18 @@
-// Middleware d'authentification Supabase pour Express.js
-
 import { Request, Response, NextFunction } from 'express';
-import { masterSupabase } from '../config/supabase';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'kirov5-fallback-secret-key-32chars!';
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: {
+    id: string;
+    email: string;
+    role?: string;
+  };
 }
 
 /**
- * Middleware pour protéger les routes avec authentification Supabase
- * Vérifie le token JWT dans le header Authorization: Bearer <token>
+ * Middleware pour protéger les routes avec JWT
  */
 export async function authenticateUser(
   req: AuthRequest,
@@ -20,36 +23,32 @@ export async function authenticateUser(
     const authHeader = req.headers.authorization || '';
 
     if (!authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Header d\'autorisation manquant. Format requis: Bearer <token>' });
+      res.status(401).json({ error: 'Header d\\'autorisation manquant. Format requis: Bearer <token>' });
       return;
     }
 
-    const jwt = authHeader.replace('Bearer ', '').trim();
+    const token = authHeader.replace('Bearer ', '').trim();
     
-    const { data: { user }, error: authError } = await masterSupabase.auth.getUser(jwt);
-
-    if (authError || !user) {
-      console.error('[authenticateUser] Auth error:', authError);
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      req.user = {
+        id: decoded.userId,
+        email: decoded.email,
+        role: decoded.role
+      };
+      next();
+    } catch (err) {
       res.status(401).json({ error: 'Token invalide ou expiré' });
       return;
     }
-
-    req.user = {
-      id: user.id,
-      email: user.email,
-      app_metadata: user.app_metadata,
-      user_metadata: user.user_metadata
-    };
-    
-    next();
   } catch (error: any) {
     console.error('[authenticateUser] Middleware error:', error);
-    res.status(500).json({ error: 'Échec de l\'authentification' });
+    res.status(500).json({ error: 'Échec de l\\'authentification' });
   }
 }
 
 /**
- * Middleware optionnel - ajoute l'utilisateur si présent mais ne bloque pas
+ * Middleware optionnel
  */
 export async function optionalAuth(
   req: AuthRequest,
@@ -60,28 +59,27 @@ export async function optionalAuth(
     const authHeader = req.headers.authorization || '';
 
     if (authHeader.startsWith('Bearer ')) {
-      const jwt = authHeader.replace('Bearer ', '').trim();
-      const { data: { user }, error } = await masterSupabase.auth.getUser(jwt);
-
-      if (!error && user) {
+      const token = authHeader.replace('Bearer ', '').trim();
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
         req.user = {
-          id: user.id,
-          email: user.email,
-          app_metadata: user.app_metadata,
-          user_metadata: user.user_metadata
+          id: decoded.userId,
+          email: decoded.email,
+          role: decoded.role
         };
+      } catch (err) {
+        // Ignorer
       }
     }
     
     next();
   } catch (error) {
-    // Ignorer les erreurs et continuer sans utilisateur
     next();
   }
 }
 
 /**
- * Middleware pour vérifier un rôle spécifique dans les metadata
+ * Middleware pour vérifier un rôle spécifique
  */
 export function requireRole(role: string) {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
@@ -90,9 +88,7 @@ export function requireRole(role: string) {
       return;
     }
 
-    const userRole = req.user.app_metadata?.role;
-    
-    if (userRole !== role) {
+    if (req.user.role !== role) {
       res.status(403).json({ error: `Rôle "${role}" requis` });
       return;
     }
