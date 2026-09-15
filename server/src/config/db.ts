@@ -2,9 +2,16 @@ import { neon } from '@neondatabase/serverless';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const sql = neon(process.env.DATABASE_URL!);
+const dbUrl = process.env.DATABASE_URL;
+const sql = dbUrl ? neon(dbUrl) : ((() => {
+  throw new Error('DATABASE_URL is not configured');
+}) as any);
 
 export async function initDb() {
+  if (!dbUrl) {
+    console.log('ℹ️  DATABASE_URL non configuré (Neon bypassé, Supabase actif).');
+    return;
+  }
   try {
     // Auto-create users table if not exists
     await sql`

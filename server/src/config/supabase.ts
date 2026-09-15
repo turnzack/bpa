@@ -26,7 +26,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPAB
     fetch: fetch.bind(globalThis)
   },
   realtime: {
-    transport: WebSocket
+    transport: WebSocket as any
   }
 });
 
@@ -41,7 +41,7 @@ export const masterSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SU
     fetch: fetch.bind(globalThis)
   },
   realtime: {
-    transport: WebSocket
+    transport: WebSocket as any
   }
 });
 
@@ -57,7 +57,7 @@ export const createArtisanClient = (url: string, key: string) => {
       fetch: fetch.bind(globalThis)
     },
     realtime: {
-      transport: WebSocket
+      transport: WebSocket as any
     }
   });
 };
