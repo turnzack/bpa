@@ -30,18 +30,47 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
     setLoading(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
+      let res: Response | null = null;
+      let data: any = null;
 
-      const data = await res.json();
+      // 1. Tenter l'endpoint relatif classique
+      try {
+        const primaryRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password }),
+        });
+        const contentType = primaryRes.headers.get('content-type') || '';
+        if (primaryRes.status !== 405 && primaryRes.status !== 404 && contentType.includes('application/json')) {
+          res = primaryRes;
+          data = await primaryRes.json();
+        }
+      } catch (e) {
+        console.warn('[Auth] Requête relative indisponible, bascule sur API VPS...', e);
+      }
+
+      // 2. Fallback transparent vers le serveur API VPS si le CDN statique renvoie 405 ou non-JSON
+      if (!res || !data) {
+        const fallbackUrl = `https://109-205-182-17.nip.io${endpoint}`;
+        const fallbackRes = await fetch(fallbackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        res = fallbackRes;
+        const contentType = fallbackRes.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await fallbackRes.json();
+        } else {
+          data = { error: 'Réponse serveur non reconnue' };
+        }
+      }
 
       if (!res.ok) {
         const messages: Record<string, string> = {
           INVALID_CREDENTIALS: 'Email ou mot de passe incorrect.',
+          'Identifiants invalides': 'Email ou mot de passe incorrect. Si vous n\'avez pas encore de compte, cliquez sur "✨ Inscription".',
           TOO_MANY_ATTEMPTS: 'Trop de tentatives. Réessayez dans 15 minutes.',
           REGISTRATION_FAILED: 'Cet email est déjà utilisé.',
           PASSWORD_TOO_SHORT: 'Mot de passe trop court (8 caractères minimum).',

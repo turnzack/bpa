@@ -52,11 +52,26 @@ export function useAuth() {
   }, [checkSession]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await fetch(`${API_BASE}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    let res: Response | null = null;
+    try {
+      const primaryRes = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const ct = primaryRes.headers.get('content-type') || '';
+      if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
+        res = primaryRes;
+      }
+    } catch {}
+
+    if (!res) {
+      res = await fetch(`https://109-205-182-17.nip.io${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    }
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'Identifiants incorrects');
@@ -69,11 +84,26 @@ export function useAuth() {
   }, [checkSession]);
 
   const register = useCallback(async (email: string, password: string) => {
-    const res = await fetch(`${API_BASE}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    let res: Response | null = null;
+    try {
+      const primaryRes = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const ct = primaryRes.headers.get('content-type') || '';
+      if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
+        res = primaryRes;
+      }
+    } catch {}
+
+    if (!res) {
+      res = await fetch(`https://109-205-182-17.nip.io${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    }
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'Erreur inscription');

@@ -27,11 +27,26 @@ function Root() {
           return;
         }
 
-        const res = await fetch('/api/auth/session', { 
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        let res: Response | null = null;
+        try {
+          const primaryRes = await fetch('/api/auth/session', { 
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const ct = primaryRes.headers.get('content-type') || '';
+          if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
+            res = primaryRes;
+          }
+        } catch {}
+
+        if (!res) {
+          try {
+            res = await fetch('https://109-205-182-17.nip.io/api/auth/session', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch {}
+        }
         
-        if (res.ok) {
+        if (res && res.ok) {
           const data = await res.json();
           if (data.authenticated) {
             setUser({ 

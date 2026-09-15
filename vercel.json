@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://109-205-182-17.nip.io/api/:path*" },
+    { "source": "/admin-design", "destination": "/admin-design.html" },
+    { "source": "/((?!assets/|api/|admin-design\\.html|.*\\.).*)", "destination": "/index.html" }
+  ]
+}
