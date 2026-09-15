@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import AuthScreen from './components/AuthScreen.tsx'
+import { getApiUrl } from './config/api'
 import './index.css'
 import './design.css'
 
@@ -27,24 +28,9 @@ function Root() {
           return;
         }
 
-        let res: Response | null = null;
-        try {
-          const primaryRes = await fetch('/api/auth/session', { 
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const ct = primaryRes.headers.get('content-type') || '';
-          if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
-            res = primaryRes;
-          }
-        } catch {}
-
-        if (!res) {
-          try {
-            res = await fetch('https://109-205-182-17.nip.io/api/auth/session', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-          } catch {}
-        }
+        const res = await fetch(getApiUrl('/api/auth/session'), { 
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         
         if (res && res.ok) {
           const data = await res.json();
@@ -80,7 +66,7 @@ function Root() {
   const handleLogout = () => {
     localStorage.removeItem('kirov5_jwt_token');
     localStorage.removeItem('tiger_currentUserEmail');
-    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    fetch(getApiUrl('/api/auth/logout'), { method: 'POST' }).catch(() => {});
     setUser(null);
   };
 

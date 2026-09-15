@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect, useRef } from "react";
+import { getApiUrl } from "./config/api";
 
 // ============================================================
 // TYPES
@@ -267,7 +268,7 @@ export default function App({ user, onLogout }: AppProps) {
         
         const token = localStorage.getItem("kirov5_jwt_token");
         if (sessionId) {
-          fetch("/api/payments/verify-checkout-session", {
+          fetch(getApiUrl("/api/payments/verify-checkout-session"), {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -631,7 +632,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
       const token = localStorage.getItem("kirov5_jwt_token");
       const currentScanId = scanId || `scan_${Date.now()}`;
 
-      const res = await fetch("/api/stripe/create-scan-payment", {
+      const res = await fetch(getApiUrl("/api/stripe/create-scan-payment"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -663,7 +664,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
       const token = localStorage.getItem("kirov5_jwt_token");
       const currentScanId = scanId || `scan_${Date.now()}`;
 
-      const res = await fetch("/api/payments/simulate-scan-payment", {
+      const res = await fetch(getApiUrl("/api/payments/simulate-scan-payment"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -733,7 +734,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
       formData.append("scanId", currentScanId);
       formData.append("message", "Analyse ce devis TCE en détail : article par article, compare les prix au marché, détecte les anomalies et donne un score de conformité global. Réponds en JSON avec les clés: articles, anomalies, score_conformite, total_ht, resume.");
       
-      const res = await fetch("/api/ai/chat", {
+      const res = await fetch(getApiUrl("/api/ai/chat"), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -759,7 +760,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
 
       // Vérifier si le scan a déjà été payé dans Neon
       try {
-        const checkRes = await fetch("/api/payments/check-scan-payment", {
+        const checkRes = await fetch(getApiUrl("/api/payments/check-scan-payment"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

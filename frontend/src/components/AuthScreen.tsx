@@ -1,6 +1,7 @@
 
 
 import { useState } from 'react';
+import { getApiUrl } from '../config/api';
 
 interface AuthScreenProps {
   onAuthenticated: (user: { userId: string; email: string; isSuperAdmin?: boolean }) => void;
@@ -30,41 +31,20 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
     setLoading(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      let res: Response | null = null;
-      let data: any = null;
+      const targetUrl = getApiUrl(endpoint);
 
-      // 1. Tenter l'endpoint relatif classique
+      const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      let data: any = {};
       try {
-        const primaryRes = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ email, password }),
-        });
-        const contentType = primaryRes.headers.get('content-type') || '';
-        if (primaryRes.status !== 405 && primaryRes.status !== 404 && contentType.includes('application/json')) {
-          res = primaryRes;
-          data = await primaryRes.json();
-        }
-      } catch (e) {
-        console.warn('[Auth] Requête relative indisponible, bascule sur API VPS...', e);
-      }
-
-      // 2. Fallback transparent vers le serveur API VPS si le CDN statique renvoie 405 ou non-JSON
-      if (!res || !data) {
-        const fallbackUrl = `https://109-205-182-17.nip.io${endpoint}`;
-        const fallbackRes = await fetch(fallbackUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        res = fallbackRes;
-        const contentType = fallbackRes.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          data = await fallbackRes.json();
-        } else {
-          data = { error: 'Réponse serveur non reconnue' };
-        }
+        data = await res.json();
+      } catch {
+        data = { error: 'Erreur de réponse du serveur' };
       }
 
       if (!res.ok) {

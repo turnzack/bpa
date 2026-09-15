@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../config/api';
 
 interface AuthState {
   authenticated: boolean;
@@ -7,7 +8,6 @@ interface AuthState {
   loading: boolean;
 }
 
-const API_BASE = '/api/auth';
 const TOKEN_KEY = 'kirov5_jwt_token';
 
 export function useAuth() {
@@ -26,7 +26,7 @@ export function useAuth() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/session`, {
+      const res = await fetch(getApiUrl('/api/auth/session'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -52,26 +52,11 @@ export function useAuth() {
   }, [checkSession]);
 
   const login = useCallback(async (email: string, password: string) => {
-    let res: Response | null = null;
-    try {
-      const primaryRes = await fetch(`${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const ct = primaryRes.headers.get('content-type') || '';
-      if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
-        res = primaryRes;
-      }
-    } catch {}
-
-    if (!res) {
-      res = await fetch(`https://109-205-182-17.nip.io${API_BASE}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-    }
+    const res = await fetch(getApiUrl('/api/auth/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'Identifiants incorrects');
@@ -84,26 +69,11 @@ export function useAuth() {
   }, [checkSession]);
 
   const register = useCallback(async (email: string, password: string) => {
-    let res: Response | null = null;
-    try {
-      const primaryRes = await fetch(`${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const ct = primaryRes.headers.get('content-type') || '';
-      if (primaryRes.status !== 405 && primaryRes.status !== 404 && ct.includes('application/json')) {
-        res = primaryRes;
-      }
-    } catch {}
-
-    if (!res) {
-      res = await fetch(`https://109-205-182-17.nip.io${API_BASE}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-    }
+    const res = await fetch(getApiUrl('/api/auth/register'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'Erreur inscription');
