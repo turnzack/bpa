@@ -27,6 +27,7 @@ export async function processInvoiceOCR(fileBuffer: Buffer, mimeType: string) {
                         provider: 'gemini',
                         fullText: geminiResult.fullText,
                         fields: geminiResult.fields,
+                        articles: geminiResult.articles || [],
                         confidence: geminiResult.confidence,
                         bboxes: geminiResult.bboxes,
                         rawResponse: geminiResult.raw,
@@ -126,8 +127,8 @@ async function callGeminiOCR(fileBuffer: Buffer, mimeType: string) {
         contents: [{
             parts: [
                 {
-                    inline_data: {
-                        mime_type: geminiMimeType,
+                    inlineData: {
+                        mimeType: geminiMimeType,
                         data: base64Image
                     }
                 },
