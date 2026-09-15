@@ -344,6 +344,21 @@ Analyse ce texte et génère le JSON d'analyse.`;
                     ? Math.max(15, Math.min(100, Math.round(100 - penalty)))
                     : 50;
 
+                let resumeFinal = `Analyse de ${articles.length} articles : ${articles.filter((a: any) => a.statut === 'vert').length} conformes, ${articles.filter((a: any) => a.statut === 'rouge' || a.statut === 'orange').length} avec surcoûts.`;
+                
+                // Appel optionnel à l'assistant Cloudflare Workers AI gratuit
+                try {
+                    const axios = require('axios');
+                    const cfRes = await axios.post('https://bpa.v0reponses.workers.dev', {
+                        prompt: `Voici un devis TCE analysé : ${articles.slice(0, 10).map((a: any) => `${a.designation}: ${a.prix_devis}€ (réf marché: ${a.prix_ref}€, écart: ${a.ecart_pourcent}%)`).join(', ')}. Donne un avis expert synthétique en 3 phrases maximum pour le client.`
+                    }, { timeout: 7000 });
+                    if (cfRes.data?.response && typeof cfRes.data.response === 'string') {
+                        resumeFinal = cfRes.data.response.trim();
+                    }
+                } catch (e) {
+                    // Utilise le résumé local
+                }
+
                 const completeAnalyse = {
                     score_conformite: scoreConformite,
                     score: scoreConformite,
@@ -351,7 +366,7 @@ Analyse ce texte et génère le JSON d'analyse.`;
                     total_ref: Math.round(totalRef * 100) / 100,
                     articles,
                     anomalies,
-                    resume: `Analyse de ${articles.length} articles : ${articles.filter((a: any) => a.statut === 'vert').length} conformes, ${articles.filter((a: any) => a.statut === 'rouge' || a.statut === 'orange').length} avec surcoûts.`
+                    resume: resumeFinal
                 };
 
                 return res.json({
