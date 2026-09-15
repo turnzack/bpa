@@ -36,7 +36,6 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       const res = await fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 

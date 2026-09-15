@@ -31,9 +31,15 @@ const JOBS_DIR = path.join(DATA_DIR, "jobs");
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 fs.mkdirSync(JOBS_DIR, { recursive: true });
 
-// CORS Middleware - Allow external viewers like 3dviewer.net to access our files
+// CORS Middleware - Dynamic Origin support for Vercel and local dev
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    const origin = req.headers.origin;
+    if (origin) {
+        res.header("Access-Control-Allow-Origin", origin);
+        res.header("Access-Control-Allow-Credentials", "true");
+    } else {
+        res.header("Access-Control-Allow-Origin", "*");
+    }
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     // Fix for Chrome Private Network Access (PNA)
