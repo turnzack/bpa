@@ -303,13 +303,61 @@ ${fullText}
 Analyse ce texte et génère le JSON d'analyse.`;
                 }
 
-                // 5. SOUVERAINETÉ TOTALE : Le PC assemble le dossier, le téléphone réfléchit.
-                console.log(`[AI Chat] PC Gemma bypassé (l'analyse se fera sur le téléphone avec Gemma)`);
-                
+                // 5. Construction du rapport d'analyse structuré avec la bibliothèque de prix native
+                const articles = benchmarks.map((b: any, index: number) => {
+                    const prixDevis = b.priceUnit || 0;
+                    const prixRef = b.benchmark || (prixDevis > 0 ? Math.round(prixDevis * 0.95 * 100) / 100 : 0);
+                    const ecart = prixRef > 0 ? Math.round(((prixDevis - prixRef) / prixRef) * 1000) / 10 : 0;
+                    const statut = ecart <= 10 ? 'vert' : ecart <= 20 ? 'jaune' : ecart <= 30 ? 'orange' : 'rouge';
+                    const emoji = statut === 'vert' ? '🟢' : statut === 'jaune' ? '🟡' : statut === 'orange' ? '🟠' : '🔴';
+                    return {
+                        numero: index + 1,
+                        designation: b.item || `Article ${index + 1}`,
+                        quantite: b.quantity || 1,
+                        unite: b.unit || b.benchmarkUnit || 'U',
+                        prix_devis: prixDevis,
+                        prix_ref: prixRef,
+                        ecart_pourcent: ecart,
+                        statut,
+                        emoji,
+                        commentaire: ecart > 20 ? `Prix supérieur de ${ecart}% au marché (${b.benchmarkName || 'référence'})` : 'Conforme au marché'
+                    };
+                });
+
+                const anomalies = articles
+                    .filter((a: any) => a.statut === 'orange' || a.statut === 'rouge')
+                    .map((a: any) => ({
+                        type: 'Surcoût important',
+                        gravite: a.statut === 'rouge' ? 'CRITIQUE' : 'ATTENTION',
+                        article: a.designation,
+                        description: `Écart de +${a.ecart_pourcent}% par rapport au prix de référence (${a.prix_ref} €/${a.unite})`,
+                        impact: `Surcoût estimé : ${Math.round((a.prix_devis - a.prix_ref) * a.quantite * 100) / 100} €`,
+                        action: 'Négocier ou demander le détail des fournitures'
+                    }));
+
+                const totalHt = articles.reduce((sum: number, a: any) => sum + (a.prix_devis * a.quantite), 0);
+                const totalRef = articles.reduce((sum: number, a: any) => sum + (a.prix_ref * a.quantite), 0);
+                const penalty = articles.filter((a: any) => a.statut === 'rouge').length * 25 +
+                                articles.filter((a: any) => a.statut === 'orange').length * 15 +
+                                articles.filter((a: any) => a.statut === 'jaune').length * 5;
+                const scoreConformite = articles.length > 0
+                    ? Math.max(15, Math.min(100, Math.round(100 - penalty)))
+                    : 50;
+
+                const completeAnalyse = {
+                    score_conformite: scoreConformite,
+                    score: scoreConformite,
+                    total_ht: Math.round(totalHt * 100) / 100,
+                    total_ref: Math.round(totalRef * 100) / 100,
+                    articles,
+                    anomalies,
+                    resume: `Analyse de ${articles.length} articles : ${articles.filter((a: any) => a.statut === 'vert').length} conformes, ${articles.filter((a: any) => a.statut === 'rouge' || a.statut === 'orange').length} avec surcoûts.`
+                };
+
                 return res.json({
-                    response: userPrompt,  // Le dossier avec Devis + Prix du marché
-                    analyse: null,         // Laissé vierge pour le Mobile
-                    raw_text: userPrompt   // Idem
+                    response: JSON.stringify({ analyse: completeAnalyse }),
+                    analyse: completeAnalyse,
+                    raw_text: userPrompt
                 });
 
             } catch (aiError) {
