@@ -309,42 +309,108 @@ function extractTVADetails(taxes: any[]): any {
 }
 
 export function extractArticlesFromText(text: string): any[] {
-    if (!text) return [];
+    if (!text || text.trim().length === 0) return [];
     const articles: any[] = [];
     const lines = text.split('\n');
 
-    for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.length < 5) continue;
+    // Mots-clés à exclure (en-têtes, totaux, métadonnées administratives)
+    const excludePatterns = [
+        /^(total|sous-total|net à payer|acompte|solde|reste à payer|tva|remise|escompte)/i,
+        /^(devis\s*n°?|facture\s*n°?|date|échéance|validité|page\s+\d|bon pour accord|signature)/i,
+        /^(siret|siren|rcs|ape|naf|iban|bic|tva intracommunautaire|conditions de paiement|assurance)/i,
+        /^(client|adresse|téléphone|tel|email|contact|société|sas|sarl|eurl|auto-entrepreneur)/i
+    ];
 
-        // Pattern 1: "Peinture murs et plafonds 45.5 m2 32.00 €" ou "Pose carrelage 25 m² x 45.00"
-        const match = trimmed.match(/(.+?)\s+(\d+(?:[.,]\d+)?)\s*(m2|m²|m|ml|u|unite|unités|forfait|ens|kg|l|h|heures)\s+(?:x\s*)?(\d+(?:[.,]\d+)?)\s*€?/i);
-        if (match) {
-            const designation = match[1].replace(/^[0-9.-]+\s*/, '').trim();
-            const quantity = parseFloat(match[2].replace(',', '.'));
-            const unit = match[3];
-            const priceUnit = parseFloat(match[4].replace(',', '.'));
-            if (designation.length >= 3 && !isNaN(priceUnit) && priceUnit > 0) {
+    // Nettoyage et normalisation d'un prix en chaîne vers un float
+    const parsePrice = (str: string): number => {
+        if (!str) return 0;
+        const cleaned = str.replace(/\s+/g, '').replace('€', '').replace(',', '.');
+        const val = parseFloat(cleaned);
+        return isNaN(val) ? 0 : val;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.length < 5) continue;
+
+        // Vérifier si la ligne est un en-tête ou total
+        if (excludePatterns.some(pat => pat.test(line))) continue;
+
+        // Pattern 1 : Désignation ... Qté ... Unité ... Prix Unitaire ... (Montant Total)
+        // Exemple: "Peinture plafonds 2 couches 45.00 m² 32.50 1462.50"
+        const p1 = line.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(m²|m2|ml|m3|m|u|unite|unités|forfait|fft|ens|ensemble|kg|l|h|heures?|j|jours?|pce|lots?)\s+(\d+[\s\d]*(?:[.,]\d+)?)\s*(?:€|\b)(?:\s+(\d+[\s\d]*(?:[.,]\d+)?))?/i);
+        if (p1) {
+            const designation = p1[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const quantity = parsePrice(p1[2]) || 1;
+            const unit = p1[3].toLowerCase();
+            const priceUnit = parsePrice(p1[4]);
+            const priceTotal = p1[5] ? parsePrice(p1[5]) : Math.round(priceUnit * quantity * 100) / 100;
+
+            if (designation.length >= 3 && priceUnit > 0) {
                 articles.push({
                     designation,
-                    quantity: isNaN(quantity) ? 1 : quantity,
-                    unite: unit || 'U',
+                    quantity,
+                    unite: unit,
                     prix_unitaire_ht: priceUnit,
-                    prix_total_ht: Math.round(priceUnit * (quantity || 1) * 100) / 100
+                    prix_total_ht: priceTotal || Math.round(priceUnit * quantity * 100) / 100
                 });
                 continue;
             }
         }
 
-        // Pattern 2: "Démolition et évacuation ... 450.00 €"
-        const priceMatch = trimmed.match(/(.{10,90}?)\s+([\d\s]{1,7}[.,]\d{2})\s*€?$/i);
-        if (priceMatch) {
-            const designation = priceMatch[1].replace(/^[0-9.-]+\s*/, '').trim();
-            const rawPrice = priceMatch[2].replace(/\s/g, '').replace(',', '.');
-            const price = parseFloat(rawPrice);
+        // Pattern 2 : Désignation ... Unité ... Qté ... Prix Unitaire
+        // Exemple: "Lessivage et préparation des supports m² 45 8,50"
+        const p2 = line.match(/^(.+?)\s+(m²|m2|ml|m3|m|u|forfait|fft|ens|kg|l|h)\s+(\d+(?:[.,]\d+)?)\s+(\d+[\s\d]*(?:[.,]\d+)?)/i);
+        if (p2) {
+            const designation = p2[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const unit = p2[2].toLowerCase();
+            const quantity = parsePrice(p2[3]) || 1;
+            const priceUnit = parsePrice(p2[4]);
+
+            if (designation.length >= 3 && priceUnit > 0) {
+                articles.push({
+                    designation,
+                    quantity,
+                    unite: unit,
+                    prix_unitaire_ht: priceUnit,
+                    prix_total_ht: Math.round(priceUnit * quantity * 100) / 100
+                });
+                continue;
+            }
+        }
+
+        // Pattern 3 : Désignation ... Quantité ... Prix unitaire (sans unité explicite)
+        // Exemple: "Remplacement mitigeur douche 1 120.00 120.00"
+        const p3 = line.match(/^([a-zA-ZÀ-ÿ\s\d'()_/-]{8,80})\s+(\d+(?:[.,]\d+)?)\s+(\d+[\s\d]*(?:[.,]\d{2}))\s*€?/i);
+        if (p3) {
+            const designation = p3[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const quantity = parsePrice(p3[2]) || 1;
+            const priceUnit = parsePrice(p3[3]);
+
+            if (designation.length >= 4 && priceUnit > 0 && !excludePatterns.some(pat => pat.test(designation))) {
+                articles.push({
+                    designation,
+                    quantity,
+                    unite: quantity > 1 ? 'U' : 'forfait',
+                    prix_unitaire_ht: priceUnit,
+                    prix_total_ht: Math.round(priceUnit * quantity * 100) / 100
+                });
+                continue;
+            }
+        }
+
+        // Pattern 4 : Ligne terminée par un montant (prestation au forfait ou montant global de ligne)
+        // Exemple: "Protection des sols et du mobilier 180,00 €" ou "Dépose cloisons endommagées ... 450,00"
+        const p4 = line.match(/^([a-zA-ZÀ-ÿ0-9\s'()_/-]{6,100}?)\s+[:.-]?\s*(\d{1,3}(?:[\s]\d{3})*(?:[.,]\d{2}))\s*€?$/i);
+        if (p4) {
+            const designation = p4[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const price = parsePrice(p4[2]);
             const lower = designation.toLowerCase();
-            if (designation.length >= 4 && !isNaN(price) && price > 0 &&
-                !lower.includes('total') && !lower.includes('tva') && !lower.includes('acompte') && !lower.includes('net à payer')) {
+
+            if (designation.length >= 4 && price > 0 &&
+                !lower.includes('total') && !lower.includes('tva') && !lower.includes('acompte') &&
+                !lower.includes('siret') && !lower.includes('iban') && !lower.includes('bic') &&
+                !lower.includes('assurance') && !lower.includes('net à payer')) {
                 articles.push({
                     designation,
                     quantity: 1,

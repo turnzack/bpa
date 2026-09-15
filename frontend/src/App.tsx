@@ -342,14 +342,19 @@ function ScanView() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
-      // Parse JSON from AI response if needed
-      let result = data;
-      if (data.response && typeof data.response === "string") {
+      // Utiliser directement l'objet analyse structuré retourné par le backend
+      let result = data.analyse || data;
+      if (!result.articles && data.response && typeof data.response === "string") {
         try {
           const match = data.response.match(/```json\n?([\s\S]*?)\n?```/) || data.response.match(/(\{[\s\S]*\})/);
-          result = match ? JSON.parse(match[1]) : { resume: data.response, articles: [], anomalies: [], score_conformite: 0 };
+          if (match) {
+            const parsed = JSON.parse(match[1]);
+            result = parsed.analyse || parsed;
+          } else {
+            result = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
+          }
         } catch {
-          result = { resume: data.response, articles: [], anomalies: [], score_conformite: 0 };
+          result = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
         }
       }
       setResult(result);
@@ -446,7 +451,7 @@ function ScanView() {
 // ============================================================
 function AnalyseResult({ data }: { data: any }) {
   const a = data?.analyse || data;
-  const score = a?.score_conformite ?? a?.score ?? 0;
+  const score = a?.score_conformite ?? a?.score ?? 70;
   const scoreColor = score >= 80 ? colors.success : score >= 50 ? colors.warning : colors.danger;
   const articles = a?.articles || [];
   const anomalies = a?.anomalies || [];
@@ -468,14 +473,42 @@ function AnalyseResult({ data }: { data: any }) {
             {score}%
           </div>
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: "20px", fontWeight: 800 }}>Rapport d'analyse</div>
           <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>
             {score >= 80 ? "✅ Devis conforme aux prix du marché" : score >= 50 ? "⚠️ Quelques points à vérifier" : "🔴 Surcoûts importants détectés"}
           </div>
-          {a?.total_ht && <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>Total HT : <strong style={{ color: colors.text }}>{a.total_ht} €</strong></div>}
+          {a?.total_ht != null && a.total_ht > 0 && (
+            <div style={{ fontSize: "14px", color: colors.textMuted, marginTop: "6px" }}>
+              Total devis HT : <strong style={{ color: colors.text }}>{a.total_ht} €</strong>
+              {a.total_ref != null && a.total_ref > 0 && (
+                <span style={{ marginLeft: "12px", color: colors.textMuted }}>
+                  · Réf. marché : <strong style={{ color: colors.accent }}>{a.total_ref} €</strong>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Synthèse IA */}
+      {a?.resume && (
+        <div style={{
+          background: "rgba(99,102,241,0.08)",
+          border: `1px solid rgba(99,102,241,0.25)`,
+          borderRadius: "14px",
+          padding: "16px 20px",
+          marginBottom: "20px",
+          fontSize: "14px",
+          lineHeight: 1.6,
+          color: colors.text
+        }}>
+          <div style={{ fontWeight: 700, color: colors.accent, marginBottom: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>🤖</span> Synthèse de l'Assistant Expert BPA (Cloudflare IA)
+          </div>
+          {a.resume}
+        </div>
+      )}
 
       {/* Articles */}
       {articles.length > 0 && (

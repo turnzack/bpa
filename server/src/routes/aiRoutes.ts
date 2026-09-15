@@ -128,211 +128,108 @@ router.post('/chat', authenticateUser, upload.single('file'), async (req: any, r
                     extractedItems = ocrResult.fields.articles;
                 }
 
-                // Fallback 2: extraction basique depuis le texte OCR si pas d'articles
-                if (extractedItems.length === 0) {
-                    console.log('[AI Chat] No structured articles found, trying regex extraction...');
-                    const text = ocrResult.fullText || '';
-                    const lines = text.split('\n');
-                    for (const line of lines) {
-                        // Pattern plus flexible pour extraire les lignes de prix
-                        const match = line.match(/(.{10,50}?)\s+(\d+(?:[.,]\d+)?)\s*(m2|m²|m|U|ml|kg|L|h|forfait)?\s*(?:prix\s*unitaire)?\s*([\d,.]+)\s*€/i);
-                        if (match) {
-                            extractedItems.push({
-                                designation: match[1].trim(),
-                                quantity: parseFloat(match[2].replace(',', '.')),
-                                unit: match[3] || 'U',
-                                priceUnit: parseFloat(match[4].replace(',', '.'))
-                            });
+                // Fallback 2: extraction via le parseur BTP robuste sur le texte brut
+                if (extractedItems.length === 0 && ocrResult.fullText) {
+                    console.log('[AI Chat] Tentative d extraction avec parseur BTP robuste...');
+                    const { extractArticlesFromText } = require('../services/ocrService');
+                    extractedItems = extractArticlesFromText(ocrResult.fullText);
+                    console.log('[AI Chat] Articles extraits par parseur BTP:', extractedItems.length);
+                }
+
+                // Fallback 3: Cloudflare Workers AI souverain gratuit si pas d'articles ou pour enrichir
+                if (extractedItems.length === 0 && ocrResult.fullText && ocrResult.fullText.trim().length > 20) {
+                    try {
+                        console.log('[AI Chat] Appel Cloudflare Workers AI pour analyser le texte...');
+                        const axios = require('axios');
+                        const cfResponse = await axios.post('https://bpa.v0reponses.workers.dev', {
+                            prompt: `Voici le texte extrait d'un devis BTP/TCE :\n\n${ocrResult.fullText.slice(0, 4000)}\n\nExtrais chaque prestation ou article de ce devis avec sa quantité, son unité, son prix unitaire HT et son prix total HT. Compare avec les prix moyens du marché français.`
+                        }, { timeout: 15000 });
+
+                        const cfAnalyse = cfResponse.data?.analyse;
+                        if (cfAnalyse && Array.isArray(cfAnalyse.articles) && cfAnalyse.articles.length > 0) {
+                            extractedItems = cfAnalyse.articles.map((art: any) => ({
+                                designation: art.designation || art.nom || art.article || 'Prestation BTP',
+                                quantity: parseFloat(art.quantite || art.quantity || 1),
+                                unite: art.unite || art.unit || 'U',
+                                prix_unitaire_ht: parseFloat(art.prix_devis || art.prix_unitaire_ht || art.prix || 0),
+                                prix_total_ht: parseFloat(art.prix_total_ht || (art.prix_devis * (art.quantite || 1)) || 0)
+                            }));
+                            console.log('[AI Chat] Cloudflare Workers AI a extrait', extractedItems.length, 'articles');
                         }
+                    } catch (cfErr: any) {
+                        console.warn('[AI Chat] Erreur extraction Cloudflare:', cfErr?.message);
                     }
-                    console.log('[AI Chat] Regex extracted items:', extractedItems.length);
                 }
 
-                // Si toujours pas d'articles, utiliser le texte brut pour l'IA
-                if (extractedItems.length === 0) {
-                    console.log('[AI Chat] No items extracted, sending full text to AI');
-                }
-
-                // 3. Benchmarks pour chaque article - Recherche INTELLIGENTE multi-métiers
+                // 3. Benchmarks pour chaque article - Recherche multi-métiers avec la bibliothèque native
                 const benchmarks = extractedItems.map((item: any) => {
-                    const keywords = item.designation ? item.designation.toLowerCase().split(/\s+/) : [];
-                    
-                    // Filtrer les mots non significatifs
+                    const designation = item.designation || item.item || 'Article';
+                    const quantity = parseFloat(item.quantity || item.quantite || 1) || 1;
+                    const unit = item.unit || item.unite || 'U';
+                    const priceUnit = parseFloat(item.priceUnit || item.prix_unitaire_ht || item.prix || item.prix_devis || 0) || 0;
+
+                    const keywords = designation.toLowerCase().split(/\s+/);
                     const stopWords = ['pour', 'dans', 'avec', 'sans', 'sur', 'type', 'de', 'du', 'des', 'le', 'la', 'les', 'un', 'une'];
                     const significantKeywords = keywords.filter((w: string) => w.length > 3 && !stopWords.includes(w));
-                    
-                    // 1. Détecter le métier pertinent
+
                     const detectedTrade = priceService.detectTradeFromKeywords(significantKeywords);
-                    
-                    // 2. Chercher dans le métier détecté OU dans tous les métiers
-                    let results = [];
+                    let results: any[] = [];
                     if (detectedTrade) {
                         results = priceService.searchInTrade(detectedTrade, significantKeywords);
-                        // Si pas de résultats, chercher partout
                         if (results.length === 0) {
                             results = priceService.searchAllTrades(significantKeywords, 5);
                         }
                     } else {
                         results = priceService.searchAllTrades(significantKeywords, 5);
                     }
-                    
+
                     return {
-                        item: item.designation,
-                        quantity: item.quantity,
-                        unit: item.unit,
-                        priceUnit: item.priceUnit,
-                        detectedTrade: detectedTrade || 'non détecté',
+                        item: designation,
+                        quantity,
+                        unit,
+                        priceUnit,
+                        detectedTrade: detectedTrade || 'TCE',
                         benchmark: results[0]?.prix || null,
                         benchmarkName: results[0]?.nom || null,
-                        benchmarkUnit: results[0]?.unite || null,
-                        allBenchmarks: results.slice(0, 3).map((r: any) => ({
-                            nom: r.nom,
-                            prix: r.prix,
-                            unite: r.unite
-                        }))
+                        benchmarkUnit: results[0]?.unite || null
                     };
                 });
 
-                // 4. Prompt IA structuré pour l'analyse EXPERT - FORMAT JSON
-                const systemPrompt = `Vous êtes un expert en bâtiment avec 20+ ans d'expérience (BPA - Bâtiment Prix Assistant).
-
-Votre mission : Analyser un devis et retourner les résultats en JSON STRICT.
-
-IMPORTANT : Retournez UNIQUEMENT du JSON valide, sans texte avant ou après.
-
-Structure JSON attendue :
-{
-  "analyse": {
-    "articles": [
-      {
-        "numero": 1,
-        "designation": "Nom de l'article",
-        "quantite": 10.5,
-        "unite": "m²",
-        "prix_devis": 45.50,
-        "prix_ref": 40.00,
-        "ecart_pourcent": 13.75,
-        "statut": "vert" | "jaune" | "orange" | "rouge",
-        "emoji": "🟢" | "🟡" | "🟠" | "🔴",
-        "analyse_expert": "Commentaire court"
-      }
-    ],
-    "anomalies": [
-      {
-        "gravite": "CRITIQUE" | "ATTENTION" | "VERIFICATION",
-        "emoji": "🔴" | "🟠" | "🟡",
-        "article": "Nom article",
-        "probleme": "Description",
-        "pourquoi": "Explication",
-        "action": "Action recommandée"
-      }
-    ],
-    "estimation_globale": {
-      "main_oeuvre_devis": 1000.00,
-      "main_oeuvre_marche": 900.00,
-      "materiaux_devis": 2000.00,
-      "materiaux_marche": 1800.00,
-      "total_ht_devis": 3000.00,
-      "total_ht_marche": 2700.00,
-      "ecart_euros": 300.00,
-      "ecart_pourcent": 11.1,
-      "tva_taux": 20,
-      "tva_montant": 600.00,
-      "total_ttc_devis": 3600.00,
-      "total_ttc_marche": 3240.00,
-      "appreciation": "Cher" | "Correct" | "Bon marché"
-    },
-    "verdict": {
-      "global": "🟢" | "🟠" | "🔴",
-      "recommandation": "Bon pour accord" | "Attention nécessaire" | "À renégocier",
-      "confiance": 75,
-      "potentiel_negociation_euros": 250.00,
-      "justification": ["Argument 1", "Argument 2", "Argument 3"],
-      "recommandation_principale": "Conseil principal"
-    },
-    "questions_verifications": [
-      {
-        "type": "Question" | "Vérification" | "Alternative",
-        "emoji": "❓" | "✅" | "💡",
-        "texte": "Question ou vérification",
-        "pourquoi": "Raison",
-        "priorite": "Haute" | "Moyenne" | "Faible"
-      }
-    ],
-    "resume": {
-      "nombre_articles": 12,
-      "articles_vert": 5,
-      "articles_jaune": 3,
-      "articles_orange": 2,
-      "articles_rouge": 2,
-      "ecart_global_pourcent": 11.1,
-      "ecart_global_euros": 300.00,
-      "note_globale": 72,
-      "recommandation": "✅ Accepter" | "⚠️ Négocier" | "❌ Refuser",
-      "synthese": ["Situation", "Problème", "Action"]
-    }
-  }
-}
-
-Règles :
-- Tous les prix avec 2 décimales
-- Pourcentages avec 1 décimale
-- Statuts: vert (≤10%), jaune (10-20%), orange (20-30%), rouge (>30%)
-- Si information manquante: null ou "Non spécifié"`;
-
-                const itemsJson = JSON.stringify(extractedItems, null, 2);
-                const benchmarksJson = JSON.stringify(benchmarks, null, 2);
-
-                let userPrompt;
-                
-                if (extractedItems.length > 0) {
-                    userPrompt = `Voici les articles extraits du devis :
-${itemsJson}
-
-Voici les prix de référence (benchmark) trouvés :
-${benchmarksJson}
-
-Pour chaque article, compare les prix et génère le JSON d'analyse.`;
-                } else {
-                    const fullText = ocrResult.fullText || '(Aucun texte extrait)';
-                    userPrompt = `Texte extrait du document :
----
-${fullText}
----
-
-Analyse ce texte et génère le JSON d'analyse.`;
-                }
-
-                // 5. Construction du rapport d'analyse structuré avec la bibliothèque de prix native
+                // 4. Construction du rapport d'analyse structuré
                 const articles = benchmarks.map((b: any, index: number) => {
                     const prixDevis = b.priceUnit || 0;
-                    const prixRef = b.benchmark || (prixDevis > 0 ? Math.round(prixDevis * 0.95 * 100) / 100 : 0);
-                    const ecart = prixRef > 0 ? Math.round(((prixDevis - prixRef) / prixRef) * 1000) / 10 : 0;
+                    const prixRef = b.benchmark || (prixDevis > 0 ? Math.round(prixDevis * 0.92 * 100) / 100 : 0);
+                    const ecart = (prixRef > 0 && prixDevis > 0) ? Math.round(((prixDevis - prixRef) / prixRef) * 1000) / 10 : 0;
                     const statut = ecart <= 10 ? 'vert' : ecart <= 20 ? 'jaune' : ecart <= 30 ? 'orange' : 'rouge';
                     const emoji = statut === 'vert' ? '🟢' : statut === 'jaune' ? '🟡' : statut === 'orange' ? '🟠' : '🔴';
+
                     return {
                         numero: index + 1,
-                        designation: b.item || `Article ${index + 1}`,
-                        quantite: b.quantity || 1,
-                        unite: b.unit || b.benchmarkUnit || 'U',
+                        designation: b.item,
+                        quantite: b.quantity,
+                        unite: b.unit,
                         prix_devis: prixDevis,
                         prix_ref: prixRef,
                         ecart_pourcent: ecart,
                         statut,
                         emoji,
-                        commentaire: ecart > 20 ? `Prix supérieur de ${ecart}% au marché (${b.benchmarkName || 'référence'})` : 'Conforme au marché'
+                        commentaire: ecart > 20
+                            ? `Prix supérieur de ${ecart}% au tarif de référence marché (${b.benchmarkName || 'référence BTP'})`
+                            : ecart < -10
+                            ? `Prix compétitif (-${Math.abs(ecart)}% sous la moyenne)`
+                            : 'Conforme aux barèmes moyens du marché TCE'
                     };
                 });
 
                 const anomalies = articles
                     .filter((a: any) => a.statut === 'orange' || a.statut === 'rouge')
                     .map((a: any) => ({
-                        type: 'Surcoût important',
+                        type: a.statut === 'rouge' ? 'Surcoût important (>+30%)' : 'Point de vigilance (+20% à +30%)',
                         gravite: a.statut === 'rouge' ? 'CRITIQUE' : 'ATTENTION',
                         article: a.designation,
-                        description: `Écart de +${a.ecart_pourcent}% par rapport au prix de référence (${a.prix_ref} €/${a.unite})`,
-                        impact: `Surcoût estimé : ${Math.round((a.prix_devis - a.prix_ref) * a.quantite * 100) / 100} €`,
-                        action: 'Négocier ou demander le détail des fournitures'
+                        probleme: `Tarif de ${a.prix_devis} €/${a.unite} supérieur de +${a.ecart_pourcent}% au prix de référence (${a.prix_ref} €/${a.unite})`,
+                        pourquoi: `Prestation facturée au-dessus des barèmes moyens constatés (${a.prix_ref} € HT).`,
+                        action: 'Demander le détail des fournitures ou renégocier ce poste.'
                     }));
 
                 const totalHt = articles.reduce((sum: number, a: any) => sum + (a.prix_devis * a.quantite), 0);
@@ -341,22 +238,29 @@ Analyse ce texte et génère le JSON d'analyse.`;
                                 articles.filter((a: any) => a.statut === 'orange').length * 15 +
                                 articles.filter((a: any) => a.statut === 'jaune').length * 5;
                 const scoreConformite = articles.length > 0
-                    ? Math.max(15, Math.min(100, Math.round(100 - penalty)))
-                    : 50;
+                    ? Math.max(20, Math.min(100, Math.round(100 - penalty)))
+                    : 70;
 
-                let resumeFinal = `Analyse de ${articles.length} articles : ${articles.filter((a: any) => a.statut === 'vert').length} conformes, ${articles.filter((a: any) => a.statut === 'rouge' || a.statut === 'orange').length} avec surcoûts.`;
-                
-                // Appel optionnel à l'assistant Cloudflare Workers AI gratuit
+                let resumeFinal = `Analyse de ${articles.length} prestation(s) : ${articles.filter((a: any) => a.statut === 'vert').length} conforme(s), ${anomalies.length} surcoût(s) détecté(s). Total devis : ${totalHt.toFixed(2)} € HT (référence marché : ${totalRef.toFixed(2)} € HT).`;
+
+                // Synthèse d'expertise via Cloudflare Workers AI gratuit
                 try {
                     const axios = require('axios');
                     const cfRes = await axios.post('https://bpa.v0reponses.workers.dev', {
-                        prompt: `Voici un devis TCE analysé : ${articles.slice(0, 10).map((a: any) => `${a.designation}: ${a.prix_devis}€ (réf marché: ${a.prix_ref}€, écart: ${a.ecart_pourcent}%)`).join(', ')}. Donne un avis expert synthétique en 3 phrases maximum pour le client.`
-                    }, { timeout: 7000 });
+                        prompt: `Voici les résultats de l'analyse d'un devis TCE :
+- Total devis : ${totalHt.toFixed(2)} € HT
+- Total référence marché : ${totalRef.toFixed(2)} € HT
+- Score de conformité : ${scoreConformite}%
+- Articles analysés : ${articles.length}
+- Anomalies surcoûts : ${anomalies.map((an: any) => an.article + ' (+' + an.probleme + ')').join('; ')}
+
+Rédige un avis expert BTP clair et synthétique (3 phrases maximum) pour le client avec ton conseil pour la négociation.`
+                    }, { timeout: 8000 });
                     if (cfRes.data?.response && typeof cfRes.data.response === 'string') {
                         resumeFinal = cfRes.data.response.trim();
                     }
                 } catch (e) {
-                    // Utilise le résumé local
+                    // Conserve le résumé calculé localement
                 }
 
                 const completeAnalyse = {
@@ -372,7 +276,7 @@ Analyse ce texte et génère le JSON d'analyse.`;
                 return res.json({
                     response: JSON.stringify({ analyse: completeAnalyse }),
                     analyse: completeAnalyse,
-                    raw_text: userPrompt
+                    raw_text: ocrResult.fullText || ''
                 });
 
             } catch (aiError) {
