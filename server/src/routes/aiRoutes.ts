@@ -32,7 +32,11 @@ declare global {
     }
 }
 
-// Middleware to authenticate user
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'kirov5-fallback-secret-key-32chars!';
+
+// Middleware to authenticate user (supports both Supabase Auth and Neon JWT)
 const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const authHeader = req.headers.authorization || '';
@@ -41,15 +45,39 @@ const authenticateUser = async (req: express.Request, res: express.Response, nex
             return res.status(401).json({ error: 'Missing authorization header' });
         }
 
-        const jwt = authHeader.replace('Bearer ', '').trim();
-        const { data: { user }, error: authError } = await masterSupabase.auth.getUser(jwt);
+        const token = authHeader.replace('Bearer ', '').trim();
 
-        if (authError || !user) {
-            return res.status(401).json({ error: 'Invalid token' });
+        // 1. Tenter via Supabase Auth
+        try {
+            const { data: { user }, error: authError } = await masterSupabase.auth.getUser(token);
+            if (user && !authError) {
+                req.user = user;
+                return next();
+            }
+        } catch (e) {
+            // Continuer vers la validation locale
         }
 
-        req.user = user;
-        next();
+        // 2. Tenter via JWT local (Neon / Kirov5)
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as any;
+            if (decoded) {
+                req.user = {
+                    id: decoded.userId || decoded.id,
+                    email: decoded.email,
+                    role: decoded.role,
+                    app_metadata: {},
+                    user_metadata: {},
+                    aud: 'authenticated',
+                    created_at: new Date().toISOString()
+                } as any;
+                return next();
+            }
+        } catch (e) {
+            // Échec des deux
+        }
+
+        return res.status(401).json({ error: 'Invalid token' });
     } catch (error) {
         console.error('Auth middleware error:', error);
         res.status(500).json({ error: 'Authentication failed' });
