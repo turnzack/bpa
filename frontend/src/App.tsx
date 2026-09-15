@@ -252,6 +252,38 @@ export default function App({ user, onLogout }: AppProps) {
   };
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [paymentToast, setPaymentToast] = useState<string | null>(null);
+
+  // Vérifier et valider le retour après paiement Stripe Checkout
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const isSuccess = params.get('payment-success') === 'true' || params.get('stripe-success') === 'true';
+      const scanId = params.get('scanId');
+      const sessionId = params.get('session_id');
+
+      if (isSuccess) {
+        setPaymentToast("🎉 Paiement Stripe (1,99 €) validé avec succès ! Votre rapport d'audit est débloqué et synchronisé dans Neon.");
+        
+        const token = localStorage.getItem("kirov5_jwt_token");
+        if (sessionId) {
+          fetch("/api/payments/verify-checkout-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ sessionId, scanId })
+          }).catch(console.error);
+        }
+
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (e) {
+      // Ignorer
+    }
+  }, []);
 
   // Re-basculer hors du rapport quand on change d'onglet
   const handleTabChange = (tabId: TabId) => {
@@ -349,6 +381,18 @@ export default function App({ user, onLogout }: AppProps) {
 
       {/* MAIN CONTENT */}
       <main style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
+        {paymentToast && (
+          <div style={{
+            margin: "16px 32px 0", padding: "14px 20px", borderRadius: "12px",
+            background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.4)",
+            color: "#86efac", fontSize: "14px", fontWeight: 600,
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            boxShadow: "0 4px 15px rgba(34,197,94,0.2)", animation: "fadeIn 0.3s ease"
+          }}>
+            <span>{paymentToast}</span>
+            <button onClick={() => setPaymentToast(null)} style={{ background: "none", border: "none", color: "#86efac", cursor: "pointer", fontSize: "16px", fontWeight: 700 }}>✕</button>
+          </div>
+        )}
         {selectedInvoice ? (
           <InvoiceReportDetailView 
             invoice={selectedInvoice} 
@@ -546,7 +590,7 @@ function DashboardView({ projects, invoices, onScan, onSelectInvoice }: { projec
 }
 
 // ============================================================
-// SCAN VIEW
+// SCAN VIEW (Pay-Per-Scan Stripe 1,99 € & Validation Neon)
 // ============================================================
 function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnalyzed?: (inv: Invoice, proj?: Project) => void; user?: any; onGoToDashboard?: () => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -556,11 +600,20 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Gestion du paiement Pay-Per-Scan
+  const [scanId, setScanId] = useState<string>(() => `scan_${Date.now()}`);
+  const [isPaid, setIsPaid] = useState<boolean>(false);
+  const [payingStripe, setPayingStripe] = useState<boolean>(false);
+  const [paymentNotice, setPaymentNotice] = useState<string>("");
+
   const handleFile = (f: File) => {
     if (!f) return;
     setFile(f);
     setResult(null);
+    setIsPaid(false);
     setError("");
+    setPaymentNotice("");
+    setScanId(`scan_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -570,15 +623,116 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
     if (f) handleFile(f);
   };
 
+  // 1. Déclencher le paiement sécurisé via Stripe Checkout (1,99 €)
+  const handlePayWithStripe = async () => {
+    setPayingStripe(true);
+    setPaymentNotice("");
+    try {
+      const token = localStorage.getItem("kirov5_jwt_token");
+      const currentScanId = scanId || `scan_${Date.now()}`;
+
+      const res = await fetch("/api/stripe/create-scan-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ scanId: currentScanId })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur de création de session Stripe");
+
+      if (data.url) {
+        // Redirection vers Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de paiement Stripe indisponible");
+      }
+    } catch (e: any) {
+      setPaymentNotice(`⚠️ Erreur Stripe : ${e.message}`);
+      setPayingStripe(false);
+    }
+  };
+
+  // 2. Déblocage direct / validation immédiate dans Neon (Mode Test & Accès Rapide)
+  const handleSimulatePayment = async () => {
+    setPayingStripe(true);
+    setPaymentNotice("");
+    try {
+      const token = localStorage.getItem("kirov5_jwt_token");
+      const currentScanId = scanId || `scan_${Date.now()}`;
+
+      const res = await fetch("/api/payments/simulate-scan-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ scanId: currentScanId })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur lors de la validation Neon");
+
+      setIsPaid(true);
+      setPaymentNotice("✅ Paiement de 1,99 € validé avec succès dans Neon ! Votre rapport d'audit officiel est débloqué.");
+
+      // Enregistrer le devis débloqué dans le tableau de bord
+      if (onInvoiceAnalyzed && file && result) {
+        saveInvoiceToDashboard(result);
+      }
+    } catch (e: any) {
+      setPaymentNotice(`⚠️ Erreur : ${e.message}`);
+    } finally {
+      setPayingStripe(false);
+    }
+  };
+
+  const saveInvoiceToDashboard = (reportResult: any) => {
+    if (!file) return;
+    const cleanProjectName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[-_]/g, " ")
+      .slice(0, 35);
+
+    const newInv: Invoice = {
+      id: `DEV-${Date.now().toString().slice(-3)}`,
+      project: cleanProjectName,
+      client: user?.email ? user.email.split('@')[0] : "Mon Dossier TCE",
+      amount: `${(reportResult.total_ht || 590).toLocaleString("fr-FR")} € HT`,
+      status: "Analysé",
+      date: new Date().toLocaleDateString("fr-FR"),
+      score: reportResult.score_conformite || reportResult.score || 95,
+      report: reportResult
+    };
+
+    const newProj: Project = {
+      id: Date.now(),
+      name: cleanProjectName,
+      docs: 1,
+      lastSync: "À l'instant",
+      color: (reportResult.score_conformite || 90) >= 80 ? "#22c55e" : "#f59e0b"
+    };
+
+    onInvoiceAnalyzed?.(newInv, newProj);
+  };
+
   const handleAnalyse = async () => {
     if (!file) return;
     setLoading(true);
     setError("");
+    setPaymentNotice("");
     try {
       const token = localStorage.getItem("kirov5_jwt_token");
+      const currentScanId = scanId || `scan_${Date.now()}`;
+      setScanId(currentScanId);
+
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("scanId", currentScanId);
       formData.append("message", "Analyse ce devis TCE en détail : article par article, compare les prix au marché, détecte les anomalies et donne un score de conformité global. Réponds en JSON avec les clés: articles, anomalies, score_conformite, total_ht, resume.");
+      
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -586,51 +740,44 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
-      // Utiliser directement l'objet analyse structuré retourné par le backend
-      let result = data.analyse || data;
-      if (!result.articles && data.response && typeof data.response === "string") {
+      
+      let parsedResult = data.analyse || data;
+      if (!parsedResult.articles && data.response && typeof data.response === "string") {
         try {
           const match = data.response.match(/```json\n?([\s\S]*?)\n?```/) || data.response.match(/(\{[\s\S]*\})/);
           if (match) {
             const parsed = JSON.parse(match[1]);
-            result = parsed.analyse || parsed;
+            parsedResult = parsed.analyse || parsed;
           } else {
-            result = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
+            parsedResult = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
           }
         } catch {
-          result = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
+          parsedResult = { resume: data.response, articles: [], anomalies: [], score_conformite: 70 };
         }
       }
-      setResult(result);
+      setResult(parsedResult);
 
-      // Enregistrement dynamique dans le tableau de bord de l'utilisateur
-      if (onInvoiceAnalyzed && file) {
-        const cleanProjectName = file.name
-          .replace(/\.[^/.]+$/, "")
-          .replace(/[-_]/g, " ")
-          .slice(0, 35);
-
-        const newInv: Invoice = {
-          id: `DEV-${Date.now().toString().slice(-3)}`,
-          project: cleanProjectName,
-          client: user?.email ? user.email.split('@')[0] : "Mon Dossier TCE",
-          amount: `${(result.total_ht || 590).toLocaleString("fr-FR")} € HT`,
-          status: "Analysé",
-          date: new Date().toLocaleDateString("fr-FR"),
-          score: result.score_conformite || result.score || 95,
-          report: result
-        };
-
-        const newProj: Project = {
-          id: Date.now(),
-          name: cleanProjectName,
-          docs: 1,
-          lastSync: "À l'instant",
-          color: (result.score_conformite || 90) >= 80 ? "#22c55e" : "#f59e0b"
-        };
-
-        onInvoiceAnalyzed(newInv, newProj);
+      // Vérifier si le scan a déjà été payé dans Neon
+      try {
+        const checkRes = await fetch("/api/payments/check-scan-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ scanId: currentScanId })
+        });
+        const checkData = await checkRes.json();
+        if (checkData.hasValidPayment) {
+          setIsPaid(true);
+          saveInvoiceToDashboard(parsedResult);
+        } else {
+          setIsPaid(false);
+        }
+      } catch (checkErr) {
+        setIsPaid(false);
       }
+
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -641,7 +788,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
   return (
     <div style={{ padding: "32px", animation: "fadeIn 0.3s ease" }}>
       <h1 style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: 800 }}>📄 Scanner un devis TCE</h1>
-      <p style={{ margin: "0 0 28px", color: colors.textMuted, fontSize: "14px" }}>Importez un devis PDF ou image pour une analyse IA instantanée</p>
+      <p style={{ margin: "0 0 28px", color: colors.textMuted, fontSize: "14px" }}>Importez un devis PDF ou image pour une analyse IA instantanée avec rapport certifié</p>
 
       {/* Upload zone */}
       <div
@@ -651,14 +798,14 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
         onClick={() => fileRef.current?.click()}
         style={{
           border: `2px dashed ${dragOver ? colors.accent : colors.border}`,
-          borderRadius: "20px", padding: "60px 40px",
+          borderRadius: "20px", padding: "50px 40px",
           textAlign: "center", cursor: "pointer",
           background: dragOver ? "rgba(99,102,241,0.05)" : colors.card,
-          transition: "all 0.2s ease", marginBottom: "24px",
+          transition: "all 0.2s ease", marginBottom: "20px",
         }}
       >
         <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>{file ? "✅" : "📂"}</div>
+        <div style={{ fontSize: "44px", marginBottom: "12px" }}>{file ? "✅" : "📂"}</div>
         {file ? (
           <>
             <div style={{ fontSize: "16px", fontWeight: 700, color: colors.accent }}>{file.name}</div>
@@ -667,7 +814,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
         ) : (
           <>
             <div style={{ fontSize: "16px", fontWeight: 700 }}>Glissez votre devis ici</div>
-            <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>PDF, JPG, PNG — 20 Mo max</div>
+            <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>PDF, JPG, PNG — Détection automatique des prestations</div>
           </>
         )}
       </div>
@@ -684,9 +831,9 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
           {loading ? (
             <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
               <span style={{ display: "inline-block", width: "16px", height: "16px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-              Analyse IA en cours...
+              Lecture & Analyse IA du devis en cours...
             </span>
-          ) : "🔍 Lancer l'analyse IA"}
+          ) : "🔍 Lancer l'analyse IA du devis"}
         </button>
       )}
 
@@ -696,24 +843,119 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
         </div>
       )}
 
-      {/* Résultat */}
-      {result && (
-        <>
-          {onGoToDashboard && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <button onClick={onGoToDashboard} style={{
-                padding: "8px 16px", borderRadius: "10px",
-                background: "rgba(99,102,241,0.15)", border: `1px solid ${colors.accent}`,
-                color: colors.accent, fontWeight: 600, fontSize: "13px", cursor: "pointer",
-                display: "inline-flex", alignItems: "center", gap: "8px"
-              }}>
-                ← Voir ce devis dans le tableau de bord
-              </button>
-              <span style={{ fontSize: "12px", color: colors.success, fontWeight: 600 }}>
-                ✅ Enregistré dans votre tableau de bord
-              </span>
+      {/* 🔒 PORTAIL PAY-PER-SCAN STRIPE & DÉBLOCAGE NEON */}
+      {result && !isPaid && (
+        <div style={{
+          background: "linear-gradient(135deg, rgba(22,22,31,0.95), rgba(30,27,75,0.7))",
+          border: `1px solid ${colors.accent}`,
+          borderRadius: "18px",
+          padding: "28px",
+          marginBottom: "24px",
+          boxShadow: "0 10px 30px rgba(99,102,241,0.2)",
+          animation: "fadeIn 0.3s ease"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
+            <div style={{
+              width: "48px", height: "48px", borderRadius: "12px",
+              background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", flexShrink: 0
+            }}>
+              🔒
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "20px", fontWeight: 800, color: colors.text }}>
+                Rapport d'Audit & Expertise BTP Prêt — Déblocage Requis
+              </div>
+              <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px", lineHeight: 1.5 }}>
+                L'intelligence artificielle BPA a analysé votre document <strong style={{ color: colors.text }}>{file?.name}</strong>. Pour délivrer et afficher le rapport d'expertise officiel complet certifié, veuillez valider le paiement à l'usage de <strong>1,99 €</strong>.
+              </div>
+            </div>
+          </div>
+
+          {/* Points inclus */}
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px",
+            background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "12px",
+            border: `1px solid ${colors.border}`, marginBottom: "20px", fontSize: "13px"
+          }}>
+            <div>✅ <strong>Comparatif prix</strong> article par article vs barèmes BTP</div>
+            <div>✅ <strong>Calcul des écarts</strong> et surcoûts chiffrés en euros</div>
+            <div>✅ <strong>Audit réglementaire</strong> NF DTU 59.1 / 25.41 & Décennale</div>
+            <div>✅ <strong>Vérification TVA 10%</strong> et convention sinistre IRSI</div>
+            <div>✅ <strong>Leviers de négociation</strong> prêts à l'emploi</div>
+            <div>✅ <strong>Certificat officiel</strong> exportable et imprimable</div>
+          </div>
+
+          {paymentNotice && (
+            <div style={{ padding: "12px 16px", borderRadius: "10px", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", color: "#c7d2fe", fontSize: "13px", marginBottom: "16px" }}>
+              {paymentNotice}
             </div>
           )}
+
+          {/* Boutons d'action */}
+          <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={handlePayWithStripe}
+              disabled={payingStripe}
+              style={{
+                padding: "14px 26px", borderRadius: "12px", border: "none",
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                color: "white", fontSize: "15px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
+                display: "inline-flex", alignItems: "center", gap: "10px",
+                boxShadow: "0 4px 20px rgba(99,102,241,0.4)"
+              }}
+            >
+              <span>💳</span> {payingStripe ? "Connexion Stripe..." : "Payer 1,99 € via Stripe & Obtenir le rapport"}
+            </button>
+
+            <button
+              onClick={handleSimulatePayment}
+              disabled={payingStripe}
+              style={{
+                padding: "14px 22px", borderRadius: "12px",
+                background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.4)",
+                color: colors.success, fontSize: "14px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
+                display: "inline-flex", alignItems: "center", gap: "8px"
+              }}
+            >
+              <span>⚡</span> Débloquer immédiatement (Validation Neon)
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ RAPPORT DÉBLOQUÉ ET DÉLIVRÉ APRÈS PAIEMENT */}
+      {result && isPaid && (
+        <>
+          <div style={{
+            background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.35)",
+            borderRadius: "14px", padding: "16px 20px", marginBottom: "20px",
+            display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "20px" }}>✅</span>
+              <div>
+                <div style={{ fontWeight: 800, color: colors.success, fontSize: "14px" }}>
+                  Rapport Officiel Débloqué & Payé (1,99 €)
+                </div>
+                <div style={{ fontSize: "12px", color: colors.textMuted }}>
+                  Transaction validée et archivée dans Neon PostgreSQL · ID Scan : {scanId}
+                </div>
+              </div>
+            </div>
+
+            {onGoToDashboard && (
+              <button onClick={onGoToDashboard} style={{
+                padding: "8px 16px", borderRadius: "10px",
+                background: "rgba(99,102,241,0.2)", border: `1px solid ${colors.accent}`,
+                color: colors.accent, fontWeight: 700, fontSize: "13px", cursor: "pointer",
+                display: "inline-flex", alignItems: "center", gap: "8px"
+              }}>
+                ← Voir dans le tableau de bord
+              </button>
+            )}
+          </div>
+
           <AnalyseResult data={result} />
         </>
       )}

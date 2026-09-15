@@ -61,27 +61,31 @@ router.post('/create-scan-payment', authenticateUser, async (req: AuthRequest, r
     const { scanId } = req.body;
     const user = req.user;
 
-    if (!user?.email || !user?.id || !scanId) {
-      return res.status(400).json({ error: 'scanId requis et utilisateur authentifié' });
+    if (!scanId) {
+      return res.status(400).json({ error: 'scanId requis' });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app';
-    const successUrl = `${frontendUrl}/scan/${scanId}/success`;
-    const cancelUrl = `${frontendUrl}/scan/${scanId}/cancel`;
+    const rawOrigin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer as string).origin : '') || process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app';
+    const origin = rawOrigin.replace(/\/$/, '');
+    const successUrl = `${origin}/?payment-success=true&scanId=${scanId}&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}/?payment-cancel=true&scanId=${scanId}`;
 
-    // Enregistrer la tentative dans Neon
+    // Enregistrer ou mettre à jour la tentative dans Neon
     try {
-      await sql`
-        INSERT INTO scan_payments (scan_id, user_id, user_email, amount, currency, status)
-        VALUES (${scanId}, ${user.id}, ${user.email}, 1.99, 'eur', 'pending')
-      `;
+      const existing = await sql`SELECT id FROM scan_payments WHERE scan_id = ${scanId}`;
+      if (existing.length === 0) {
+        await sql`
+          INSERT INTO scan_payments (scan_id, user_id, user_email, amount, currency, status)
+          VALUES (${scanId}, ${user?.id || 'anonymous'}, ${user?.email || null}, 1.99, 'eur', 'pending')
+        `;
+      }
     } catch (dbErr: any) {
       console.warn('[create-scan-payment] Scan payment init db warning:', dbErr.message);
     }
 
     const result = await stripeService.createScanPaymentSession(
-      user.email,
-      user.id,
+      user?.email || 'client@bpa.fr',
+      user?.id || 'anonymous',
       scanId,
       successUrl,
       cancelUrl
@@ -90,7 +94,8 @@ router.post('/create-scan-payment', authenticateUser, async (req: AuthRequest, r
     if (result.success && result.session) {
       res.json({
         sessionId: result.session.id,
-        url: result.session.url!
+        url: result.session.url!,
+        scanId
       });
     } else {
       res.status(500).json({ error: result.error });
@@ -193,21 +198,32 @@ async function handleScanPaymentSuccess(session: Stripe.Checkout.Session) {
   try {
     const scanId = session.metadata?.scan_id;
     const userId = session.metadata?.user_id;
-    const userEmail = session.customer_email;
+    const userEmail = session.customer_email || session.customer_details?.email;
 
-    if (!scanId || !userId) {
-      console.error('[handleScanPaymentSuccess] scan_id ou user_id manquant');
+    if (!scanId) {
+      console.error('[handleScanPaymentSuccess] scan_id manquant');
       return;
     }
 
-    await sql`
-      INSERT INTO scan_payments (scan_id, user_id, user_email, stripe_payment_id, amount, currency, status, paid_at)
-      VALUES (${scanId}, ${userId}, ${userEmail || null}, ${session.payment_intent as string || session.id}, 1.99, 'eur', 'completed', CURRENT_TIMESTAMP)
-      ON CONFLICT (id) DO NOTHING
+    const stripePaymentId = (session.payment_intent as string) || session.id;
+
+    // 1. Tenter la mise à jour de la ligne existante
+    const updated = await sql`
+      UPDATE scan_payments
+      SET status = 'completed', stripe_payment_id = ${stripePaymentId}, paid_at = CURRENT_TIMESTAMP
+      WHERE scan_id = ${scanId}
+      RETURNING id
     `;
 
-    console.log(`[handleScanPaymentSuccess] ✅ Paiement enregistré dans Neon pour le scan ${scanId}`);
+    // 2. Si non trouvée, insérer
+    if (updated.length === 0) {
+      await sql`
+        INSERT INTO scan_payments (scan_id, user_id, user_email, stripe_payment_id, amount, currency, status, paid_at)
+        VALUES (${scanId}, ${userId || 'anonymous'}, ${userEmail || null}, ${stripePaymentId}, 1.99, 'eur', 'completed', CURRENT_TIMESTAMP)
+      `;
+    }
 
+    console.log(`[handleScanPaymentSuccess] ✅ Paiement Neon validé avec succès pour le scan ${scanId}`);
   } catch (error: any) {
     console.error('[handleScanPaymentSuccess] Erreur:', error);
   }
