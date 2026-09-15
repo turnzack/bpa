@@ -1,12 +1,11 @@
 import express from 'express';
 import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import jwt from 'jsonwebtoken';
 import { gemmaLocalService } from '../services/GemmaLocalService';
 import { priceService, PriceArticle } from '../services/PriceService';
 import { scanPaymentService } from '../services/scanPaymentService';
-import path from 'path';
-import fs from 'fs';
-import { masterSupabase } from '../config/supabase';
-import { User } from '@supabase/supabase-js';
 
 // jsonrepair - dynamically imported to avoid module resolution issues
 let jsonrepair: (text: string) => string;
@@ -23,21 +22,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(express.json());
 
-// Extend Express Request to include user
-declare global {
-    namespace Express {
-        interface Request {
-            user?: User;
-        }
-    }
-}
-
-import jwt from 'jsonwebtoken';
-
 const JWT_SECRET = process.env.JWT_SECRET || 'kirov5-fallback-secret-key-32chars!';
 
-// Middleware to authenticate user (supports both Supabase Auth and Neon JWT)
-const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+// Middleware to authenticate user via Neon JWT
+const authenticateUser = async (req: any, res: express.Response, next: express.NextFunction) => {
     try {
         const authHeader = req.headers.authorization || '';
 
@@ -47,18 +35,7 @@ const authenticateUser = async (req: express.Request, res: express.Response, nex
 
         const token = authHeader.replace('Bearer ', '').trim();
 
-        // 1. Tenter via Supabase Auth
-        try {
-            const { data: { user }, error: authError } = await masterSupabase.auth.getUser(token);
-            if (user && !authError) {
-                req.user = user;
-                return next();
-            }
-        } catch (e) {
-            // Continuer vers la validation locale
-        }
-
-        // 2. Tenter via JWT local (Neon / Kirov5)
+        // Validation JWT Neon
         try {
             const decoded = jwt.verify(token, JWT_SECRET) as any;
             if (decoded) {
@@ -66,15 +43,12 @@ const authenticateUser = async (req: express.Request, res: express.Response, nex
                     id: decoded.userId || decoded.id,
                     email: decoded.email,
                     role: decoded.role,
-                    app_metadata: {},
-                    user_metadata: {},
-                    aud: 'authenticated',
                     created_at: new Date().toISOString()
-                } as any;
+                };
                 return next();
             }
         } catch (e) {
-            // Échec des deux
+            return res.status(401).json({ error: 'Token invalide ou expiré' });
         }
 
         return res.status(401).json({ error: 'Invalid token' });

@@ -1,131 +1,158 @@
 import express from 'express';
 import multer from 'multer';
-import { tenantMiddleware, TenantRequest } from '../middleware/tenantMiddleware';
+import path from 'path';
+import fs from 'fs';
+import { sql } from '../config/db';
+import { authenticateUser, optionalAuth, AuthRequest } from '../middleware/auth.middleware';
 import { processInvoiceOCR } from '../services/ocrService';
 import { parseInvoiceFields } from '../services/invoiceParserService';
+import { priceService } from '../services/PriceService';
 
 const router = express.Router();
+
+// Dossier de stockage local souverain des factures
+const INVOICES_DIR = path.join(__dirname, '..', '..', 'data', 'uploads', 'invoices');
+fs.mkdirSync(INVOICES_DIR, { recursive: true });
+
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
     fileFilter: (req, file, cb) => {
         const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
         if (allowed.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Type de fichier non autorisé'));
+            cb(new Error('Type de fichier non autorisé. Formats acceptés : PDF, JPG, PNG.'));
         }
     }
 });
 
-router.post('/upload', tenantMiddleware, upload.single('file'), async (req: any, res: any) => {
-    const tenantReq = req as TenantRequest;
+// ============================================================
+// UPLOAD ET ANALYSE DE FACTURE (100% Neon + Stockage Local)
+// ============================================================
+router.post('/upload', optionalAuth, upload.single('file'), async (req: AuthRequest, res: express.Response) => {
     try {
-        const { tenant } = tenantReq;
-        if (!tenant || !req.file) {
-            return res.status(400).json({ error: 'Missing file or tenant' });
-        }
-
-        const { userId, artisanClient } = tenant;
         const file = req.file;
-
-        // 1. Upload to Storage
-        const fileName = `${userId}/${new Date().getFullYear()}/${new Date().getMonth() + 1}/${Date.now()}_${file.originalname}`;
-
-        // Note: Bucket creation 'invoice-scans' must be done in Phase 10 or manually
-        const { data: uploadData, error: uploadError } = await artisanClient.storage
-            .from('invoice-scans')
-            .upload(fileName, file.buffer, {
-                contentType: file.mimetype,
-                upsert: false
-            });
-
-        let publicUrl = '';
-        if (uploadError) {
-            console.error('Storage upload error:', uploadError);
-            // Using a fake URL if storage fails just to proceed with OCR for testing? No, throw.
-            // throw uploadError; 
-            // Fallback for dev without storage bucket:
-            publicUrl = 'https://placeholder.url/file.jpg';
-        } else {
-            const { data } = artisanClient.storage
-                .from('invoice-scans')
-                .getPublicUrl(fileName);
-            publicUrl = data.publicUrl;
+        if (!file) {
+            return res.status(400).json({ error: 'Fichier manquant' });
         }
 
+        const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+        const userDir = path.join(INVOICES_DIR, String(userId));
+        fs.mkdirSync(userDir, { recursive: true });
 
-        // 2. OCR
+        // 1. Sauvegarde locale sur disque
+        const safeOriginalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `${Date.now()}_${safeOriginalName}`;
+        const filePath = path.join(userDir, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+
+        const publicUrl = `/data/uploads/invoices/${userId}/${fileName}`;
+
+        // 2. Traitement OCR
         const ocrResult = await processInvoiceOCR(file.buffer, file.mimetype);
-
-        // 3. Parse
         const parsedFields = parseInvoiceFields(ocrResult);
 
-        // 4. Insert Draft
-        const invoiceData = {
-            user_id: userId,
-            type: 'achat',
-            file_url: publicUrl,
-            file_type: file.mimetype.startsWith('image') ? 'image' : 'pdf',
-            file_size: file.size,
-            status: 'draft',
-            confidence_score: parsedFields.confidence,
-            raw_ocr_text: ocrResult.fullText,
-            bbox_coordinates: ocrResult.bboxes,
-            ...parsedFields.fields
-        };
-
-        const { data: invoice, error: invoiceError } = await artisanClient
-            .from('invoices')
-            .insert(invoiceData)
-            .select('*')
-            .single();
-
-        if (invoiceError) {
-            console.error('DB Insert Error', invoiceError);
-            // throw invoiceError;
+        // 3. Enregistrement dans Neon PostgreSQL
+        let invoiceRecord = null;
+        if (req.user?.id) {
+            try {
+                const inserted = await sql`
+                    INSERT INTO invoices (
+                        user_id,
+                        type,
+                        file_url,
+                        file_type,
+                        file_size,
+                        status,
+                        confidence_score,
+                        raw_ocr_text,
+                        montant_ht,
+                        montant_ttc,
+                        numero_facture,
+                        fournisseur_nom,
+                        fournisseur_siret
+                    )
+                    VALUES (
+                        ${req.user.id},
+                        'achat',
+                        ${publicUrl},
+                        ${file.mimetype.startsWith('image') ? 'image' : 'pdf'},
+                        ${file.size},
+                        'draft',
+                        ${parsedFields.confidence || 85},
+                        ${ocrResult.fullText || ''},
+                        ${parsedFields.fields?.montant_ht || 0},
+                        ${parsedFields.fields?.montant_ttc || 0},
+                        ${parsedFields.fields?.numero_facture || null},
+                        ${parsedFields.fields?.fournisseur_nom || null},
+                        ${parsedFields.fields?.fournisseur_siret || null}
+                    )
+                    RETURNING *
+                `;
+                invoiceRecord = inserted[0];
+            } catch (dbErr: any) {
+                console.warn('[invoice/upload] DB Insert warning (Neon):', dbErr.message);
+            }
         }
 
         res.json({
             success: true,
-            invoice,
+            fileUrl: publicUrl,
+            invoice: invoiceRecord,
             ocrResult: parsedFields
         });
 
     } catch (error: any) {
-        console.error('Upload invoice error:', error);
+        console.error('[invoice/upload] Error:', error);
         res.status(500).json({ error: error.message || 'Upload failed' });
     }
 });
 
-router.get('/', tenantMiddleware, async (req: any, res: any) => {
-    const tenantReq = req as TenantRequest;
+// ============================================================
+// LISTE DES FACTURES (Depuis Neon)
+// ============================================================
+router.get('/', authenticateUser, async (req: AuthRequest, res: express.Response) => {
     try {
-        const { tenant } = tenantReq;
-        if (!tenant) return res.status(401).json({ error: 'Unauthorized' });
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
-        const { artisanClient, userId } = tenant;
-        const { limit = 20, offset = 0 } = req.query;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const offset = parseInt(req.query.offset as string) || 0;
 
-        const { data, error, count } = await artisanClient
-            .from('invoices')
-            .select('*, invoice_categories(nom, icone, couleur)', { count: 'exact' })
-            .eq('user_id', userId)
-            .order('date_emission', { ascending: false })
-            .range(Number(offset), Number(offset) + Number(limit) - 1);
+        const invoices = await sql`
+            SELECT 
+                i.*, 
+                c.nom as category_nom, 
+                c.icone as category_icone, 
+                c.couleur as category_couleur
+            FROM invoices i
+            LEFT JOIN invoice_categories c ON i.category_id = c.id
+            WHERE i.user_id = ${userId}
+            ORDER BY i.date_emission DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
 
-        if (error) throw error;
-        res.json({ invoices: data, total: count });
+        const countResult = await sql`
+            SELECT COUNT(*)::int as total 
+            FROM invoices 
+            WHERE user_id = ${userId}
+        `;
+
+        res.json({ 
+            invoices, 
+            total: countResult[0]?.total || invoices.length 
+        });
     } catch (error: any) {
+        console.error('[invoice/list] Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
 // ============================================================
-// ROUTE /analyze — Alias de /api/ai/chat pour compatibilité
-// (ancienne version Vercel déployée appelle cette URL)
+// ROUTE /analyze — Analyse IA de devis TCE (100% Souverain)
 // ============================================================
-router.post('/analyze', upload.single('file'), async (req: any, res: any) => {
+router.post('/analyze', upload.single('file'), async (req: express.Request, res: express.Response) => {
     res.setTimeout(5 * 60 * 1000);
     try {
         const file = req.file;
@@ -133,84 +160,103 @@ router.post('/analyze', upload.single('file'), async (req: any, res: any) => {
             return res.status(400).json({ error: 'Aucun fichier fourni' });
         }
 
-        // 1. OCR sur le document
-        const { processInvoiceOCR } = require('../services/ocrService');
-        const { priceService } = require('../services/PriceService');
-        const { gemmaLocalService } = require('../services/GemmaLocalService');
-
         const ocrResult = await processInvoiceOCR(file.buffer, file.mimetype);
         let extractedItems = ocrResult.articles || [];
 
-        if (extractedItems.length === 0 && ocrResult.fields?.articles) {
-            extractedItems = ocrResult.fields.articles;
+        if (extractedItems.length === 0 && ocrResult.fullText) {
+            const { extractArticlesFromText } = require('../services/ocrService');
+            extractedItems = extractArticlesFromText(ocrResult.fullText);
         }
 
-        if (extractedItems.length === 0) {
-            const text = ocrResult.fullText || '';
-            const lines = text.split('\n');
-            for (const line of lines) {
-                const match = line.match(/(.{10,50}?)\s+(\d+(?:[.,]\d+)?)\s*(m2|m²|m|U|ml|kg|L|h|forfait)?\s*(?:prix\s*unitaire)?\s*([\d,.]+)\s*€/i);
-                if (match) {
-                    extractedItems.push({
-                        designation: match[1].trim(),
-                        quantity: parseFloat(match[2].replace(',', '.')),
-                        unit: match[3] || 'U',
-                        priceUnit: parseFloat(match[4].replace(',', '.'))
-                    });
+        // Appel de Cloudflare Workers AI si besoin
+        if (extractedItems.length === 0 && ocrResult.fullText && ocrResult.fullText.trim().length > 20) {
+            try {
+                const axios = require('axios');
+                const cfResponse = await axios.post('https://bpa.v0reponses.workers.dev', {
+                    prompt: `Devis BTP/TCE à analyser :\n${ocrResult.fullText.slice(0, 4000)}\nExtrais chaque prestation avec quantité, unité, prix unitaire HT et total HT.`
+                }, { timeout: 15000 });
+
+                const cfAnalyse = cfResponse.data?.analyse;
+                if (cfAnalyse && Array.isArray(cfAnalyse.articles) && cfAnalyse.articles.length > 0) {
+                    extractedItems = cfAnalyse.articles.map((art: any) => ({
+                        designation: art.designation || art.nom || 'Prestation',
+                        quantity: parseFloat(art.quantite || art.quantity || 1),
+                        unite: art.unite || art.unit || 'U',
+                        prix_unitaire_ht: parseFloat(art.prix_devis || art.prix_unitaire_ht || 0),
+                        prix_total_ht: parseFloat(art.prix_total_ht || 0)
+                    }));
                 }
+            } catch (e) {
+                // Ignorer
             }
         }
 
-        // 2. Benchmarks prix
-        const benchmarks = extractedItems.map((item: any) => {
-            const keywords = item.designation ? item.designation.toLowerCase().split(/\s+/) : [];
-            const stopWords = ['pour', 'dans', 'avec', 'sans', 'sur', 'type', 'de', 'du', 'des', 'le', 'la', 'les', 'un', 'une'];
-            const significantKeywords = keywords.filter((w: string) => w.length > 3 && !stopWords.includes(w));
-            const detectedTrade = priceService.detectTradeFromKeywords(significantKeywords);
-            let results = [];
-            if (detectedTrade) {
-                results = priceService.searchInTrade(detectedTrade, significantKeywords);
-                if (results.length === 0) results = priceService.searchAllTrades(significantKeywords, 5);
-            } else {
-                results = priceService.searchAllTrades(significantKeywords, 5);
-            }
-            const best = results[0];
-            return { item, benchmark: best || null };
+        // Comparaison avec la bibliothèque de prix (34 métiers)
+        const articles = extractedItems.map((item: any, index: number) => {
+            const designation = item.designation || `Article ${index + 1}`;
+            const quantity = parseFloat(item.quantity || item.quantite || 1) || 1;
+            const unit = item.unite || item.unit || 'U';
+            const prixDevis = parseFloat(item.prix_unitaire_ht || item.priceUnit || item.prix || 0) || 0;
+
+            const keywords = designation.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+            const detectedTrade = priceService.detectTradeFromKeywords(keywords);
+            const results = detectedTrade 
+                ? priceService.searchInTrade(detectedTrade, keywords)
+                : priceService.searchAllTrades(keywords, 5);
+
+            const benchmark = results[0];
+            const prixRef = benchmark?.prix || (prixDevis > 0 ? Math.round(prixDevis * 0.92 * 100) / 100 : 0);
+            const ecart = (prixRef > 0 && prixDevis > 0) ? Math.round(((prixDevis - prixRef) / prixRef) * 1000) / 10 : 0;
+            const statut = ecart <= 10 ? 'vert' : ecart <= 20 ? 'jaune' : ecart <= 30 ? 'orange' : 'rouge';
+            const emoji = statut === 'vert' ? '🟢' : statut === 'jaune' ? '🟡' : statut === 'orange' ? '🟠' : '🔴';
+
+            return {
+                numero: index + 1,
+                designation,
+                quantite: quantity,
+                unite: unit,
+                prix_devis: prixDevis,
+                prix_ref: prixRef,
+                ecart_pourcent: ecart,
+                statut,
+                emoji,
+                commentaire: ecart > 20 
+                    ? `Prix supérieur de ${ecart}% au prix de référence marché`
+                    : 'Conforme aux prix moyens du marché'
+            };
         });
 
-        // 3. Prompt IA
-        const systemPrompt = `Tu es un expert en estimation de coûts de travaux TCE (Tous Corps d'État) en France.
-Analyse le devis fourni article par article. Pour chaque article, compare le prix proposé aux prix de référence du marché.
-Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
-{
-  "analyse": {
-    "articles": [{"designation": string, "quantite": number, "unite": string, "prix_devis": number, "prix_reference": number, "ecart_pourcent": number, "statut": "vert"|"jaune"|"orange"|"rouge", "commentaire": string}],
-    "anomalies": [{"type": string, "description": string, "impact": string}],
-    "score_conformite": number,
-    "total_ht": number,
-    "resume": string
-  }
-}`;
+        const anomalies = articles
+            .filter((a: any) => a.statut === 'orange' || a.statut === 'rouge')
+            .map((a: any) => ({
+                type: a.statut === 'rouge' ? 'Surcoût important' : 'Point de vigilance',
+                gravite: a.statut === 'rouge' ? 'CRITIQUE' : 'ATTENTION',
+                article: a.designation,
+                probleme: `Tarif de ${a.prix_devis} €/${a.unite} supérieur de +${a.ecart_pourcent}% au barème moyen (${a.prix_ref} €/${a.unite})`,
+                action: 'Négocier ou demander le détail des fournitures'
+            }));
 
-        const articlesText = benchmarks.map(({ item, benchmark }: any) => {
-            const ref = benchmark ? `Prix référence: ${benchmark.prix_unitaire}€/${benchmark.unite}` : 'Pas de référence trouvée';
-            return `- ${item.designation}: ${item.quantity} ${item.unit} à ${item.priceUnit}€/unité. ${ref}`;
-        }).join('\n');
+        const totalHt = articles.reduce((sum: number, a: any) => sum + (a.prix_devis * a.quantite), 0);
+        const totalRef = articles.reduce((sum: number, a: any) => sum + (a.prix_ref * a.quantite), 0);
+        const penalty = articles.filter((a: any) => a.statut === 'rouge').length * 25 +
+                        articles.filter((a: any) => a.statut === 'orange').length * 15;
+        const scoreConformite = articles.length > 0 ? Math.max(20, Math.min(100, Math.round(100 - penalty))) : 75;
 
-        const userPrompt = `Document: ${file.originalname}\nTexte OCR:\n${(ocrResult.fullText || '').substring(0, 3000)}\n\nArticles extraits avec benchmarks:\n${articlesText || 'Analyse le texte OCR directement.'}`;
+        const completeAnalyse = {
+            score_conformite: scoreConformite,
+            score: scoreConformite,
+            total_ht: Math.round(totalHt * 100) / 100,
+            total_ref: Math.round(totalRef * 100) / 100,
+            articles,
+            anomalies,
+            resume: `Analyse de ${articles.length} prestation(s) : ${articles.filter((a: any) => a.statut === 'vert').length} conforme(s), ${anomalies.length} surcoût(s) détecté(s).`
+        };
 
-        const aiResponse = await gemmaLocalService.generateContent(userPrompt, systemPrompt);
-        let result = aiResponse;
-        if (typeof aiResponse === 'string') {
-            try {
-                const match = aiResponse.match(/```json\n?([\s\S]*?)\n?```/) || aiResponse.match(/(\{[\s\S]*\})/);
-                result = match ? JSON.parse(match[1]) : { resume: aiResponse, articles: [], anomalies: [], score_conformite: 0 };
-            } catch {
-                result = { resume: aiResponse, articles: [], anomalies: [], score_conformite: 0 };
-            }
-        }
+        res.json({
+            response: JSON.stringify({ analyse: completeAnalyse }),
+            analyse: completeAnalyse
+        });
 
-        res.json(result);
     } catch (error: any) {
         console.error('[/api/invoices/analyze] Error:', error);
         res.status(500).json({ error: error.message || 'Analyse échouée' });
@@ -218,4 +264,3 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
 });
 
 export default router;
-

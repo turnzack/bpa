@@ -1,6 +1,4 @@
-// Routes Stripe avec intégration Supabase complète
-// Inspiré de: supabase/functions/stripe-webhook et supabase/functions/create-checkout-session-v2
-
+// Routes Stripe avec intégration Neon PostgreSQL native (100% sans Supabase)
 import express from 'express';
 import Stripe from 'stripe';
 import { stripeService } from '../services/stripeService';
@@ -11,7 +9,7 @@ import {
   handleSubscriptionDeleted,
   constructWebhookEvent
 } from '../services/tce/stripe-webhook.service';
-import { supabase } from '../config/supabase';
+import { sql } from '../config/db';
 import { authenticateUser, AuthRequest } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -22,31 +20,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 // ============================================================
-// CRÉER UNE SESSION DE PAIEMENT (Checkout)
+// CRÉER UNE SESSION DE PAIEMENT (Abonnement ou Pack)
 // ============================================================
-
-/**
- * POST /api/stripe/create-checkout-session
- * Crée une session de paiement Stripe pour un abonnement ou paiement unique
- * Requires: Bearer token (Supabase Auth)
- */
 router.post('/create-checkout-session', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const { priceId, successUrl, cancelUrl } = req.body;
 
-    if (!req.user) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Utilisateur non authentifié' });
     }
 
-    // Récupérer le token d'accès depuis le header
-    const authHeader = req.headers.authorization || '';
-    const accessToken = authHeader.replace('Bearer ', '').trim();
-
     const result = await createCheckoutSession({
-      accessToken,
+      userId: req.user.id,
+      userEmail: req.user.email,
       priceId,
-      successUrl: successUrl || `${process.env.FRONTEND_URL}/success`,
-      cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/cancel`
+      successUrl: successUrl || `${process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app'}/success`,
+      cancelUrl: cancelUrl || `${process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app'}/cancel`
     });
 
     if (result.success && result.sessionId && result.url) {
@@ -64,11 +53,9 @@ router.post('/create-checkout-session', authenticateUser, async (req: AuthReques
   }
 });
 
-/**
- * POST /api/stripe/create-scan-payment
- * Crée une session de paiement pour un scan unique (paiement unique)
- * Requires: Bearer token (Supabase Auth)
- */
+// ============================================================
+// CRÉER UNE SESSION DE PAIEMENT POUR UN SCAN (Paiement Unique)
+// ============================================================
 router.post('/create-scan-payment', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const { scanId } = req.body;
@@ -78,10 +65,20 @@ router.post('/create-scan-payment', authenticateUser, async (req: AuthRequest, r
       return res.status(400).json({ error: 'scanId requis et utilisateur authentifié' });
     }
 
-    const successUrl = `${process.env.FRONTEND_URL}/scan/${scanId}/success`;
-    const cancelUrl = `${process.env.FRONTEND_URL}/scan/${scanId}/cancel`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app';
+    const successUrl = `${frontendUrl}/scan/${scanId}/success`;
+    const cancelUrl = `${frontendUrl}/scan/${scanId}/cancel`;
 
-    // Utiliser le service existant pour les paiements uniques
+    // Enregistrer la tentative dans Neon
+    try {
+      await sql`
+        INSERT INTO scan_payments (scan_id, user_id, user_email, amount, currency, status)
+        VALUES (${scanId}, ${user.id}, ${user.email}, 1.99, 'eur', 'pending')
+      `;
+    } catch (dbErr: any) {
+      console.warn('[create-scan-payment] Scan payment init db warning:', dbErr.message);
+    }
+
     const result = await stripeService.createScanPaymentSession(
       user.email,
       user.id,
@@ -108,12 +105,6 @@ router.post('/create-scan-payment', authenticateUser, async (req: AuthRequest, r
 // ============================================================
 // WEBHOOK STRIPE
 // ============================================================
-
-/**
- * POST /api/stripe/webhook
- * Webhook pour recevoir les événements Stripe
- * Gère: checkout.session.completed, customer.subscription.*, etc.
- */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req: express.Request, res: express.Response) => {
   const sig = req.headers['stripe-signature'] as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -123,7 +114,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: e
     return res.status(500).send('Configuration serveur manquante');
   }
 
-  // Construire l'événement
   const eventResult = constructWebhookEvent(req.body, sig, webhookSecret);
 
   if (!eventResult.success || !eventResult.event) {
@@ -136,7 +126,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: e
   console.log(`[webhook] Reçu événement: ${event.type} (${eventId})`);
 
   try {
-    // Traiter l'événement
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
@@ -163,42 +152,35 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: e
       case 'invoice.paid':
         const invoice = event.data.object as Stripe.Invoice;
         console.log(`[webhook] Facture payée: ${invoice.id} pour le client ${invoice.customer}`);
-        // Optionnel: mettre à jour l'historique de paiement
         break;
 
       case 'invoice.payment_failed':
         const failedInvoice = event.data.object as Stripe.Invoice;
         console.log(`[webhook] Échec paiement facture: ${failedInvoice.id}`);
-        // Optionnel: marquer l'abonnement comme en retard
         break;
 
       default:
         console.log(`[webhook] Événement non géré: ${event.type}`);
-        // Enregistrer l'événement comme ignoré
-        await supabase
-          .from('stripe_events')
-          .update({
-            processed_at: new Date().toISOString(),
-            status: 'ignored',
-            note: `Type d'événement non géré: ${event.type}`
-          })
-          .eq('id', eventId);
+        await sql`
+          UPDATE stripe_events
+          SET processed_at = CURRENT_TIMESTAMP, status = 'ignored', note = ${`Type non géré: ${event.type}`}
+          WHERE id = ${eventId}
+        `;
     }
 
     res.json({ received: true });
 
   } catch (error: any) {
     console.error(`[webhook] Erreur de traitement:`, error);
-    
-    // Marquer l'événement comme échoué
-    await supabase
-      .from('stripe_events')
-      .update({
-        processed_at: new Date().toISOString(),
-        status: 'failed',
-        note: error?.message ?? String(error)
-      })
-      .eq('id', eventId);
+    try {
+      await sql`
+        UPDATE stripe_events
+        SET processed_at = CURRENT_TIMESTAMP, status = 'failed', note = ${error?.message ?? String(error)}
+        WHERE id = ${eventId}
+      `;
+    } catch (logErr) {
+      // Ignorer
+    }
 
     res.status(500).json({ error: 'Erreur de traitement du webhook' });
   }
@@ -207,10 +189,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: e
 // ============================================================
 // GESTIONNAIRES D'ÉVÉNEMENTS
 // ============================================================
-
-/**
- * Gère le succès d'un paiement de scan unique
- */
 async function handleScanPaymentSuccess(session: Stripe.Checkout.Session) {
   try {
     const scanId = session.metadata?.scan_id;
@@ -222,35 +200,13 @@ async function handleScanPaymentSuccess(session: Stripe.Checkout.Session) {
       return;
     }
 
-    // Enregistrer le paiement dans Supabase
-    const { error: paymentError } = await supabase
-      .from('scan_payments')
-      .insert({
-        scan_id: scanId,
-        user_id: userId,
-        user_email: userEmail,
-        stripe_payment_id: session.payment_intent,
-        amount: 2.49,
-        currency: 'eur',
-        status: 'completed',
-        paid_at: new Date(),
-      });
+    await sql`
+      INSERT INTO scan_payments (scan_id, user_id, user_email, stripe_payment_id, amount, currency, status, paid_at)
+      VALUES (${scanId}, ${userId}, ${userEmail || null}, ${session.payment_intent as string || session.id}, 1.99, 'eur', 'completed', CURRENT_TIMESTAMP)
+      ON CONFLICT (id) DO NOTHING
+    `;
 
-    if (paymentError) {
-      console.warn('[handleScanPaymentSuccess] Table scan_payments introuvable ou erreur. Le déblocage se fera via le deep link et l\'historique local.');
-    } else {
-      console.log(`[handleScanPaymentSuccess] ✅ Paiement enregistré en DB pour le scan ${scanId}`);
-    }
-
-    // Tenter de mettre à jour la table devis si elle existe
-    const { error: devisError } = await supabase
-      .from('devis')
-      .update({ status: 'completed' })
-      .eq('scan_id', scanId);
-
-    if (devisError) {
-      console.log(`[handleScanPaymentSuccess] Info: Table 'devis' non utilisée pour cet audit souverain.`);
-    }
+    console.log(`[handleScanPaymentSuccess] ✅ Paiement enregistré dans Neon pour le scan ${scanId}`);
 
   } catch (error: any) {
     console.error('[handleScanPaymentSuccess] Erreur:', error);
@@ -260,11 +216,6 @@ async function handleScanPaymentSuccess(session: Stripe.Checkout.Session) {
 // ============================================================
 // CRÉER UNE SESSION DE PAIEMENT POUR UN SCAN (Pay-per-scan)
 // ============================================================
-
-/**
- * POST /api/stripe/create-scan-checkout
- * Crée une session Checkout Stripe spécifique à 1.99€ pour l'IA
- */
 router.post('/create-scan-checkout', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user?.id;
@@ -274,23 +225,12 @@ router.post('/create-scan-checkout', authenticateUser, async (req: AuthRequest, 
       return res.status(401).json({ error: 'Utilisateur non authentifié' });
     }
 
-    console.log('[DEBUG] 📥 Appel create-scan-checkout reçu ! User:', req.user?.id);
     const body = req.body || {};
-    const { scanId: requestedScanId } = body;
-    const scanId = requestedScanId || `stripe_${userId}_${Date.now()}`;
+    const scanId = body.scanId || `stripe_${userId}_${Date.now()}`;
 
-    // Déterminer l'URL de base pour la redirection (Web vs Mobile)
-    const origin = req.headers.origin || req.headers.referer || 'exp://192.168.1.148:8081';
-    const isWeb = origin.includes('localhost') || origin.includes('127.0.0.1') || origin.startsWith('http');
-    
-    // Pour le Web, on utilise l'origine HTTP. Pour Mobile, on garde le schéma exp:// ou custom
-    const successUrl = isWeb 
-      ? `${origin}/history?stripe-success=true&scanId=${scanId}`
-      : `exp://192.168.1.148:8081/--/stripe-success?scanId=${scanId}`;
-      
-    const cancelUrl = isWeb
-      ? `${origin}/history?stripe-cancel=true`
-      : `exp://192.168.1.148:8081/--/stripe-cancel`;
+    const origin = req.headers.origin || req.headers.referer || 'https://bpa-git-production-v01-e951.vercel.app';
+    const successUrl = `${origin}/history?stripe-success=true&scanId=${scanId}`;
+    const cancelUrl = `${origin}/history?stripe-cancel=true`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -299,10 +239,10 @@ router.post('/create-scan-checkout', authenticateUser, async (req: AuthRequest, 
           price_data: {
             currency: 'eur',
             product_data: {
-              name: 'Audit Souverain Gemma (Déblocage)',
-              description: 'Révélation complète de l\'audit IA sur 45 000 prix.',
+              name: 'Audit Souverain BPA (Déblocage)',
+              description: 'Analyse détaillée IA et comparaison avec les prix de marché BTP.',
             },
-            unit_amount: 249, // 2.49€
+            unit_amount: 199, // 1.99€
           },
           quantity: 1,
         },
@@ -319,41 +259,31 @@ router.post('/create-scan-checkout', authenticateUser, async (req: AuthRequest, 
       cancel_url: cancelUrl,
     });
 
-    console.log('[Stripe] Checkout URL générée:', session.url);
     res.json({ url: session.url, scanId });
   } catch (error: any) {
-    console.error('[create-scan-checkout] Error details:', error.message);
+    console.error('[create-scan-checkout] Error:', error.message);
     res.status(500).json({ error: error.message || 'Erreur inconnue' });
   }
 });
 
 // ============================================================
-// ROUTES UTILITAIRES
+// INFOS CLIENT STRIPE
 // ============================================================
-
-/**
- * GET /api/stripe/customer
- * Récupère les informations du client Stripe de l'utilisateur
- */
 router.get('/customer', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user?.id;
-
     if (!userId) {
       return res.status(401).json({ error: 'Utilisateur non authentifié' });
     }
 
-    // Récupérer le customer_id depuis la table bsd
-    const { data: bsdData, error: bsdError } = await supabase
-      .from('bsd')
-      .select('stripe_customer_id, stripe_subscription_id, statut')
-      .eq('user_id', userId)
-      .single();
+    const bsdRows = await sql`
+      SELECT stripe_customer_id, stripe_subscription_id, statut, plan
+      FROM bsd 
+      WHERE user_id = ${userId}
+      LIMIT 1
+    `;
 
-    if (bsdError && bsdError.code !== 'PGRST116') {
-      console.error('[get-customer] Erreur BSD:', bsdError);
-      return res.status(500).json({ error: 'Erreur de récupération des données' });
-    }
+    const bsdData = bsdRows[0];
 
     if (!bsdData?.stripe_customer_id) {
       return res.json({
@@ -362,10 +292,7 @@ router.get('/customer', authenticateUser, async (req: AuthRequest, res: express.
       });
     }
 
-    // Récupérer les détails du client Stripe
     const customer = await stripe.customers.retrieve(bsdData.stripe_customer_id) as Stripe.Customer;
-    
-    // Récupérer les abonnements
     const subscriptions = await stripe.subscriptions.list({
       customer: bsdData.stripe_customer_id
     });
@@ -389,11 +316,7 @@ router.get('/customer', authenticateUser, async (req: AuthRequest, res: express.
           }
         }))
       })),
-      bsd: {
-        stripe_customer_id: bsdData.stripe_customer_id,
-        stripe_subscription_id: bsdData.stripe_subscription_id,
-        statut: bsdData.statut
-      }
+      bsd: bsdData
     });
 
   } catch (error: any) {
@@ -402,10 +325,9 @@ router.get('/customer', authenticateUser, async (req: AuthRequest, res: express.
   }
 });
 
-/**
- * GET /api/stripe/prices
- * Récupère la liste des prix Stripe
- */
+// ============================================================
+// PRIX STRIPE
+// ============================================================
 router.get('/prices', async (req: express.Request, res: express.Response) => {
   try {
     const prices = await stripe.prices.list({
@@ -433,33 +355,32 @@ router.get('/prices', async (req: express.Request, res: express.Response) => {
   }
 });
 
-/**
- * POST /api/stripe/portal-session
- * Crée une session pour le portail client Stripe (gestion abonnement)
- */
+// ============================================================
+// PORTAIL STRIPE (Gestion d'abonnement)
+// ============================================================
 router.post('/portal-session', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user?.id;
-
     if (!userId) {
       return res.status(401).json({ error: 'Utilisateur non authentifié' });
     }
 
-    // Récupérer le customer_id
-    const { data: bsdData, error: bsdError } = await supabase
-      .from('bsd')
-      .select('stripe_customer_id')
-      .eq('user_id', userId)
-      .single();
+    const bsdRows = await sql`
+      SELECT stripe_customer_id 
+      FROM bsd 
+      WHERE user_id = ${userId} 
+      LIMIT 1
+    `;
 
-    if (bsdError || !bsdData?.stripe_customer_id) {
-      return res.status(400).json({ error: 'Aucun client Stripe trouvé' });
+    const stripeCustomerId = bsdRows[0]?.stripe_customer_id;
+    if (!stripeCustomerId) {
+      return res.status(400).json({ error: 'Aucun client Stripe associé' });
     }
 
-    // Créer la session du portail
+    const frontendUrl = process.env.FRONTEND_URL || 'https://bpa-git-production-v01-e951.vercel.app';
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: bsdData.stripe_customer_id,
-      return_url: `${process.env.FRONTEND_URL}/dashboard`
+      customer: stripeCustomerId,
+      return_url: `${frontendUrl}/dashboard`
     });
 
     res.json({ url: portalSession.url });
@@ -471,75 +392,23 @@ router.post('/portal-session', authenticateUser, async (req: AuthRequest, res: e
 });
 
 // ============================================================
-// ROUTES WERO (Paiement peer-to-peer)
+// STATUT PAIEMENT SCAN (Vérifié dans Neon)
 // ============================================================
-
-/**
- * POST /api/stripe/wero-confirm
- * L'utilisateur confirme manuellement son paiement Wero.
- * Le serveur enregistre dans Supabase et renvoie un token de déblocage.
- */
-router.post('/wero-confirm', authenticateUser, async (req: AuthRequest, res: express.Response) => {
-  try {
-    const userId = req.user?.id;
-    const userEmail = req.user?.email;
-    const { amount = 1.99 } = req.body;
-
-    if (!userId) return res.status(401).json({ error: 'Non authentifié' });
-
-    // Enregistrer le paiement Wero dans scan_payments
-    const scanId = `wero_${userId}_${Date.now()}`;
-    const { error } = await supabase
-      .from('scan_payments')
-      .insert({
-        scan_id: scanId,
-        user_id: userId,
-        user_email: userEmail,
-        stripe_payment_id: null,
-        amount,
-        currency: 'eur',
-        status: 'completed',
-        paid_at: new Date().toISOString(),
-      });
-
-    if (error) {
-      console.warn('[wero-confirm] scan_payments insert failed, trying users table:', error.message);
-      // Tentative de mise à jour de la table users
-      await supabase
-        .from('users')
-        .upsert({ id: userId, devis_unlocked: true, payment_date: new Date().toISOString(), payment_method: 'wero' }, { onConflict: 'id' });
-    }
-
-    console.log(`[wero-confirm] ✅ Paiement Wero enregistré pour ${userEmail || userId}`);
-    res.json({ success: true, scanId, message: 'Paiement Wero confirmé. Accès débloqué !' });
-
-  } catch (error: any) {
-    console.error('[wero-confirm] Error:', error);
-    res.status(500).json({ error: 'Erreur serveur lors de la confirmation Wero' });
-  }
-});
-
-/**
- * GET /api/stripe/check-payment
- * Polling depuis le mobile pour savoir si le paiement est validé côté Supabase.
- */
 router.get('/check-payment', authenticateUser, async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
-    // Chercher un paiement completed
-    const { data } = await supabase
-      .from('scan_payments')
-      .select('status, paid_at, amount')
-      .eq('user_id', userId)
-      .eq('status', 'completed')
-      .order('paid_at', { ascending: false })
-      .limit(1)
-      .single();
+    const rows = await sql`
+      SELECT status, paid_at, amount, scan_id
+      FROM scan_payments
+      WHERE user_id = ${userId} AND status = 'completed'
+      ORDER BY paid_at DESC
+      LIMIT 1
+    `;
 
-    if (data) {
-      res.json({ unlocked: true, payment: data });
+    if (rows.length > 0) {
+      res.json({ unlocked: true, payment: rows[0] });
     } else {
       res.json({ unlocked: false });
     }
@@ -549,11 +418,9 @@ router.get('/check-payment', authenticateUser, async (req: AuthRequest, res: exp
   }
 });
 
-/**
- * POST /api/stripe/admin-unlock
- * Endpoint admin pour débloquer manuellement un utilisateur (après vérification du virement sur Nikel).
- * Protégé par un secret admin.
- */
+// ============================================================
+// DÉBLOCAGE ADMIN (Enregistré dans Neon)
+// ============================================================
 router.post('/admin-unlock', async (req: express.Request, res: express.Response) => {
   const { userId, adminSecret } = req.body;
   
@@ -561,23 +428,18 @@ router.post('/admin-unlock', async (req: express.Request, res: express.Response)
     return res.status(403).json({ error: 'Accès refusé' });
   }
 
-  const { error } = await supabase
-    .from('scan_payments')
-    .insert({
-      scan_id: `admin_${userId}_${Date.now()}`,
-      user_id: userId,
-      amount: 0,
-      currency: 'eur',
-      status: 'completed',
-      paid_at: new Date().toISOString(),
-    });
+  try {
+    const scanId = `admin_${userId}_${Date.now()}`;
+    await sql`
+      INSERT INTO scan_payments (scan_id, user_id, amount, currency, status, paid_at)
+      VALUES (${scanId}, ${userId}, 0, 'eur', 'completed', CURRENT_TIMESTAMP)
+    `;
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
+    console.log(`[admin-unlock] ✅ Utilisateur ${userId} débloqué dans Neon.`);
+    res.json({ success: true, scanId });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
-
-  console.log(`[admin-unlock] ✅ Utilisateur ${userId} débloqué manuellement.`);
-  res.json({ success: true });
 });
 
 export default router;

@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { sql } from '../config/db';
 
 export interface Subscription {
   id?: string;
@@ -14,39 +14,37 @@ export interface Subscription {
 }
 
 export class SubscriptionManager {
-  async saveSubscription(subscription: Subscription): Promise<{ success: boolean; subscription?: Subscription; error?: string }> {
+  async saveSubscription(sub: Subscription): Promise<{ success: boolean; subscription?: any; error?: string }> {
     try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .upsert({
-          ...subscription,
-          updated_at: new Date(),
-        })
-        .select()
-        .single();
+      const rows = await sql`
+        INSERT INTO bsd (user_email, stripe_customer_id, stripe_subscription_id, statut, plan, subscription_end_date, updated_at)
+        VALUES (${sub.user_email}, ${sub.stripe_customer_id || null}, ${sub.stripe_subscription_id || null}, ${sub.status}, ${sub.plan || 'standard'}, ${sub.end_date ? sub.end_date.toISOString() : null}, CURRENT_TIMESTAMP)
+        ON CONFLICT (stripe_customer_id) DO UPDATE SET
+          statut = EXCLUDED.statut,
+          plan = EXCLUDED.plan,
+          stripe_subscription_id = EXCLUDED.stripe_subscription_id,
+          subscription_end_date = EXCLUDED.subscription_end_date,
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `;
 
-      if (error) throw error;
-
-      return { success: true, subscription: data };
-    } catch (error) {
+      return { success: true, subscription: rows[0] };
+    } catch (error: any) {
       console.error('Error saving subscription:', error);
       return { success: false, error: error.message };
     }
   }
 
-  async getSubscription(userEmail: string): Promise<{ success: boolean; subscription?: Subscription; error?: string }> {
+  async getSubscription(userEmail: string): Promise<{ success: boolean; subscription?: any; error?: string }> {
     try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_email', userEmail)
-        .eq('status', 'active')
-        .single();
+      const rows = await sql`
+        SELECT * FROM bsd
+        WHERE user_email = ${userEmail} AND statut = 'active'
+        LIMIT 1
+      `;
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-
-      return { success: true, subscription: data };
-    } catch (error) {
+      return { success: true, subscription: rows[0] || null };
+    } catch (error: any) {
       console.error('Error getting subscription:', error);
       return { success: false, error: error.message };
     }
@@ -54,15 +52,14 @@ export class SubscriptionManager {
 
   async updateSubscriptionStatus(userEmail: string, status: Subscription['status']): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .update({ status, updated_at: new Date() })
-        .eq('user_email', userEmail);
-
-      if (error) throw error;
+      await sql`
+        UPDATE bsd
+        SET statut = ${status}, updated_at = CURRENT_TIMESTAMP
+        WHERE user_email = ${userEmail}
+      `;
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating subscription status:', error);
       return { success: false, error: error.message };
     }
@@ -70,35 +67,28 @@ export class SubscriptionManager {
 
   async cancelSubscription(userEmail: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .update({
-          status: 'canceled',
-          end_date: new Date(),
-          updated_at: new Date()
-        })
-        .eq('user_email', userEmail);
-
-      if (error) throw error;
+      await sql`
+        UPDATE bsd
+        SET statut = 'canceled', annuler_en_fin_de_periode = true, updated_at = CURRENT_TIMESTAMP
+        WHERE user_email = ${userEmail}
+      `;
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error canceling subscription:', error);
       return { success: false, error: error.message };
     }
   }
 
-  async getActiveSubscriptions(): Promise<{ success: boolean; subscriptions?: Subscription[]; error?: string }> {
+  async getActiveSubscriptions(): Promise<{ success: boolean; subscriptions?: any[]; error?: string }> {
     try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('status', 'active');
+      const rows = await sql`
+        SELECT * FROM bsd
+        WHERE statut = 'active'
+      `;
 
-      if (error) throw error;
-
-      return { success: true, subscriptions: data };
-    } catch (error) {
+      return { success: true, subscriptions: rows };
+    } catch (error: any) {
       console.error('Error getting active subscriptions:', error);
       return { success: false, error: error.message };
     }

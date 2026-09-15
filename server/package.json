@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc",
-    "dev": "ts-node --transpile-only src/server.ts"
+    "dev": "ts-node --transpile-only src/server.ts",
+    "db:migrate:neon": "ts-node scripts/migrate-neon.ts"
   },
   "dependencies": {
     "@aws-sdk/client-textract": "^3.965.0",

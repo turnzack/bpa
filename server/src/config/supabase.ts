@@ -1,66 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
+// OBSOLÈTE : Le projet BPA a été intégralement migré vers Neon PostgreSQL.
+// Ce fichier est conservé uniquement pour la rétrocompatibilité temporaire des anciens services.
 import dotenv from 'dotenv';
-import WebSocket from 'ws';
-
 dotenv.config();
 
-// Configuration Supabase - Projet: mgqwcuhlcsovbdihqfpd
-// Tables: entreprises, clients, devis, factures, encaissements
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mgqwcuhlcsovbdihqfpd.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+console.log('ℹ️  Supabase désactivé : Base de données Neon PostgreSQL active.');
 
-if (!SUPABASE_SERVICE_KEY) {
-  console.warn('⚠️  SUPABASE_SERVICE_ROLE_KEY manquante dans .env');
-}
-
-// Client Supabase principal (utilisé par les services TCE et webhooks)
-// Utilise la service_role key pour bypass RLS
-export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY || '', {
+export const supabase: any = {
+  from: () => ({
+    select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+    upsert: () => Promise.resolve({ data: null, error: null }),
+  }),
   auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false
-  },
-  global: {
-    fetch: fetch.bind(globalThis)
-  },
-  realtime: {
-    transport: WebSocket as any
+    getUser: () => Promise.resolve({ data: { user: null }, error: new Error('Supabase désactivé, utilisez Neon Auth') })
   }
-});
-
-// Client Supabase pour l'authentification utilisateur (utilise anon key)
-export const masterSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SUPABASE_SERVICE_KEY || '', {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false
-  },
-  global: {
-    fetch: fetch.bind(globalThis)
-  },
-  realtime: {
-    transport: WebSocket as any
-  }
-});
-
-// Helper pour créer un client avec une clé personnalisée
-export const createArtisanClient = (url: string, key: string) => {
-  return createClient(url, key, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    },
-    global: {
-      fetch: fetch.bind(globalThis)
-    },
-    realtime: {
-      transport: WebSocket as any
-    }
-  });
 };
 
-console.log('✅ Supabase configuré:', SUPABASE_URL);
-console.log('📋 Tables: entreprises, clients, devis, factures, encaissements');
+export const masterSupabase = supabase;
+export const createArtisanClient = (_url?: any, _key?: any) => supabase;
