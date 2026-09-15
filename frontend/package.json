@@ -64,6 +64,9 @@
     "zod": "^4.6.2",
     "zustand": "^5.0.15"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
   "devDependencies": {
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
