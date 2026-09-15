@@ -21,9 +21,21 @@ export async function processInvoiceOCR(fileBuffer: Buffer, mimeType: string) {
     // Extraction native immédiate si c'est un PDF (100% souverain, zéro quota, instantané)
     if (mimeType === 'application/pdf') {
         try {
-            const pdfParse = require('pdf-parse');
-            const parsed = await pdfParse(fileBuffer);
-            localPdfText = parsed.text || '';
+            const pdfModule = require('pdf-parse');
+            if (typeof pdfModule === 'function') {
+                // pdf-parse v1
+                const parsed = await pdfModule(fileBuffer);
+                localPdfText = parsed.text || '';
+            } else if (pdfModule.PDFParse) {
+                // pdf-parse v2
+                const parser = new pdfModule.PDFParse({ data: fileBuffer });
+                const res = await parser.getText();
+                localPdfText = res?.text || '';
+                if (typeof parser.destroy === 'function') await parser.destroy();
+            } else if (typeof pdfModule.default === 'function') {
+                const parsed = await pdfModule.default(fileBuffer);
+                localPdfText = parsed.text || '';
+            }
             console.log('[OCR] Extraction native PDF réussie, caractères:', localPdfText.length);
         } catch (pdfErr) {
             console.warn('[OCR] Extraction native PDF:', pdfErr);
