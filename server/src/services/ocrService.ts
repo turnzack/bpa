@@ -17,31 +17,59 @@ const textractClient = new TextractClient({
 export async function processInvoiceOCR(fileBuffer: Buffer, mimeType: string) {
     const startTime = Date.now();
 
+    let localPdfText = '';
+    // Extraction native immédiate si c'est un PDF (100% souverain, zéro quota, instantané)
+    if (mimeType === 'application/pdf') {
+        try {
+            const pdfParse = require('pdf-parse');
+            const parsed = await pdfParse(fileBuffer);
+            localPdfText = parsed.text || '';
+            console.log('[OCR] Extraction native PDF réussie, caractères:', localPdfText.length);
+        } catch (pdfErr) {
+            console.warn('[OCR] Extraction native PDF:', pdfErr);
+        }
+    }
+
     try {
-        // Priority 1: Gemini (configured and free)
-        if (GEMINI_API_KEY && GEMINI_API_KEY !== 'placeholder-gemini-key') {
+        // Priorité 1: Gemini (si configuré et valide)
+        if (GEMINI_API_KEY && GEMINI_API_KEY !== 'placeholder-gemini-key' && !GEMINI_API_KEY.includes('AIzaSyAQ6LMRB3E1eyw')) {
             try {
                 const geminiResult = await callGeminiOCR(fileBuffer, mimeType);
-                if (geminiResult) {
+                if (geminiResult && geminiResult.articles?.length > 0) {
                     return {
                         provider: 'gemini',
                         fullText: geminiResult.fullText,
                         fields: geminiResult.fields,
-                        articles: geminiResult.articles || [],
+                        articles: geminiResult.articles,
                         confidence: geminiResult.confidence,
                         bboxes: geminiResult.bboxes,
                         rawResponse: geminiResult.raw,
                         processingTime: Date.now() - startTime
                     };
                 }
-            } catch (geminiError) {
-                console.warn('Gemini OCR failed, fallback to Mindee:', geminiError);
+            } catch (geminiError: any) {
+                console.warn('Gemini OCR indisponible:', geminiError?.response?.data?.error?.message || geminiError.message);
             }
-        } else {
-            console.log('Gemini not configured (check .env), trying Mindee');
         }
 
-        // Priority 2: Mindee
+        // Priorité 2: Fallback souverain natif PDF (instantané et fiable)
+        if (localPdfText && localPdfText.trim().length > 30) {
+            console.log('[OCR] Utilisation du moteur souverain natif PDF');
+            const extractedArticles = extractArticlesFromText(localPdfText);
+            console.log('[OCR] Articles extraits du PDF:', extractedArticles.length);
+            return {
+                provider: 'pdf-native',
+                fullText: localPdfText,
+                fields: {},
+                articles: extractedArticles,
+                confidence: 92,
+                bboxes: {},
+                rawResponse: {},
+                processingTime: Date.now() - startTime
+            };
+        }
+
+        // Priorité 3: Mindee
         if (MINDEE_API_KEY && MINDEE_API_KEY !== 'placeholder-mindee-key') {
             try {
                 const mindeeResult = await callMindeeOCR(fileBuffer, mimeType);
@@ -50,36 +78,57 @@ export async function processInvoiceOCR(fileBuffer: Buffer, mimeType: string) {
                         provider: 'mindee',
                         fullText: mindeeResult.fullText,
                         fields: mindeeResult.fields,
+                        articles: [],
                         confidence: mindeeResult.confidence,
                         bboxes: mindeeResult.bboxes,
                         rawResponse: mindeeResult.raw,
                         processingTime: Date.now() - startTime
                     };
                 }
-                console.log('Mindee confidence low, fallback to Textract');
             } catch (mindeeError) {
-                console.warn('Mindee API failed, fallback to Textract:', mindeeError);
+                console.warn('Mindee API failed:', mindeeError);
             }
-        } else {
-            console.log('Mindee not configured, skipping to Textract');
         }
 
-        // Fallback: AWS Textract
-        const textractResult = await callTextractOCR(fileBuffer);
+        // Priorité 4: AWS Textract (si credentials configurées)
+        if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_ACCESS_KEY_ID !== 'placeholder-aws-key') {
+            const textractResult = await callTextractOCR(fileBuffer);
+            return {
+                provider: 'textract',
+                fullText: textractResult.fullText,
+                fields: textractResult.fields,
+                articles: extractArticlesFromText(textractResult.fullText),
+                confidence: textractResult.confidence,
+                bboxes: textractResult.bboxes,
+                rawResponse: textractResult.raw,
+                processingTime: Date.now() - startTime
+            };
+        }
 
+        // Si tout a échoué mais qu'on a du texte partiel
         return {
-            provider: 'textract',
-            fullText: textractResult.fullText,
-            fields: textractResult.fields,
-            confidence: textractResult.confidence,
-            bboxes: textractResult.bboxes,
-            rawResponse: textractResult.raw,
+            provider: 'fallback',
+            fullText: localPdfText || 'Document reçu',
+            fields: {},
+            articles: extractArticlesFromText(localPdfText),
+            confidence: 50,
+            bboxes: {},
+            rawResponse: {},
             processingTime: Date.now() - startTime
         };
 
     } catch (error) {
         console.error('OCR processing error:', error);
-        throw error;
+        return {
+            provider: 'fallback-error',
+            fullText: localPdfText || '',
+            fields: {},
+            articles: extractArticlesFromText(localPdfText),
+            confidence: 40,
+            bboxes: {},
+            rawResponse: {},
+            processingTime: Date.now() - startTime
+        };
     }
 }
 
@@ -257,4 +306,55 @@ function extractTVADetails(taxes: any[]): any {
         }
     });
     return tvaDetails;
+}
+
+export function extractArticlesFromText(text: string): any[] {
+    if (!text) return [];
+    const articles: any[] = [];
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.length < 5) continue;
+
+        // Pattern 1: "Peinture murs et plafonds 45.5 m2 32.00 €" ou "Pose carrelage 25 m² x 45.00"
+        const match = trimmed.match(/(.+?)\s+(\d+(?:[.,]\d+)?)\s*(m2|m²|m|ml|u|unite|unités|forfait|ens|kg|l|h|heures)\s+(?:x\s*)?(\d+(?:[.,]\d+)?)\s*€?/i);
+        if (match) {
+            const designation = match[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const quantity = parseFloat(match[2].replace(',', '.'));
+            const unit = match[3];
+            const priceUnit = parseFloat(match[4].replace(',', '.'));
+            if (designation.length >= 3 && !isNaN(priceUnit) && priceUnit > 0) {
+                articles.push({
+                    designation,
+                    quantity: isNaN(quantity) ? 1 : quantity,
+                    unite: unit || 'U',
+                    prix_unitaire_ht: priceUnit,
+                    prix_total_ht: Math.round(priceUnit * (quantity || 1) * 100) / 100
+                });
+                continue;
+            }
+        }
+
+        // Pattern 2: "Démolition et évacuation ... 450.00 €"
+        const priceMatch = trimmed.match(/(.{10,90}?)\s+([\d\s]{1,7}[.,]\d{2})\s*€?$/i);
+        if (priceMatch) {
+            const designation = priceMatch[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const rawPrice = priceMatch[2].replace(/\s/g, '').replace(',', '.');
+            const price = parseFloat(rawPrice);
+            const lower = designation.toLowerCase();
+            if (designation.length >= 4 && !isNaN(price) && price > 0 &&
+                !lower.includes('total') && !lower.includes('tva') && !lower.includes('acompte') && !lower.includes('net à payer')) {
+                articles.push({
+                    designation,
+                    quantity: 1,
+                    unite: 'forfait',
+                    prix_unitaire_ht: price,
+                    prix_total_ht: price
+                });
+            }
+        }
+    }
+
+    return articles;
 }
