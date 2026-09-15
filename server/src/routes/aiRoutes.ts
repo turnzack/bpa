@@ -67,16 +67,14 @@ router.post('/chat', authenticateUser, upload.single('file'), async (req: any, r
         const file = req.file;
         const user = req.user;
 
-        // Check payment for scans
+        // Vérification de paiement pour le scan (Pay-Per-Scan 1.99€)
+        let isScanPaid = false;
         if (file && scanId && user?.id) {
-            const paymentCheck = await scanPaymentService.checkScanPayment(scanId, user.id);
-            if (!paymentCheck.paid) {
-                return res.status(402).json({
-                    error: 'Payment required',
-                    message: 'Veuillez effectuer le paiement de 1.99€ pour analyser ce document.',
-                    scanId: scanId,
-                    requiresPayment: true
-                });
+            try {
+                const paymentCheck = await scanPaymentService.checkScanPayment(scanId, user.id);
+                isScanPaid = Boolean(paymentCheck?.paid);
+            } catch (payErr) {
+                console.warn('[AI Chat] Erreur vérification paiement scan:', payErr);
             }
         }
 
