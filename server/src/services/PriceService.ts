@@ -44,6 +44,7 @@ export class PriceService {
 
         const results: PriceArticle[] = [];
         this.recursiveSearch(trade, keywords, results);
+        results.sort((a: any, b: any) => (b._score || 0) - (a._score || 0));
         return results;
     }
 
@@ -64,8 +65,10 @@ export class PriceService {
             allResults.push(...results);
         }
         
-        // Trier par pertinence (prix défini = article plus spécifique)
-        allResults.sort((a, b) => {
+        // Trier par score de pertinence décroissant
+        allResults.sort((a: any, b: any) => {
+            const scoreDiff = (b._score || 0) - (a._score || 0);
+            if (scoreDiff !== 0) return scoreDiff;
             const aHasPrice = a.prix ? 1 : 0;
             const bHasPrice = b.prix ? 1 : 0;
             return bHasPrice - aHasPrice;
@@ -111,8 +114,10 @@ export class PriceService {
     private recursiveSearch(node: PriceArticle, keywords: string[], results: PriceArticle[]) {
         if (node.type === 'ARTICLE' && node.nom) {
             const nameLower = node.nom.toLowerCase();
-            const matchesAll = keywords.every(kw => nameLower.includes(kw.toLowerCase()));
-            if (matchesAll) {
+            const matchCount = keywords.filter(kw => nameLower.includes(kw.toLowerCase())).length;
+            if (matchCount > 0) {
+                // Associer le score au nœud temporairement pour le tri
+                (node as any)._score = matchCount + (node.prix ? 2 : 0);
                 results.push(node);
             }
         }
