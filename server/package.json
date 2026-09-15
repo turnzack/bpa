@@ -25,7 +25,8 @@
     "pg": "^8.11.3",
     "piexifjs": "^1.0.6",
     "stripe": "^20.4.1",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
