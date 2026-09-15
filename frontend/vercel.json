@@ -1,6 +1,6 @@
 {
   "regions": ["cdg1"],
-  "buildCommand": "npm run build",
+  "buildCommand": "npx --yes vite build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "headers": [
