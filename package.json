@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "pnpm --filter v0-interface-versel build",
     "dev:all": "pnpm -r --parallel dev",
     "install:all": "pnpm install",
     "start:server": "pnpm --filter server dev",
