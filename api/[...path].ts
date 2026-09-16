@@ -11,7 +11,7 @@ export default async function handler(request: Request) {
     const response = await fetch(targetUrl, {
       method: request.method,
       headers: forwardHeaders,
-      body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+      body: request.method !== 'GET' && request.method !== 'HEAD' ? (request.body as any) : undefined,
       redirect: 'follow',
     });
 
@@ -20,7 +20,7 @@ export default async function handler(request: Request) {
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
-    return new Response(response.body, {
+    return new Response(response.body as any, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
