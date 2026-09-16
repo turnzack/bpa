@@ -131,6 +131,24 @@ export async function initDb() {
       );
     `;
 
+    // 8. Table quotes (Devis scannés et expertises TCE isolés par utilisateur)
+    await sql`
+      CREATE TABLE IF NOT EXISTS quotes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT NOT NULL,
+        project_name TEXT,
+        client_nom TEXT,
+        amount TEXT,
+        total_ht NUMERIC(10,2) DEFAULT 0,
+        score INTEGER DEFAULT 80,
+        status TEXT DEFAULT 'Analysé',
+        report_json JSONB,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_quotes_user_id ON quotes(user_id);`;
+
     console.log('✅ Base de données Neon connectée et toutes les tables vérifiées.');
   } catch (err) {
     console.error('❌ Erreur initialisation tables Neon:', err);

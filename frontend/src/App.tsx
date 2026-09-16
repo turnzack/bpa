@@ -182,73 +182,167 @@ export default function App({ user, onLogout }: AppProps) {
   const [clientSearch, setClientSearch] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Données persistantes réelles de l'utilisateur
+  // Clés de stockage persistantes STRICTEMENT isolées par compte utilisateur
+  const userKey = user?.userId ? `bpa_user_invoices_${user.userId}` : `bpa_user_invoices_${user?.email || 'guest'}`;
+  const userProjKey = user?.userId ? `bpa_user_projects_${user.userId}` : `bpa_user_projects_${user?.email || 'guest'}`;
+  const userClientKey = user?.userId ? `bpa_user_clients_${user.userId}` : `bpa_user_clients_${user?.email || 'guest'}`;
+
+  // Données persistantes réelles de l'utilisateur (isolées par compte)
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     try {
-      const saved = localStorage.getItem("bpa_user_invoices");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Si le devis Grenoble ou Duplex manque, s'assurer que les devis réels sont inclus
-          const hasGrenoble = parsed.some((p: any) => /grenoble|fin\s*chantier/i.test((p.project || '') + ' ' + (p.client || '')));
-          if (!hasGrenoble) {
-            return [DEFAULT_REAL_INVOICES[0], ...parsed];
-          }
-          return parsed;
+      if (user?.userId || user?.email) {
+        const k = user?.userId ? `bpa_user_invoices_${user.userId}` : `bpa_user_invoices_${user?.email}`;
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
         }
       }
-    } catch (e) {
-      // Ignorer
-    }
-    return DEFAULT_REAL_INVOICES;
+    } catch (e) {}
+    return [];
   });
 
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
-      const saved = localStorage.getItem("bpa_user_projects");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasGrenoble = parsed.some((p: any) => /grenoble/i.test(p.name || ''));
-          if (!hasGrenoble) {
-            return DEFAULT_REAL_PROJECTS;
-          }
-          return parsed;
+      if (user?.userId || user?.email) {
+        const k = user?.userId ? `bpa_user_projects_${user.userId}` : `bpa_user_projects_${user?.email}`;
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
         }
       }
-    } catch (e) {
-      // Ignorer
-    }
-    return DEFAULT_REAL_PROJECTS;
+    } catch (e) {}
+    return [];
   });
 
   const [clients, setClients] = useState<Client[]>(() => {
     try {
-      const saved = localStorage.getItem("bpa_user_clients");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (user?.userId || user?.email) {
+        const k = user?.userId ? `bpa_user_clients_${user.userId}` : `bpa_user_clients_${user?.email}`;
+        const saved = localStorage.getItem(k);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
       }
-    } catch (e) {
-      // Ignorer
-    }
-    return DEFAULT_REAL_CLIENTS;
+    } catch (e) {}
+    return [];
   });
+
+  // Synchronisation des devis depuis Neon PostgreSQL pour l'utilisateur connecté
+  useEffect(() => {
+    if (!user) {
+      setInvoices([]);
+      setProjects([]);
+      setClients([]);
+      return;
+    }
+
+    const token = localStorage.getItem("kirov5_jwt_token");
+    if (!token) return;
+
+    fetch(getApiUrl("/api/invoices/my-quotes"), {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then((neonQuotes: any[]) => {
+        if (Array.isArray(neonQuotes)) {
+          setInvoices(neonQuotes);
+          try { localStorage.setItem(userKey, JSON.stringify(neonQuotes)); } catch (e) {}
+
+          const derivedProjects: Project[] = neonQuotes.map((q: any, idx: number) => ({
+            id: idx + 1,
+            name: q.project || "Dossier TCE",
+            docs: 1,
+            lastSync: q.date || "Récemment",
+            color: (q.score || 80) >= 80 ? "#22c55e" : "#f59e0b"
+          }));
+          setProjects(derivedProjects);
+          try { localStorage.setItem(userProjKey, JSON.stringify(derivedProjects)); } catch (e) {}
+
+          // Dériver les clients
+          const clientMap = new Map<string, Client>();
+          neonQuotes.forEach((q: any, idx: number) => {
+            const cName = q.client || "Client";
+            if (!clientMap.has(cName)) {
+              clientMap.set(cName, {
+                id: idx + 1,
+                name: cName,
+                company: q.project || "Chantier TCE",
+                email: user.email,
+                status: "Actif",
+                total: q.amount || `${q.total_ht || 0} € HT`
+              });
+            }
+          });
+          const derivedClients = Array.from(clientMap.values());
+          setClients(derivedClients);
+          try { localStorage.setItem(userClientKey, JSON.stringify(derivedClients)); } catch (e) {}
+        }
+      })
+      .catch(err => console.warn("[Neon Sync] Erreur:", err));
+  }, [user?.userId, user?.email]);
 
   // Callback appelé dès qu'un nouveau devis est scanné
   const handleInvoiceAnalyzed = (newInv: Invoice, newProj?: Project) => {
     setInvoices(prev => {
       const updated = [newInv, ...prev.filter(i => i.id !== newInv.id)];
-      try { localStorage.setItem("bpa_user_invoices", JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem(userKey, JSON.stringify(updated)); } catch (e) {}
       return updated;
     });
 
     if (newProj) {
       setProjects(prev => {
         const updated = [newProj, ...prev.filter(p => p.name !== newProj.name)];
-        try { localStorage.setItem("bpa_user_projects", JSON.stringify(updated)); } catch (e) {}
+        try { localStorage.setItem(userProjKey, JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
+    }
+
+    setClients(prev => {
+      const cName = newInv.client || "Client";
+      const exists = prev.some(c => c.name === cName);
+      if (!exists) {
+        const updated = [{
+          id: Date.now(),
+          name: cName,
+          company: newInv.project,
+          email: user?.email || "client@tce.fr",
+          status: "Actif",
+          total: newInv.amount
+        }, ...prev];
+        try { localStorage.setItem(userClientKey, JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      }
+      return prev;
+    });
+
+    // Enregistrer durablement le devis et son rapport dans la base de données Neon PostgreSQL de l'utilisateur
+    const token = localStorage.getItem("kirov5_jwt_token");
+    if (token) {
+      fetch(getApiUrl("/api/invoices/my-quotes"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          project: newInv.project,
+          client: newInv.client,
+          amount: newInv.amount,
+          score: newInv.score,
+          status: newInv.status,
+          report: newInv.report
+        })
+      })
+      .then(res => res.json())
+      .then(saved => {
+        if (saved && saved.id) {
+          setInvoices(prev => prev.map(inv => inv.id === newInv.id ? { ...inv, id: saved.id } : inv));
+        }
+      })
+      .catch(err => console.warn("[Neon PostgreSQL Save] Erreur sauvegarde:", err));
     }
   };
 
@@ -526,64 +620,91 @@ function DashboardView({ projects, invoices, onScan, onSelectInvoice }: { projec
         {/* Projets réels de l'utilisateur */}
         <div style={{ background: colors.card, borderRadius: "16px", padding: "24px", border: `1px solid ${colors.border}` }} className="card">
           <h3 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: 700 }}>📁 Projets actifs (cliquer pour voir)</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {projects.map(p => (
-              <div key={p.id} onClick={() => handleProjectClick(p)} style={{
-                display: "flex", alignItems: "center", gap: "12px",
-                padding: "14px 16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)",
-                cursor: "pointer", transition: "all 0.15s ease", border: "1px solid rgba(255,255,255,0.04)"
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "rgba(99,102,241,0.08)";
-                e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)";
-              }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: p.color, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 600 }}>{p.name}</div>
-                  <div style={{ fontSize: "11px", color: colors.textMuted }}>{p.docs} document{p.docs > 1 ? 's' : ''} · {p.lastSync}</div>
-                </div>
-                <span style={{ fontSize: "14px", color: colors.accent, fontWeight: 700 }}>Rapport ›</span>
+          {projects.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: "12px", border: "1px dashed rgba(255,255,255,0.08)" }}>
+              <div style={{ fontSize: "32px", marginBottom: "10px" }}>📁</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px" }}>Aucun projet en cours</div>
+              <div style={{ fontSize: "12px", color: colors.textMuted }}>
+                Chaque devis ou facture analysé créera automatiquement son dossier de chantier dédié avec ses indicateurs de conformité.
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {projects.map(p => (
+                <div key={p.id} onClick={() => handleProjectClick(p)} style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "14px 16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)",
+                  cursor: "pointer", transition: "all 0.15s ease", border: "1px solid rgba(255,255,255,0.04)"
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(99,102,241,0.08)";
+                  e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)";
+                }}>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "14px", fontWeight: 600 }}>{p.name}</div>
+                    <div style={{ fontSize: "11px", color: colors.textMuted }}>{p.docs} document{p.docs > 1 ? 's' : ''} · {p.lastSync}</div>
+                  </div>
+                  <span style={{ fontSize: "14px", color: colors.accent, fontWeight: 700 }}>Rapport ›</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Derniers devis analysés réels */}
         <div style={{ background: colors.card, borderRadius: "16px", padding: "24px", border: `1px solid ${colors.border}` }} className="card">
           <h3 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: 700 }}>📋 Derniers devis analysés (cliquer pour le rapport)</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {invoices.slice(0, 6).map(inv => (
-              <div key={inv.id} onClick={() => onSelectInvoice(inv)} style={{
-                display: "flex", alignItems: "center", gap: "12px",
-                padding: "14px 16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)",
-                cursor: "pointer", transition: "all 0.15s ease", border: "1px solid rgba(255,255,255,0.04)"
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "rgba(99,102,241,0.08)";
-                e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)";
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: colors.text }}>{inv.id} — {inv.client}</div>
-                  <div style={{ fontSize: "12px", color: colors.textMuted, marginTop: "2px" }}>{inv.project} · {inv.date}</div>
-                </div>
-                <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div>
-                    <StatusBadge status={inv.status} />
-                    <div style={{ fontSize: "13px", fontWeight: 800, marginTop: "2px", color: colors.text }}>{inv.amount}</div>
-                  </div>
-                  <span style={{ fontSize: "18px", color: colors.accent, fontWeight: 700 }}>›</span>
-                </div>
+          {invoices.length === 0 ? (
+            <div style={{ padding: "30px 20px", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: "12px", border: "1px dashed rgba(255,255,255,0.08)" }}>
+              <div style={{ fontSize: "32px", marginBottom: "10px" }}>📄</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "6px" }}>Aucun devis analysé sur votre compte</div>
+              <div style={{ fontSize: "12px", color: colors.textMuted, maxWidth: "340px", margin: "0 auto 16px" }}>
+                Vos devis BTP TCE scannés et leurs rapports d'expertise officiels certifiés apparaîtront exclusivement ici.
               </div>
-            ))}
-          </div>
+              <button onClick={onScan} style={{
+                padding: "10px 18px", borderRadius: "10px", border: "none",
+                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer"
+              }}>
+                Scanner mon premier devis
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {invoices.slice(0, 6).map(inv => (
+                <div key={inv.id} onClick={() => onSelectInvoice(inv)} style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "14px 16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)",
+                  cursor: "pointer", transition: "all 0.15s ease", border: "1px solid rgba(255,255,255,0.04)"
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(99,102,241,0.08)";
+                  e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)";
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: colors.text }}>{inv.id} — {inv.client}</div>
+                    <div style={{ fontSize: "12px", color: colors.textMuted, marginTop: "2px" }}>{inv.project} · {inv.date}</div>
+                  </div>
+                  <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div>
+                      <StatusBadge status={inv.status} />
+                      <div style={{ fontSize: "13px", fontWeight: 800, marginTop: "2px", color: colors.text }}>{inv.amount}</div>
+                    </div>
+                    <span style={{ fontSize: "18px", color: colors.accent, fontWeight: 700 }}>›</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -793,147 +914,149 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
 
   return (
     <div style={{ padding: "32px", animation: "fadeIn 0.3s ease" }}>
-      <h1 style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: 800 }}>📄 Scanner un devis TCE</h1>
-      <p style={{ margin: "0 0 28px", color: colors.textMuted, fontSize: "14px" }}>Importez un devis PDF ou image pour une analyse IA instantanée avec rapport certifié</p>
+      <div className="no-print">
+        <h1 style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: 800 }}>📄 Scanner un devis TCE</h1>
+        <p style={{ margin: "0 0 28px", color: colors.textMuted, fontSize: "14px" }}>Importez un devis PDF ou image pour une analyse IA instantanée avec rapport certifié</p>
 
-      {/* Upload zone */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onClick={() => fileRef.current?.click()}
-        style={{
-          border: `2px dashed ${dragOver ? colors.accent : colors.border}`,
-          borderRadius: "20px", padding: "50px 40px",
-          textAlign: "center", cursor: "pointer",
-          background: dragOver ? "rgba(99,102,241,0.05)" : colors.card,
-          transition: "all 0.2s ease", marginBottom: "20px",
-        }}
-      >
-        <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-        <div style={{ fontSize: "44px", marginBottom: "12px" }}>{file ? "✅" : "📂"}</div>
-        {file ? (
-          <>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: colors.accent }}>{file.name}</div>
-            <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>{(file.size / 1024).toFixed(0)} Ko · Prêt à analyser</div>
-          </>
-        ) : (
-          <>
-            <div style={{ fontSize: "16px", fontWeight: 700 }}>Glissez votre devis ici</div>
-            <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>PDF, JPG, PNG — Détection automatique des prestations</div>
-          </>
+        {/* Upload zone */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            border: `2px dashed ${dragOver ? colors.accent : colors.border}`,
+            borderRadius: "20px", padding: "50px 40px",
+            textAlign: "center", cursor: "pointer",
+            background: dragOver ? "rgba(99,102,241,0.05)" : colors.card,
+            transition: "all 0.2s ease", marginBottom: "20px",
+          }}
+        >
+          <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+          <div style={{ fontSize: "44px", marginBottom: "12px" }}>{file ? "✅" : "📂"}</div>
+          {file ? (
+            <>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: colors.accent }}>{file.name}</div>
+              <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>{(file.size / 1024).toFixed(0)} Ko · Prêt à analyser</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: "16px", fontWeight: 700 }}>Glissez votre devis ici</div>
+              <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px" }}>PDF, JPG, PNG — Détection automatique des prestations</div>
+            </>
+          )}
+        </div>
+
+        {/* Bouton analyse */}
+        {file && !result && (
+          <button onClick={handleAnalyse} disabled={loading} style={{
+            width: "100%", padding: "16px", borderRadius: "14px", border: "none",
+            background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #3b82f6, #6366f1)",
+            color: "white", fontSize: "16px", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.4)",
+            marginBottom: "20px",
+          }}>
+            {loading ? (
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                <span style={{ display: "inline-block", width: "16px", height: "16px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                Lecture & Analyse IA du devis en cours...
+              </span>
+            ) : "🔍 Lancer l'analyse IA du devis"}
+          </button>
+        )}
+
+        {error && (
+          <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "16px", color: "#fca5a5", marginBottom: "20px" }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* 🔒 PORTAIL PAY-PER-SCAN STRIPE & DÉBLOCAGE NEON */}
+        {result && !isPaid && (
+          <div style={{
+            background: "linear-gradient(135deg, rgba(22,22,31,0.95), rgba(30,27,75,0.7))",
+            border: `1px solid ${colors.accent}`,
+            borderRadius: "18px",
+            padding: "28px",
+            marginBottom: "24px",
+            boxShadow: "0 10px 30px rgba(99,102,241,0.2)",
+            animation: "fadeIn 0.3s ease"
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
+              <div style={{
+                width: "48px", height: "48px", borderRadius: "12px",
+                background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", flexShrink: 0
+              }}>
+                🔒
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "20px", fontWeight: 800, color: colors.text }}>
+                  Rapport d'Audit & Expertise BTP Prêt — Déblocage Requis
+                </div>
+                <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px", lineHeight: 1.5 }}>
+                  L'intelligence artificielle BPA a analysé votre document <strong style={{ color: colors.text }}>{file?.name}</strong>. Pour délivrer et afficher le rapport d'expertise officiel complet certifié, veuillez valider le paiement à l'usage de <strong>1,99 €</strong>.
+                </div>
+              </div>
+            </div>
+
+            {/* Points inclus */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px",
+              background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "12px",
+              border: `1px solid ${colors.border}`, marginBottom: "20px", fontSize: "13px"
+            }}>
+              <div>✅ <strong>Comparatif prix</strong> article par article vs barèmes BTP</div>
+              <div>✅ <strong>Calcul des écarts</strong> et surcoûts chiffrés en euros</div>
+              <div>✅ <strong>Audit réglementaire</strong> NF DTU 59.1 / 25.41 & Décennale</div>
+              <div>✅ <strong>Vérification TVA 10%</strong> et convention sinistre IRSI</div>
+              <div>✅ <strong>Leviers de négociation</strong> prêts à l'emploi</div>
+              <div>✅ <strong>Certificat officiel</strong> exportable et imprimable</div>
+            </div>
+
+            {paymentNotice && (
+              <div style={{ padding: "12px 16px", borderRadius: "10px", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", color: "#c7d2fe", fontSize: "13px", marginBottom: "16px" }}>
+                {paymentNotice}
+              </div>
+            )}
+
+            {/* Boutons d'action */}
+            <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={handlePayWithStripe}
+                disabled={payingStripe}
+                style={{
+                  padding: "14px 26px", borderRadius: "12px", border: "none",
+                  background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                  color: "white", fontSize: "15px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
+                  display: "inline-flex", alignItems: "center", gap: "10px",
+                  boxShadow: "0 4px 20px rgba(99,102,241,0.4)"
+                }}
+              >
+                <span>💳</span> {payingStripe ? "Connexion Stripe..." : "Payer 1,99 € via Stripe & Obtenir le rapport"}
+              </button>
+
+              <button
+                onClick={handleSimulatePayment}
+                disabled={payingStripe}
+                style={{
+                  padding: "14px 22px", borderRadius: "12px",
+                  background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.4)",
+                  color: colors.success, fontSize: "14px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
+                  display: "inline-flex", alignItems: "center", gap: "8px"
+                }}
+              >
+                <span>⚡</span> Débloquer immédiatement (Validation Neon)
+              </button>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Bouton analyse */}
-      {file && !result && (
-        <button onClick={handleAnalyse} disabled={loading} style={{
-          width: "100%", padding: "16px", borderRadius: "14px", border: "none",
-          background: loading ? "rgba(99,102,241,0.4)" : "linear-gradient(135deg, #3b82f6, #6366f1)",
-          color: "white", fontSize: "16px", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
-          boxShadow: loading ? "none" : "0 4px 20px rgba(99,102,241,0.4)",
-          marginBottom: "20px",
-        }}>
-          {loading ? (
-            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-              <span style={{ display: "inline-block", width: "16px", height: "16px", border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-              Lecture & Analyse IA du devis en cours...
-            </span>
-          ) : "🔍 Lancer l'analyse IA du devis"}
-        </button>
-      )}
-
-      {error && (
-        <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "16px", color: "#fca5a5", marginBottom: "20px" }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {/* 🔒 PORTAIL PAY-PER-SCAN STRIPE & DÉBLOCAGE NEON */}
-      {result && !isPaid && (
-        <div style={{
-          background: "linear-gradient(135deg, rgba(22,22,31,0.95), rgba(30,27,75,0.7))",
-          border: `1px solid ${colors.accent}`,
-          borderRadius: "18px",
-          padding: "28px",
-          marginBottom: "24px",
-          boxShadow: "0 10px 30px rgba(99,102,241,0.2)",
-          animation: "fadeIn 0.3s ease"
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
-            <div style={{
-              width: "48px", height: "48px", borderRadius: "12px",
-              background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.4)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", flexShrink: 0
-            }}>
-              🔒
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "20px", fontWeight: 800, color: colors.text }}>
-                Rapport d'Audit & Expertise BTP Prêt — Déblocage Requis
-              </div>
-              <div style={{ fontSize: "13px", color: colors.textMuted, marginTop: "4px", lineHeight: 1.5 }}>
-                L'intelligence artificielle BPA a analysé votre document <strong style={{ color: colors.text }}>{file?.name}</strong>. Pour délivrer et afficher le rapport d'expertise officiel complet certifié, veuillez valider le paiement à l'usage de <strong>1,99 €</strong>.
-              </div>
-            </div>
-          </div>
-
-          {/* Points inclus */}
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px",
-            background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "12px",
-            border: `1px solid ${colors.border}`, marginBottom: "20px", fontSize: "13px"
-          }}>
-            <div>✅ <strong>Comparatif prix</strong> article par article vs barèmes BTP</div>
-            <div>✅ <strong>Calcul des écarts</strong> et surcoûts chiffrés en euros</div>
-            <div>✅ <strong>Audit réglementaire</strong> NF DTU 59.1 / 25.41 & Décennale</div>
-            <div>✅ <strong>Vérification TVA 10%</strong> et convention sinistre IRSI</div>
-            <div>✅ <strong>Leviers de négociation</strong> prêts à l'emploi</div>
-            <div>✅ <strong>Certificat officiel</strong> exportable et imprimable</div>
-          </div>
-
-          {paymentNotice && (
-            <div style={{ padding: "12px 16px", borderRadius: "10px", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", color: "#c7d2fe", fontSize: "13px", marginBottom: "16px" }}>
-              {paymentNotice}
-            </div>
-          )}
-
-          {/* Boutons d'action */}
-          <div style={{ display: "flex", gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={handlePayWithStripe}
-              disabled={payingStripe}
-              style={{
-                padding: "14px 26px", borderRadius: "12px", border: "none",
-                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                color: "white", fontSize: "15px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
-                display: "inline-flex", alignItems: "center", gap: "10px",
-                boxShadow: "0 4px 20px rgba(99,102,241,0.4)"
-              }}
-            >
-              <span>💳</span> {payingStripe ? "Connexion Stripe..." : "Payer 1,99 € via Stripe & Obtenir le rapport"}
-            </button>
-
-            <button
-              onClick={handleSimulatePayment}
-              disabled={payingStripe}
-              style={{
-                padding: "14px 22px", borderRadius: "12px",
-                background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.4)",
-                color: colors.success, fontSize: "14px", fontWeight: 700, cursor: payingStripe ? "not-allowed" : "pointer",
-                display: "inline-flex", alignItems: "center", gap: "8px"
-              }}
-            >
-              <span>⚡</span> Débloquer immédiatement (Validation Neon)
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ✅ RAPPORT DÉBLOQUÉ ET DÉLIVRÉ APRÈS PAIEMENT */}
       {result && isPaid && (
         <>
-          <div style={{
+          <div className="no-print" style={{
             background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.35)",
             borderRadius: "14px", padding: "16px 20px", marginBottom: "20px",
             display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px"
@@ -976,7 +1099,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
 
           {/* Inspecteur de texte extrait du PDF */}
           {rawText && (
-            <div style={{ marginBottom: "20px" }}>
+            <div className="no-print" style={{ marginBottom: "20px" }}>
               <button
                 onClick={() => setShowRawText(!showRawText)}
                 style={{
@@ -1000,13 +1123,47 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
             </div>
           )}
 
+          {/* En-tête officiel imprimé pour PDF A4 */}
+          <div className="print-only-header">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0f172a", paddingBottom: "14px", marginBottom: "16px" }}>
+              <div>
+                <div style={{ fontSize: "18pt", fontWeight: 900, color: "#1e1b4b" }}>
+                  🏗️ FactureScan BPA — Expertise BTP TCE
+                </div>
+                <div style={{ fontSize: "10pt", color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Certificat d'Audit Tarifaire Opposable · Barèmes CAPEB / FFB / IRSI
+                </div>
+                <div style={{ fontSize: "9pt", color: "#64748b", marginTop: "4px" }}>
+                  Dossier : <strong style={{ color: "#0f172a" }}>{file?.name || "Devis analysé"}</strong> · Utilisateur : <strong style={{ color: "#0f172a" }}>{user?.email || "Compte client BPA"}</strong>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "11pt", fontWeight: 800, color: "#0f172a" }}>
+                  RAPPORT D'EXPERTISE OFFICIEL
+                </div>
+                <div style={{ fontSize: "9pt", color: "#64748b", marginTop: "2px" }}>
+                  Certificat n° CERT-{scanId || '2026'}-BPA
+                </div>
+                <div style={{ fontSize: "9pt", color: "#64748b" }}>
+                  Date d'émission : {new Date().toLocaleDateString("fr-FR")}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <AnalyseResult data={result} />
+
+          {/* Pied de page officiel imprimé pour PDF A4 */}
+          <div className="print-only-footer">
+            Ce rapport officiel d'audit tarifaire est délivré par le tiers de confiance indépendant BPA FactureScan TCE.
+            Il est opposable auprès des maîtres d'ouvrage, entreprises du bâtiment et compagnies d'assurance.
+          </div>
         </>
       )}
 
       {/* Info premium si pas de résultat */}
       {!file && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "8px" }}>
+        <div className="no-print" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "8px" }}>
           {[
             { icon: "🔍", title: "Analyse article par article", desc: "Chaque ligne de votre devis est comparée aux prix du marché TCE" },
             { icon: "⚠️", title: "Détection d'anomalies", desc: "Les surcoûts et anomalies sont automatiquement signalés" },
@@ -1323,6 +1480,34 @@ function InvoiceReportDetailView({ invoice, onBack }: { invoice: Invoice; onBack
         </div>
       </div>
 
+      {/* En-tête officiel imprimé pour PDF A4 */}
+      <div className="print-only-header">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #0f172a", paddingBottom: "14px", marginBottom: "16px" }}>
+          <div>
+            <div style={{ fontSize: "18pt", fontWeight: 900, color: "#1e1b4b" }}>
+              🏗️ FactureScan BPA — Expertise BTP TCE
+            </div>
+            <div style={{ fontSize: "10pt", color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              Certificat d'Audit Tarifaire Opposable · Barèmes CAPEB / FFB / IRSI
+            </div>
+            <div style={{ fontSize: "9pt", color: "#64748b", marginTop: "4px" }}>
+              Dossier : <strong style={{ color: "#0f172a" }}>{invoice.project}</strong> · Client : <strong style={{ color: "#0f172a" }}>{invoice.client}</strong>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "11pt", fontWeight: 800, color: "#0f172a" }}>
+              RAPPORT D'EXPERTISE OFFICIEL
+            </div>
+            <div style={{ fontSize: "9pt", color: "#64748b", marginTop: "2px" }}>
+              Certificat n° CERT-{invoice.id.replace(/[^0-9]/g, '') || '2026'}-BPA
+            </div>
+            <div style={{ fontSize: "9pt", color: "#64748b" }}>
+              Date d'analyse : {invoice.date}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* En-tête officiel du devis analysé */}
       <div style={{
         background: colors.card, borderRadius: "16px", padding: "24px",
@@ -1350,6 +1535,12 @@ function InvoiceReportDetailView({ invoice, onBack }: { invoice: Invoice; onBack
 
       {/* Rapport d'audit complet */}
       <AnalyseResult data={reportData} />
+
+      {/* Pied de page officiel imprimé pour PDF A4 */}
+      <div className="print-only-footer">
+        Ce rapport officiel d'audit tarifaire est délivré par le tiers de confiance indépendant BPA FactureScan TCE.
+        Il est opposable auprès des maîtres d'ouvrage, entreprises du bâtiment et compagnies d'assurance.
+      </div>
     </div>
   );
 }
@@ -1395,28 +1586,38 @@ function ClientsView({ clients, search, setSearch }: { clients: Client[]; search
 
       {/* Table */}
       <div style={{ background: colors.card, borderRadius: "16px", border: `1px solid ${colors.border}`, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${colors.border}`, background: "rgba(255,255,255,0.02)" }}>
-              {["Nom", "Société", "Email", "Statut", "Total"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "14px 20px", color: colors.textMuted, fontWeight: 600, fontSize: "13px" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(c => (
-              <tr key={c.id} style={{ borderBottom: `1px solid rgba(255,255,255,0.04)`, cursor: "pointer", transition: "background 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                <td style={{ padding: "14px 20px", fontWeight: 600 }}>{c.name}</td>
-                <td style={{ padding: "14px 20px", color: colors.textMuted }}>{c.company}</td>
-                <td style={{ padding: "14px 20px", color: colors.tce }}>{c.email}</td>
-                <td style={{ padding: "14px 20px" }}><StatusBadge status={c.status as any} /></td>
-                <td style={{ padding: "14px 20px", fontWeight: 700 }}>{c.total}</td>
+        {filtered.length === 0 ? (
+          <div style={{ padding: "40px 20px", textAlign: "center", color: colors.textMuted }}>
+            <div style={{ fontSize: "36px", marginBottom: "10px" }}>👥</div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: colors.text, marginBottom: "6px" }}>Aucun client répertorié</div>
+            <div style={{ fontSize: "13px" }}>
+              Vos clients et maîtres d'ouvrage seront automatiquement créés et rattachés à partir de vos devis scannés.
+            </div>
+          </div>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${colors.border}`, background: "rgba(255,255,255,0.02)" }}>
+                {["Nom", "Société", "Email", "Statut", "Total"].map(h => (
+                  <th key={h} style={{ textAlign: "left", padding: "14px 20px", color: colors.textMuted, fontWeight: 600, fontSize: "13px" }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map(c => (
+                <tr key={c.id} style={{ borderBottom: `1px solid rgba(255,255,255,0.04)`, cursor: "pointer", transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <td style={{ padding: "14px 20px", fontWeight: 600 }}>{c.name}</td>
+                  <td style={{ padding: "14px 20px", color: colors.textMuted }}>{c.company}</td>
+                  <td style={{ padding: "14px 20px", color: colors.tce }}>{c.email}</td>
+                  <td style={{ padding: "14px 20px" }}><StatusBadge status={c.status as any} /></td>
+                  <td style={{ padding: "14px 20px", fontWeight: 700 }}>{c.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
@@ -1431,50 +1632,60 @@ function HistoryView({ invoices, onSelectInvoice }: { invoices: Invoice[]; onSel
       <h1 style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: 800 }}>📋 Historique des analyses</h1>
       <p style={{ margin: "0 0 24px", color: colors.textMuted, fontSize: "14px" }}>{invoices.length} devis analysés — Cliquer sur une ligne pour réafficher le rapport d'expertise</p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {invoices.map(inv => (
-          <div key={inv.id} 
-            onClick={() => onSelectInvoice && onSelectInvoice(inv)}
-            style={{
-              background: colors.card, borderRadius: "14px", padding: "20px",
-              border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", gap: "20px",
-              cursor: "pointer", transition: "all 0.15s ease",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = colors.accent + "88";
-              e.currentTarget.style.background = "rgba(99,102,241,0.05)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = colors.border;
-              e.currentTarget.style.background = colors.card;
-            }}>
-            {/* Score */}
-            <div style={{
-              width: "56px", height: "56px", borderRadius: "50%", flexShrink: 0,
-              background: `conic-gradient(${inv.score >= 80 ? colors.success : inv.score >= 50 ? colors.warning : colors.danger} ${inv.score * 3.6}deg, rgba(255,255,255,0.05) 0deg)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: colors.card, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 800 }}>
-                {inv.score > 0 ? `${inv.score}%` : "—"}
-              </div>
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "15px", fontWeight: 700 }}>{inv.id} — {inv.client}</div>
-              <div style={{ fontSize: "12px", color: colors.textMuted, marginTop: "2px" }}>{inv.project}</div>
-            </div>
-
-            <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "16px" }}>
-              <div>
-                <StatusBadge status={inv.status} />
-                <div style={{ fontSize: "13px", fontWeight: 700, marginTop: "4px" }}>{inv.amount}</div>
-                <div style={{ fontSize: "11px", color: colors.textMuted }}>{inv.date}</div>
-              </div>
-              <span style={{ fontSize: "18px", color: colors.accent, fontWeight: 700 }}>›</span>
-            </div>
+      {invoices.length === 0 ? (
+        <div style={{ padding: "50px 20px", textAlign: "center", background: colors.card, borderRadius: "16px", border: `1px solid ${colors.border}` }}>
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
+          <div style={{ fontSize: "16px", fontWeight: 700, marginBottom: "6px" }}>Votre historique est vide</div>
+          <div style={{ fontSize: "13px", color: colors.textMuted, maxWidth: "400px", margin: "0 auto" }}>
+            Tous les devis que vous scannerez avec votre compte seront archivés ici et consultables à tout moment.
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {invoices.map(inv => (
+            <div key={inv.id} 
+              onClick={() => onSelectInvoice && onSelectInvoice(inv)}
+              style={{
+                background: colors.card, borderRadius: "14px", padding: "20px",
+                border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", gap: "20px",
+                cursor: "pointer", transition: "all 0.15s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = colors.accent + "88";
+                e.currentTarget.style.background = "rgba(99,102,241,0.05)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = colors.border;
+                e.currentTarget.style.background = colors.card;
+              }}>
+              {/* Score */}
+              <div style={{
+                width: "56px", height: "56px", borderRadius: "50%", flexShrink: 0,
+                background: `conic-gradient(${inv.score >= 80 ? colors.success : inv.score >= 50 ? colors.warning : colors.danger} ${inv.score * 3.6}deg, rgba(255,255,255,0.05) 0deg)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: colors.card, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 800 }}>
+                  {inv.score > 0 ? `${inv.score}%` : "—"}
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "15px", fontWeight: 700 }}>{inv.id} — {inv.client}</div>
+                <div style={{ fontSize: "12px", color: colors.textMuted, marginTop: "2px" }}>{inv.project}</div>
+              </div>
+
+              <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "16px" }}>
+                <div>
+                  <StatusBadge status={inv.status} />
+                  <div style={{ fontSize: "13px", fontWeight: 700, marginTop: "4px" }}>{inv.amount}</div>
+                  <div style={{ fontSize: "11px", color: colors.textMuted }}>{inv.date}</div>
+                </div>
+                <span style={{ fontSize: "18px", color: colors.accent, fontWeight: 700 }}>›</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

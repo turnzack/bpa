@@ -29,3 +29,135 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ============================================================
+   STYLES D'IMPRESSION & EXPORT PDF PROFESSIONNEL CONFORME BTP
+   ============================================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm 12mm 12mm;
+  }
+
+  /* Masquer tous les éléments de navigation, sidebar, boutons, toasts */
+  aside,
+  nav,
+  button,
+  .no-print,
+  .print-hidden,
+  input,
+  header {
+    display: none !important;
+  }
+
+  /* Rétablir un fond blanc pur et un texte noir contrasté */
+  html, body, #root, main {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Cartes et conteneurs du rapport */
+  div[style*="background: rgb(21, 27, 35)"], 
+  div[style*="background: #151b23"], 
+  div[style*="background: rgba(255, 255, 255"],
+  .card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Rétablir la visibilité et le contraste des textes */
+  h1, h2, h3, h4, strong, span, p, div {
+    color: #0f172a !important;
+  }
+
+  /* Badges de statut et couleurs d'écarts */
+  .text-success, [style*="#22c55e"] {
+    color: #16a34a !important;
+  }
+  .text-warning, [style*="#f59e0b"] {
+    color: #d97706 !important;
+  }
+  .text-danger, [style*="#ef4444"] {
+    color: #dc2626 !important;
+  }
+  .text-accent, [style*="#6366f1"] {
+    color: #4f46e5 !important;
+  }
+
+  /* Tableaux d'analyse détaillés article par article */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+    break-inside: auto;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 10px !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    text-align: left !important;
+  }
+
+  td {
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    padding: 7px 10px !important;
+    font-size: 9.5pt !important;
+  }
+
+  /* En-tête officiel d'impression */
+  .print-only-header {
+    display: block !important;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #0f172a;
+  }
+
+  /* Pied de page officiel d'impression */
+  .print-only-footer {
+    display: block !important;
+    margin-top: 25px;
+    padding-top: 12px;
+    border-top: 1px solid #cbd5e1;
+    font-size: 8.5pt;
+    color: #64748b !important;
+    text-align: center;
+  }
+}
+
+/* En affichage normal à l'écran, masquer les bandeaux d'impression */
+@media screen {
+  .print-only-header,
+  .print-only-footer {
+    display: none !important;
+  }
+}

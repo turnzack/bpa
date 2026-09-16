@@ -263,4 +263,88 @@ router.post('/analyze', upload.single('file'), async (req: express.Request, res:
     }
 });
 
+// ============================================================
+// GESTION DES DEVIS SCANNÉS MULTI-UTILISATEURS (Neon PostgreSQL)
+// ============================================================
+
+// Récupérer STRICTEMENT les devis de l'utilisateur connecté
+router.get('/my-quotes', authenticateUser, async (req: AuthRequest, res: express.Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+
+        const quotes = await sql`
+            SELECT 
+                id, 
+                project_name as project, 
+                client_nom as client, 
+                amount, 
+                total_ht, 
+                score, 
+                status, 
+                report_json as report,
+                TO_CHAR(created_at, 'DD/MM/YYYY') as date,
+                created_at
+            FROM quotes 
+            WHERE user_id = ${String(userId)} 
+            ORDER BY created_at DESC
+        `;
+
+        res.json(quotes);
+    } catch (e: any) {
+        console.error('[/my-quotes GET] Error:', e.message);
+        res.status(500).json({ error: e.message || 'Erreur récupération devis' });
+    }
+});
+
+// Enregistrer un devis scanné pour l'utilisateur connecté
+router.post('/my-quotes', authenticateUser, async (req: AuthRequest, res: express.Response) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Non authentifié' });
+
+        const { project, client, amount, score, status, report } = req.body;
+        const totalHt = report?.total_ht || parseFloat(String(amount || '').replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+
+        const inserted = await sql`
+            INSERT INTO quotes (
+                user_id, 
+                project_name, 
+                client_nom, 
+                amount, 
+                total_ht, 
+                score, 
+                status, 
+                report_json
+            )
+            VALUES (
+                ${String(userId)}, 
+                ${project || 'Nouveau devis'}, 
+                ${client || 'Client'}, 
+                ${amount || `${totalHt} € HT`}, 
+                ${totalHt}, 
+                ${score || 80}, 
+                ${status || 'Analysé'}, 
+                ${JSON.stringify(report || {})}
+            )
+            RETURNING 
+                id, 
+                project_name as project, 
+                client_nom as client, 
+                amount, 
+                total_ht, 
+                score, 
+                status, 
+                report_json as report,
+                TO_CHAR(created_at, 'DD/MM/YYYY') as date,
+                created_at
+        `;
+
+        res.json(inserted[0]);
+    } catch (e: any) {
+        console.error('[/my-quotes POST] Error:', e.message);
+        res.status(500).json({ error: e.message || 'Erreur sauvegarde devis' });
+    }
+});
+
 export default router;
