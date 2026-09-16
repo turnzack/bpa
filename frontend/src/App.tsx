@@ -606,6 +606,8 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
   const [isPaid, setIsPaid] = useState<boolean>(false);
   const [payingStripe, setPayingStripe] = useState<boolean>(false);
   const [paymentNotice, setPaymentNotice] = useState<string>("");
+  const [rawText, setRawText] = useState<string>("");
+  const [showRawText, setShowRawText] = useState<boolean>(false);
 
   const handleFile = (f: File) => {
     if (!f) return;
@@ -614,6 +616,8 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
     setIsPaid(false);
     setError("");
     setPaymentNotice("");
+    setRawText("");
+    setShowRawText(false);
     setScanId(`scan_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
   };
 
@@ -757,6 +761,7 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
         }
       }
       setResult(parsedResult);
+      if (data.raw_text) setRawText(data.raw_text);
 
       // Vérifier si le scan a déjà été payé dans Neon
       try {
@@ -945,17 +950,55 @@ function ScanView({ onInvoiceAnalyzed, user, onGoToDashboard }: { onInvoiceAnaly
               </div>
             </div>
 
-            {onGoToDashboard && (
-              <button onClick={onGoToDashboard} style={{
-                padding: "8px 16px", borderRadius: "10px",
-                background: "rgba(99,102,241,0.2)", border: `1px solid ${colors.accent}`,
-                color: colors.accent, fontWeight: 700, fontSize: "13px", cursor: "pointer",
-                display: "inline-flex", alignItems: "center", gap: "8px"
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              <button onClick={() => window.print()} style={{
+                padding: "10px 18px", borderRadius: "10px",
+                background: "linear-gradient(135deg, #3b82f6, #6366f1)", border: "none",
+                color: "white", fontWeight: 700, fontSize: "13px", cursor: "pointer",
+                display: "inline-flex", alignItems: "center", gap: "8px",
+                boxShadow: "0 4px 15px rgba(99,102,241,0.35)"
               }}>
-                ← Voir dans le tableau de bord
+                🖨️ Imprimer / Exporter l'expertise officielle
               </button>
-            )}
+
+              {onGoToDashboard && (
+                <button onClick={onGoToDashboard} style={{
+                  padding: "10px 16px", borderRadius: "10px",
+                  background: "rgba(99,102,241,0.2)", border: `1px solid ${colors.accent}`,
+                  color: colors.accent, fontWeight: 700, fontSize: "13px", cursor: "pointer",
+                  display: "inline-flex", alignItems: "center", gap: "8px"
+                }}>
+                  ← Voir dans le tableau de bord
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Inspecteur de texte extrait du PDF */}
+          {rawText && (
+            <div style={{ marginBottom: "20px" }}>
+              <button
+                onClick={() => setShowRawText(!showRawText)}
+                style={{
+                  background: "rgba(255,255,255,0.04)", border: `1px solid ${colors.border}`,
+                  padding: "8px 14px", borderRadius: "8px", color: colors.textMuted,
+                  fontSize: "12px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px"
+                }}
+              >
+                <span>{showRawText ? "▼" : "▶"}</span>
+                <span>📄 {showRawText ? "Masquer le texte brut extrait du PDF" : "Voir le texte brut extrait du document (" + rawText.length + " caractères)"}</span>
+              </button>
+              {showRawText && (
+                <pre style={{
+                  marginTop: "10px", padding: "16px", borderRadius: "10px",
+                  background: "rgba(0,0,0,0.4)", border: `1px solid ${colors.border}`,
+                  color: "#a5b4fc", fontSize: "12px", whiteSpace: "pre-wrap", maxHeight: "300px", overflowY: "auto"
+                }}>
+                  {rawText}
+                </pre>
+              )}
+            </div>
+          )}
 
           <AnalyseResult data={result} />
         </>

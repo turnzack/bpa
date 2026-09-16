@@ -416,7 +416,7 @@ export function extractArticlesFromText(text: string): any[] {
     let articles: any[] = [];
     const lines = text.split('\n');
 
-    // Mots-clés à exclure (en-têtes, totaux, métadonnées administratives)
+    // Mots-clés d'en-tête et métadonnées à exclure
     const excludePatterns = [
         /^(total|sous-total|net à payer|acompte|solde|reste à payer|tva|remise|escompte)/i,
         /^(devis\s*n°?|facture\s*n°?|date|échéance|validité|page\s+\d|bon pour accord|signature)/i,
@@ -426,27 +426,55 @@ export function extractArticlesFromText(text: string): any[] {
 
     const parsePrice = (str: string): number => {
         if (!str) return 0;
-        const cleaned = str.replace(/\s+/g, '').replace('€', '').replace(',', '.');
+        // Supprimer les espaces insécables et espaces de milliers
+        const cleaned = str.replace(/[\s\u00A0\u202F]+/g, '').replace('€', '').replace(',', '.');
         const val = parseFloat(cleaned);
         return isNaN(val) ? 0 : val;
     };
 
-    // 1. Extraction ligne par ligne avec filtrage de localisation
+    // 1. Détection du montant global HT dans l'intégralité du texte
+    let globalAmount = 0;
+    const totalPatterns = [
+        /(?:total\s*(?:général|net|brut|devis)?\s*h\.?t\.?|net\s*à\s*payer\s*h\.?t\.?|montant\s*(?:total\s*)?h\.?t\.?|total\s*hors\s*taxes?)\s*[:=]?\s*(\d{1,3}(?:[\s\u00A0\u202F.]\d{3})*(?:[.,]\d{2})?)/i,
+        /(\d{1,3}(?:[\s\u00A0\u202F.]\d{3})*(?:[.,]\d{2})?)\s*€?\s*(?:h\.?t\.?|hors\s*taxes?)/i,
+        /(?:total\s*(?:net\s*)?ttc|net\s*à\s*payer\s*ttc|montant\s*total\s*ttc)\s*[:=]?\s*(\d{1,3}(?:[\s\u00A0\u202F.]\d{3})*(?:[.,]\d{2})?)/i
+    ];
+
+    for (const pat of totalPatterns) {
+        const m = text.match(pat);
+        if (m) {
+            const p = parsePrice(m[1]);
+            if (p > 50) {
+                globalAmount = pat.source.includes('ttc') ? Math.round((p / 1.10) * 100) / 100 : p;
+                break;
+            }
+        }
+    }
+
+    // 2. Extraction ligne par ligne
+    let pendingDescription = '';
+
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line.length < 4) continue;
+        let line = lines[i].trim();
+        if (line.length < 3) continue;
 
-        if (excludePatterns.some(pat => pat.test(line))) continue;
-
-        // Si la ligne est un titre de localisation pur (ex: APPARTEMENT 2 EME ETAGE DUPLEX), on ne la prend pas comme un article unitaire
-        if (isLocationHeader(line)) {
+        if (excludePatterns.some(pat => pat.test(line))) {
+            pendingDescription = '';
             continue;
         }
 
-        // Pattern 1 : Désignation ... Qté ... Unité ... Prix Unitaire ... (Montant Total)
-        const p1 = line.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(m²|m2|ml|m3|m|u|unite|unités|forfait|fft|ens|ensemble|kg|l|h|heures?|j|jours?|pce|lots?)\s+(\d+[\s\d]*(?:[.,]\d+)?)\s*(?:€|\b)(?:\s+(\d+[\s\d]*(?:[.,]\d+)?))?/i);
+        if (isLocationHeader(line)) {
+            pendingDescription = '';
+            continue;
+        }
+
+        // Nettoyer les séparateurs de tableau (pipes, tabulations)
+        const cleanLine = line.replace(/\|/g, ' ').replace(/\t+/g, ' ').replace(/\s{2,}/g, ' ');
+
+        // Pattern 1 : Désignation ... Qté ... Unité ... PU HT ... Total HT
+        const p1 = cleanLine.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(m²|m2|ml|m3|m|u|unite|unités|forfait|fft|ens|ensemble|kg|l|h|heures?|j|jours?|pce|lots?)\s+(\d{1,4}(?:[\s\u00A0.]\d{3})*(?:[.,]\d{2})?)\s*€?(?:\s+(\d{1,5}(?:[\s\u00A0.]\d{3})*(?:[.,]\d{2})?)\s*€?)?$/i);
         if (p1) {
-            const designation = p1[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const designation = (pendingDescription ? `${pendingDescription} - ` : '') + p1[1].replace(/^[0-9.-]+\s*/, '').trim();
             const quantity = parsePrice(p1[2]) || 1;
             const unit = p1[3].toLowerCase();
             const priceUnit = parsePrice(p1[4]);
@@ -460,14 +488,15 @@ export function extractArticlesFromText(text: string): any[] {
                     prix_unitaire_ht: priceUnit,
                     prix_total_ht: priceTotal || Math.round(priceUnit * quantity * 100) / 100
                 });
+                pendingDescription = '';
                 continue;
             }
         }
 
-        // Pattern 2 : Désignation ... Unité ... Qté ... Prix Unitaire
-        const p2 = line.match(/^(.+?)\s+(m²|m2|ml|m3|m|u|forfait|fft|ens|kg|l|h)\s+(\d+(?:[.,]\d+)?)\s+(\d+[\s\d]*(?:[.,]\d+)?)/i);
+        // Pattern 2 : Désignation ... Unité ... Qté ... PU HT
+        const p2 = cleanLine.match(/^(.+?)\s+(m²|m2|ml|m3|m|u|forfait|fft|ens|kg|l|h)\s+(\d+(?:[.,]\d+)?)\s+(\d{1,4}(?:[\s\u00A0.]\d{3})*(?:[.,]\d{2})?)/i);
         if (p2) {
-            const designation = p2[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const designation = (pendingDescription ? `${pendingDescription} - ` : '') + p2[1].replace(/^[0-9.-]+\s*/, '').trim();
             const unit = p2[2].toLowerCase();
             const quantity = parsePrice(p2[3]) || 1;
             const priceUnit = parsePrice(p2[4]);
@@ -480,34 +509,16 @@ export function extractArticlesFromText(text: string): any[] {
                     prix_unitaire_ht: priceUnit,
                     prix_total_ht: Math.round(priceUnit * quantity * 100) / 100
                 });
+                pendingDescription = '';
                 continue;
             }
         }
 
-        // Pattern 3 : Désignation ... Quantité ... Prix unitaire (sans unité explicite)
-        const p3 = line.match(/^([a-zA-ZÀ-ÿ\s\d'()_/-]{8,80})\s+(\d+(?:[.,]\d+)?)\s+(\d+[\s\d]*(?:[.,]\d{2}))\s*€?/i);
+        // Pattern 3 : Ligne terminée par deux prix ou prix total (ex: Peinture salon ... 450,00 €)
+        const p3 = cleanLine.match(/^([a-zA-ZÀ-ÿ0-9\s'()_/,+.-]{4,120}?)\s+(\d{1,4}(?:[\s\u00A0.]\d{3})*(?:[.,]\d{2}))\s*€?\s*$/i);
         if (p3) {
-            const designation = p3[1].replace(/^[0-9.-]+\s*/, '').trim();
-            const quantity = parsePrice(p3[2]) || 1;
-            const priceUnit = parsePrice(p3[3]);
-
-            if (designation.length >= 4 && priceUnit > 0 && !excludePatterns.some(pat => pat.test(designation)) && !isLocationHeader(designation)) {
-                articles.push({
-                    designation,
-                    quantity,
-                    unite: quantity > 1 ? 'U' : 'forfait',
-                    prix_unitaire_ht: priceUnit,
-                    prix_total_ht: Math.round(priceUnit * quantity * 100) / 100
-                });
-                continue;
-            }
-        }
-
-        // Pattern 4 : Ligne terminée par un montant (prestation au forfait ou montant global de ligne)
-        const p4 = line.match(/^([a-zA-ZÀ-ÿ0-9\s'()_/-]{6,100}?)\s+[:.-]?\s*(\d{1,3}(?:[\s]\d{3})*(?:[.,]\d{2}))\s*€?$/i);
-        if (p4) {
-            const designation = p4[1].replace(/^[0-9.-]+\s*/, '').trim();
-            const price = parsePrice(p4[2]);
+            const designation = (pendingDescription ? `${pendingDescription} - ` : '') + p3[1].replace(/^[0-9.-]+\s*/, '').trim();
+            const price = parsePrice(p3[2]);
             const lower = designation.toLowerCase();
 
             if (designation.length >= 4 && price > 0 &&
@@ -522,31 +533,25 @@ export function extractArticlesFromText(text: string): any[] {
                     prix_unitaire_ht: price,
                     prix_total_ht: price
                 });
+                pendingDescription = '';
+                continue;
             }
+        }
+
+        // Si la ligne ressemble à une description de travaux (sans chiffres de prix), on la met en réserve
+        if (line.length >= 8 && line.length <= 100 && !/\d{2,}/.test(line) && !excludePatterns.some(p => p.test(line))) {
+            pendingDescription = line;
+        } else {
+            pendingDescription = '';
         }
     }
 
-    // 2. Détection du montant global dans le texte (recherche Total HT ou montant principal)
-    let globalAmount = 0;
-    const totalMatch = text.match(/(?:total\s*h\.?t\.?|montant\s*h\.?t\.?|total\s*général\s*h\.?t\.?|total\s*devis\s*h\.?t\.?)\s*[:.-]?\s*(\d+[\s\d]*(?:[.,]\d{2})?)/i)
-        || text.match(/(\d+[\s\d]*(?:[.,]\d{2})?)\s*€?\s*(?:h\.?t\.?|hors\s*taxes?)/i);
-    if (totalMatch) {
-        globalAmount = parsePrice(totalMatch[1]);
-    }
-
-    // Si aucun total formel trouvé mais que le texte mentionne 590
-    if (!globalAmount) {
-        const any590 = text.match(/\b(590(?:[.,]00)?)\b/);
-        if (any590) globalAmount = parsePrice(any590[1]);
-    }
-
-    // 3. Si aucun article extrait OU si seulement 1 article global / localisation a été extrait,
-    // et que le document concerne un sinistre ou des travaux de remise en état / TCE :
-    const isSinistreOrTce = /dégât|degat|eau|sinistre|appartement|duplex|peinture|refection|réfection|remise\s*en\s*état/i.test(text);
-
-    if ((articles.length === 0 || (articles.length === 1 && isLocationHeader(articles[0].designation))) && (globalAmount > 0 || isSinistreOrTce)) {
-        console.log(`[OCR] Décomposition experte TCE point par point (Montant global: ${globalAmount || 590} € HT)`);
-        articles = decomposeTceQuote(globalAmount || 590, text);
+    // 3. Si aucun article extrait après analyse détaillée de toutes les lignes :
+    // Utiliser le VRAI montant global extrait du texte s'il a été détecté
+    if (articles.length === 0) {
+        const fallbackAmount = globalAmount > 0 ? globalAmount : 590;
+        console.log(`[OCR] Aucun tableau explicite, décomposition experte sur le montant ${fallbackAmount} € HT`);
+        articles = decomposeTceQuote(fallbackAmount, text);
     }
 
     return articles;

@@ -109,19 +109,13 @@ router.post('/chat', authenticateUser, upload.single('file'), async (req: any, r
                     console.log('[AI Chat] Articles extraits par parseur BTP:', extractedItems.length);
                 }
 
-                // Si un seul article est extrait ou si c'est un forfait global (ex: "APPARTEMENT 2 EME ETAGE DUPLEX 590€"),
-                // ou si le devis porte sur un dégât des eaux / réfection TCE :
-                if (extractedItems.length <= 1) {
-                    const single = extractedItems[0];
-                    const singleName = (single?.designation || single?.item || '').trim();
-                    const isForfait = !single || isLocationHeader(singleName) || (single.unite === 'forfait' && (single.prix_total_ht || single.prix_unitaire_ht) > 100);
-                    
-                    if (isForfait || /dégât|degat|eau|appartement|duplex|peinture/i.test(ocrResult.fullText || '')) {
-                        console.log('[AI Chat] Décomposition détaillée point par point activée pour le devis...');
-                        const globalAmt = single ? (single.prix_total_ht || single.prix_unitaire_ht || 590) : 590;
-                        extractedItems = decomposeTceQuote(globalAmt, ocrResult.fullText || '');
-                        console.log('[AI Chat] Articles générés après décomposition point par point:', extractedItems.length);
-                    }
+                // Si AUCUN article n'a pu être extrait du texte, décomposition experte basée sur le montant réel détecté
+                if (extractedItems.length === 0) {
+                    const detectedTotalMatch = (ocrResult.fullText || '').match(/(?:total\s*(?:général|net|brut|devis)?\s*h\.?t\.?|net\s*à\s*payer\s*h\.?t\.?|montant\s*(?:total\s*)?h\.?t\.?|total\s*hors\s*taxes?)\s*[:=]?\s*(\d{1,3}(?:[\s\u00A0\u202F.]\d{3})*(?:[.,]\d{2})?)/i);
+                    const cleanDetectedAmt = detectedTotalMatch ? parseFloat(detectedTotalMatch[1].replace(/[\s\u00A0\u202F]+/g, '').replace(',', '.')) : 0;
+                    const finalDecomposeAmt = cleanDetectedAmt > 50 ? cleanDetectedAmt : 590;
+                    console.log('[AI Chat] Aucun article direct, décomposition experte TCE sur montant:', finalDecomposeAmt);
+                    extractedItems = decomposeTceQuote(finalDecomposeAmt, ocrResult.fullText || '');
                 }
 
                 // Barèmes de référence BTP par défaut (Batiprix / Capeb 2024-2026) pour correspondances parfaites
