@@ -122,40 +122,6 @@ function getOrGenerateInvoiceReport(inv: Invoice): any {
 }
 
 // ============================================================
-// DONNÉES RÉELLES INITIALES DE L'UTILISATEUR (TCE / BPA)
-// ============================================================
-const DEFAULT_REAL_PROJECTS: Project[] = [
-  { id: 1, name: "Grenoble travaux fin chantier rén", docs: 1, lastSync: "À l'instant", color: "#f59e0b" },
-  { id: 2, name: "Sinistre Dégât des Eaux — Duplex", docs: 1, lastSync: "Aujourd'hui", color: "#22c55e" },
-];
-
-const DEFAULT_REAL_CLIENTS: Client[] = [
-  { id: 1, name: "Rénovation Grenoble (Chantier)", email: "tce.reponse@gmail.com", company: "Grenoble Rénovation TCE", status: "Actif", total: "905 € HT" },
-  { id: 2, name: "Sinistre Duplex (Assurance)", email: "tce.reponse@gmail.com", company: "Appartement 2ème Étage", status: "Actif", total: "590 € HT" },
-];
-
-const DEFAULT_REAL_INVOICES: Invoice[] = [
-  { 
-    id: "DEV-002", 
-    project: "Grenoble travaux fin chantier rén", 
-    client: "Rénovation Grenoble (Chantier)", 
-    amount: "905 € HT", 
-    status: "Analysé", 
-    date: new Date().toLocaleDateString("fr-FR"), 
-    score: 60 
-  },
-  { 
-    id: "DEV-001", 
-    project: "Sinistre Dégât des Eaux — Duplex", 
-    client: "Sinistre Duplex (Assurance)", 
-    amount: "590 € HT", 
-    status: "Analysé", 
-    date: new Date().toLocaleDateString("fr-FR"), 
-    score: 95 
-  },
-];
-
-// ============================================================
 // STYLES (CSS-in-JS)
 // ============================================================
 const colors = {
@@ -232,6 +198,14 @@ export default function App({ user, onLogout }: AppProps) {
 
   // Synchronisation des devis depuis Neon PostgreSQL pour l'utilisateur connecté
   useEffect(() => {
+    // 1. Nettoyer impérativement les anciennes clés globales partagées (qui contaminaient les comptes)
+    try {
+      localStorage.removeItem("bpa_user_invoices");
+      localStorage.removeItem("bpa_user_projects");
+      localStorage.removeItem("bpa_user_clients");
+    } catch (e) {}
+
+    // 2. Si l'utilisateur est déconnecté -> état vide
     if (!user) {
       setInvoices([]);
       setProjects([]);
@@ -239,6 +213,34 @@ export default function App({ user, onLogout }: AppProps) {
       return;
     }
 
+    // 3. Charger STRICTEMENT les devis du compte connecté depuis sa clé dédiée
+    try {
+      const saved = localStorage.getItem(userKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setInvoices(Array.isArray(parsed) ? parsed : []);
+      } else {
+        setInvoices([]);
+      }
+    } catch (e) {
+      setInvoices([]);
+    }
+
+    try {
+      const savedProj = localStorage.getItem(userProjKey);
+      setProjects(savedProj ? JSON.parse(savedProj) : []);
+    } catch (e) {
+      setProjects([]);
+    }
+
+    try {
+      const savedCli = localStorage.getItem(userClientKey);
+      setClients(savedCli ? JSON.parse(savedCli) : []);
+    } catch (e) {
+      setClients([]);
+    }
+
+    // 4. Synchroniser avec Neon PostgreSQL
     const token = localStorage.getItem("kirov5_jwt_token");
     if (!token) return;
 
@@ -282,7 +284,7 @@ export default function App({ user, onLogout }: AppProps) {
         }
       })
       .catch(err => console.warn("[Neon Sync] Erreur:", err));
-  }, [user?.userId, user?.email]);
+  }, [userKey, user?.userId, user?.email]);
 
   // Callback appelé dès qu'un nouveau devis est scanné
   const handleInvoiceAnalyzed = (newInv: Invoice, newProj?: Project) => {
@@ -395,9 +397,9 @@ export default function App({ user, onLogout }: AppProps) {
   ];
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: colors.bg, fontFamily: "'Inter', 'Segoe UI', sans-serif", color: colors.text, overflow: "hidden" }}>
+    <div className="app-root-container" style={{ display: "flex", height: "100vh", background: colors.bg, fontFamily: "'Inter', 'Segoe UI', sans-serif", color: colors.text, overflow: "hidden" }}>
       {/* SIDEBAR */}
-      <aside style={{
+      <aside className="no-print" style={{
         width: sidebarCollapsed ? "64px" : "240px",
         background: colors.sidebar,
         borderRight: `1px solid ${colors.border}`,
@@ -475,7 +477,7 @@ export default function App({ user, onLogout }: AppProps) {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
+      <main className="app-main-container" style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column" }}>
         {paymentToast && (
           <div style={{
             margin: "16px 32px 0", padding: "14px 20px", borderRadius: "12px",
